@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+
+<html data-theme="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" name="viewport"/>
 <title>Chat App</title>
 <style>
 :root {
@@ -35,7 +35,7 @@
   --radius-lg: 18px;
   --radius-md: 12px;
   --radius-full: 9999px;
-  --anim-speed: 0.28s;
+  --anim-speed: 0.22s;
   box-sizing: border-box;
 }
 
@@ -67,7 +67,14 @@
   --scrim-bg: rgba(0, 0, 0, 0.7);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+  -webkit-tap-highlight-color: transparent; 
+  touch-action: manipulation;
+}
+
 html, body {
   height: 100%;
   height: 100dvh;
@@ -81,8 +88,81 @@ html, body {
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
 }
-button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; outline: 0; }
-svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+button { 
+  font: inherit; 
+  color: inherit; 
+  background: none; 
+  border: 0; 
+  cursor: pointer; 
+  outline: 0; 
+  touch-action: manipulation;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+button:active {
+  transform: scale(0.97);
+}
+
+svg { 
+  width: 1.15em; 
+  height: 1.15em; 
+  fill: none; 
+  stroke: currentColor; 
+  stroke-width: 2; 
+  stroke-linecap: round; 
+  stroke-linejoin: round; 
+  flex: none; 
+}
+
+/* ==========================================================================
+   POINT 1: UNIVERSAL DP & CIRCULAR FIT RULES
+   ========================================================================== */
+.header-profile-btn,
+.chat-card-avatar,
+.chat-header-avatar,
+.msg-avatar,
+#subviewProfileAvatar,
+#modalContactAvatar,
+.mention-item .chat-card-avatar {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
+  flex-shrink: 0 !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
+  display: grid !important;
+  place-items: center;
+}
+
+.header-profile-btn img,
+.chat-card-avatar img,
+.chat-header-avatar img,
+.msg-avatar img,
+#subviewProfileAvatar img,
+#modalContactAvatar img,
+.mention-item img,
+.avatar-img-circle {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  display: block !important;
+  aspect-ratio: 1 / 1 !important;
+}
+
+.header-profile-btn .av,
+.chat-card-avatar .av,
+.chat-header-avatar .av,
+.msg-avatar .av,
+#subviewProfileAvatar .av,
+#modalContactAvatar .av {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  aspect-ratio: 1 / 1 !important;
+}
 
 /* Mobile Outer Shell Container */
 .device-wrapper {
@@ -97,6 +177,9 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   flex-direction: column;
   overflow: hidden;
   contain: layout size style;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 /* Master Screens Stack (Smooth 60fps GPU transforms) */
@@ -107,7 +190,9 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   flex-direction: column;
   background: var(--app-bg);
   will-change: transform, opacity;
-  transition: transform var(--anim-speed) cubic-bezier(0.25, 1, 0.3, 1), opacity var(--anim-speed) ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition: transform var(--anim-speed) cubic-bezier(0.16, 1, 0.3, 1), opacity var(--anim-speed) cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 10;
   overflow: hidden;
 }
@@ -149,13 +234,15 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .brand-logo-icon {
   width: 38px;
   height: 38px;
-  border-radius: 50%;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
   background: #1d72fe;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.35);
+  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.22);
 }
 .brand-logo-icon svg { width: 22px; height: 22px; stroke-width: 2.2; }
 .brand-title {
@@ -180,11 +267,11 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   place-items: center;
   color: var(--text-muted);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.15s ease;
   position: relative;
 }
 .action-btn-circle:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
   background: var(--card-hover);
 }
 .action-btn-circle.unread-dot:after {
@@ -201,8 +288,9 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .header-profile-btn {
   width: 38px;
   height: 38px;
-  border-radius: 50%;
-  overflow: hidden;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
   border: 2px solid var(--primary-blue);
   padding: 1px;
   background: var(--card-bg);
@@ -213,10 +301,10 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   flex: none;
 }
 .header-profile-btn img, .header-profile-btn .av {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -275,7 +363,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   pointer-events: auto;
 }
 
-/* Quick Categories & Tabs (Rooms vs Directs) */
+/* Quick Categories & Tabs */
 .inbox-tab-bar {
   display: flex;
   align-items: center;
@@ -309,7 +397,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   height: 2.5px;
   background: var(--primary-blue);
   border-radius: 2px;
-  transition: transform 0.25s cubic-bezier(0.25, 1, 0.3, 1);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .tab-badge {
   display: inline-block;
@@ -325,7 +413,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   padding: 0 5px;
 }
 
-/* Roster Views (Rooms and Directs sliding container) */
+/* Panes container */
 .panes-wrapper {
   position: relative;
   overflow: hidden;
@@ -334,7 +422,8 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .panes-track {
   display: flex;
   width: 200%;
-  transition: transform 0.25s cubic-bezier(0.25, 1, 0.3, 1);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 .pane-col {
   width: 50%;
@@ -352,30 +441,24 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border: 1px solid var(--border-subtle);
   margin-bottom: 10px;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1), background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
   text-align: left;
   width: 100%;
   position: relative;
 }
 
-/* Point 5: Fix boxy blue glow to a smooth, scattered radial diffuse light */
+/* POINT 2: Soft ambient scattered blur with NO harsh boxy glow */
 .chat-card.highlighted-blue {
   background: linear-gradient(135deg, #1d72fe 0%, #2563eb 100%);
-  border-color: rgba(96, 165, 250, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
-  box-shadow: 
-    0 10px 24px -4px rgba(29, 114, 254, 0.38),
-    0 18px 36px -8px rgba(37, 99, 235, 0.25),
-    0 0 20px 2px rgba(59, 130, 246, 0.22);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.18), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 :root[data-theme="dark"] .chat-card.highlighted-blue {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  border-color: rgba(96, 165, 250, 0.3);
-  box-shadow: 
-    0 10px 28px -4px rgba(37, 99, 235, 0.45),
-    0 20px 42px -8px rgba(29, 78, 216, 0.3),
-    0 0 24px 2px rgba(59, 130, 246, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.16), 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 .chat-card.highlighted-blue .chat-card-name { color: #ffffff; }
 .chat-card.highlighted-blue .chat-card-preview { color: rgba(255, 255, 255, 0.88); }
@@ -388,8 +471,9 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .chat-card-avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  overflow: hidden;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
   flex: none;
   background: #cbd5e1;
   display: grid;
@@ -399,7 +483,12 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   color: #ffffff;
   position: relative;
 }
-.chat-card-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.chat-card-avatar img { 
+  width: 100% !important; 
+  height: 100% !important; 
+  object-fit: cover !important; 
+  border-radius: 50% !important; 
+}
 
 .chat-card-body {
   flex: 1;
@@ -444,7 +533,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border-radius: var(--radius-lg);
   margin-bottom: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
   width: 100%;
   text-align: left;
 }
@@ -458,12 +547,14 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .ai-companion-icon {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
   background: var(--primary-blue);
   color: #fff;
   display: grid;
   place-items: center;
-  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.35);
+  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.22);
   flex: none;
 }
 
@@ -503,10 +594,10 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   background: var(--card-bg);
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-sm);
-  transition: transform 0.15s ease;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .chat-back-btn:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
 }
 .chat-contact-info {
   display: flex;
@@ -519,8 +610,9 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .chat-header-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
   background: #cbd5e1;
   display: grid;
   place-items: center;
@@ -529,7 +621,12 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   color: #fff;
   flex: none;
 }
-.chat-header-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.chat-header-avatar img { 
+  width: 100% !important; 
+  height: 100% !important; 
+  object-fit: cover !important; 
+  border-radius: 50% !important; 
+}
 .chat-header-meta {
   flex: 1;
   min-width: 0;
@@ -552,7 +649,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   text-overflow: ellipsis;
 }
 
-/* Messages Stream Area (Point 6: Starts from bottom naturally) */
+/* Messages Stream Area */
 .messages-container {
   flex: 1;
   overflow-y: auto;
@@ -586,18 +683,18 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   box-shadow: var(--shadow-sm);
 }
 
-/* Chat message row with 60fps hardware accelerated pop-in */
+/* Chat message row */
 .chat-message-row {
   display: flex;
   gap: 10px;
   margin-bottom: 12px;
-  animation: messageSmoothIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: messageSmoothIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
   align-items: flex-end;
   width: 100%;
 }
 @keyframes messageSmoothIn {
-  0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.96); }
+  0% { opacity: 0; transform: translate3d(0, 8px, 0) scale(0.98); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 .chat-message-row.is-mine {
@@ -607,8 +704,9 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .msg-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  overflow: hidden;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
   flex: none;
   background: #cbd5e1;
   display: grid;
@@ -618,9 +716,13 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   color: #fff;
   margin-bottom: 2px;
 }
-.msg-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.msg-avatar img { 
+  width: 100% !important; 
+  height: 100% !important; 
+  object-fit: cover !important; 
+  border-radius: 50% !important; 
+}
 
-/* Point 1 Fix: Align items flex-start for incoming so short words like "Boom" fit snugly to content width without huge empty box */
 .msg-bubble-wrap {
   max-width: 78%;
   display: flex;
@@ -638,7 +740,6 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   padding: 0 4px;
 }
 
-/* Point 1 Fix: inline-block with fit-content width prevents empty box stretching */
 .msg-bubble {
   display: inline-block;
   width: fit-content;
@@ -750,22 +851,23 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   display: grid;
   place-items: center;
   color: var(--text-muted);
-  transition: transform 0.15s ease;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
   flex: none;
 }
-.composer-btn:active { transform: scale(0.9); }
+.composer-btn:active { transform: scale(0.95); }
+
+/* Point 2: Softened send button glow */
 .send-action-btn {
   background: #cbd5e1;
   color: #fff;
-  transition: background 0.2s, transform 0.2s;
+  transition: background 0.2s, transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .send-action-btn.can-send {
   background: var(--primary-blue);
-  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.4);
-  transform: scale(1.04);
+  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.25);
 }
 .send-action-btn.can-send:active {
-  transform: scale(0.94);
+  transform: scale(0.95);
 }
 
 /* Mentions popup autocomplete */
@@ -780,7 +882,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   box-shadow: var(--shadow-md);
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.25s ease;
+  transition: max-height 0.2s ease;
   z-index: 40;
 }
 .mentions-box.open {
@@ -804,8 +906,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 }
 
 /* ==========================================================================
-   AUTHENTICATION VIEW (MODAL OVERLAY)
-   Point 3: Name & unique Username inputs during account creation
+   AUTHENTICATION VIEW
    ========================================================================== */
 #authScreen {
   position: absolute;
@@ -816,11 +917,12 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   flex-direction: column;
   justify-content: center;
   padding: 24px;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity 0.22s ease, visibility 0.22s ease;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   overflow-y: auto;
+  transform: translateZ(0);
 }
 #authScreen.active {
   opacity: 1;
@@ -841,13 +943,15 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .auth-brand-badge {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 / 1 !important;
   background: var(--primary-blue);
   color: #fff;
   display: grid;
   place-items: center;
   margin: 0 auto 14px;
-  box-shadow: 0 8px 20px rgba(29, 114, 254, 0.35);
+  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.22);
 }
 .auth-brand-badge svg { width: 28px; height: 28px; }
 .auth-card h2 {
@@ -895,8 +999,8 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 6px 18px rgba(29, 114, 254, 0.35);
-  transition: transform 0.15s, filter 0.2s;
+  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.22);
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s;
 }
 .auth-btn-primary:active {
   transform: scale(0.97);
@@ -923,7 +1027,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   -webkit-backdrop-filter: blur(4px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.22s ease;
   z-index: 60;
 }
 .backdrop-scrim.active {
@@ -942,13 +1046,15 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border-left: 1px solid var(--border-subtle);
   box-shadow: -12px 0 36px rgba(0, 0, 0, 0.25);
   z-index: 70;
-  transform: translateX(105%);
-  transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+  transform: translate3d(105%, 0, 0);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
   display: flex;
   flex-direction: column;
 }
 .settings-drawer.active {
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
 }
 
 .drawer-header {
@@ -1042,7 +1148,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border-radius: 13px;
   background: #cbd5e1;
   position: relative;
-  transition: background 0.25s ease;
+  transition: background 0.22s ease;
   flex: none;
 }
 .toggle-switch:after {
@@ -1055,7 +1161,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border-radius: 50%;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .toggle-switch.on {
   background: var(--primary-blue);
@@ -1114,6 +1220,10 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   color: #fff;
   cursor: pointer;
   border: 0;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.profile-pill-btn:active {
+  transform: scale(0.97);
 }
 .profile-pill-btn.danger {
   background: #ef4444;
@@ -1135,14 +1245,16 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border-top: 1px solid var(--border-subtle);
   box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.2);
   z-index: 80;
-  transform: translateY(105%);
-  transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+  transform: translate3d(0, 105%, 0);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
   padding: 16px 20px 32px;
   max-height: 85%;
   overflow-y: auto;
 }
 .user-sheet-modal.active {
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0);
 }
 .modal-drag-pill {
   width: 40px;
@@ -1178,318 +1290,280 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 </style>
 </head>
 <body>
-
 <div class="device-wrapper" id="appShell">
-
-  <!-- ==========================================
+<!-- ==========================================
        AUTHENTICATION OVERLAY
        ========================================== -->
-  <div id="authScreen">
-    <div class="auth-card">
-      <div class="auth-brand-badge">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      </div>
-      <h2 id="authHeading">Chat App</h2>
-      <p class="auth-sub" id="authSub">Sign in to continue to your messages</p>
-      
-      <div class="auth-input-group">
-        <!-- Point 3: Name & Username fields during account creation -->
-        <input class="auth-field" id="authDisplayName" type="text" placeholder="Full Name (Display Name)" autocomplete="name" style="display:none">
-        <input class="auth-field" id="authUsername" type="text" placeholder="Username (e.g. poly_unit)" autocomplete="username" style="display:none" maxlength="20">
-        
-        <input class="auth-field" id="authEmail" type="email" placeholder="Email address" autocomplete="email">
-        <input class="auth-field" id="authPassword" type="password" placeholder="Password (6+ chars)" autocomplete="current-password">
-      </div>
-
-      <div class="auth-msg-err" id="authError"></div>
-      <div class="auth-msg-ok" id="authInfo"></div>
-
-      <button class="auth-btn-primary" id="btnAuthSubmit">
-        <span id="authSubmitText">Sign in</span>
-        <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-
-      <button class="auth-toggle-link" id="btnToggleAuthMode">New here? Create account</button>
-      <button class="auth-toggle-link" id="btnResendVerification" style="display:none;margin-top:6px">Resend verification email</button>
-    </div>
-  </div>
-
-  <!-- ==========================================
+<div id="authScreen">
+<div class="auth-card">
+<div class="auth-brand-badge">
+<svg viewbox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+</div>
+<h2 id="authHeading">Chat App</h2>
+<p class="auth-sub" id="authSub">Sign in to continue to your messages</p>
+<div class="auth-input-group">
+<input autocomplete="name" class="auth-field" id="authDisplayName" placeholder="Full Name (Display Name)" style="display:none" type="text"/>
+<input autocomplete="username" class="auth-field" id="authUsername" maxlength="20" placeholder="Username (e.g. poly_unit)" style="display:none" type="text"/>
+<input autocomplete="email" class="auth-field" id="authEmail" placeholder="Email address" type="email"/>
+<input autocomplete="current-password" class="auth-field" id="authPassword" placeholder="Password (6+ chars)" type="password"/>
+</div>
+<div class="auth-msg-err" id="authError"></div>
+<div class="auth-msg-ok" id="authInfo"></div>
+<button class="auth-btn-primary" id="btnAuthSubmit">
+<span id="authSubmitText">Sign in</span>
+<svg viewbox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+</button>
+<button class="auth-toggle-link" id="btnToggleAuthMode">New here? Create account</button>
+<button class="auth-toggle-link" id="btnResendVerification" style="display:none;margin-top:6px">Resend verification email</button>
+</div>
+</div>
+<!-- ==========================================
        INBOX / MAIN ROSTER SCREEN
        ========================================== -->
-  <div class="screen" id="screenInbox">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="brand-badge" id="btnBrandMenu">
-        <div class="brand-logo-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="12" r="2"/></svg>
-        </div>
-        <span class="brand-title">Chat</span>
-      </div>
-      <div class="header-actions">
-        <button class="action-btn-circle" id="btnOpenSettings" aria-label="Settings" title="Settings">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        </button>
-        <!-- Point 2: Header Profile Button always shows DP/Avatar -->
-        <button class="header-profile-btn" id="btnHeaderProfile" aria-label="My Profile">
-          <div class="av" id="headerProfileAvatar" style="background:#1d72fe">U</div>
-        </button>
-      </div>
-    </header>
-
-    <!-- Scrollable Inbox List -->
-    <div class="inbox-scroll-body">
-      <!-- Search Input -->
-      <div class="search-container" id="searchBoxWrap">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input id="searchInput" placeholder="Search by username..." autocomplete="off">
-        <button id="searchClear" aria-label="Clear Search"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-      </div>
-
-      <!-- Search Results Dropdown -->
-      <div id="searchResultsView"></div>
-
-      <!-- Main Tabs (Rooms vs Directs) -->
-      <div class="inbox-tab-bar" id="inboxTabBar">
-        <button class="inbox-tab active" data-tab="0">
-          <span>Directs</span>
-          <span class="tab-badge" id="directsUnreadBadge" style="display:none">0</span>
-        </button>
-        <button class="inbox-tab" data-tab="1">
-          <span>AI Room</span>
-        </button>
-        <div class="inbox-tab-indicator" id="tabIndicator"></div>
-      </div>
-
-      <!-- Panes for Directs & Rooms -->
-      <div class="panes-wrapper">
-        <div class="panes-track" id="panesTrack">
-          <!-- Directs Pane -->
-          <div class="pane-col" id="paneDirects">
-            <div id="directsListContainer"></div>
-          </div>
-
-          <!-- Rooms Pane -->
-          <div class="pane-col" id="paneRooms">
-            <div class="ai-companion-card" id="btnOpenYukiRoom">
-              <div class="ai-companion-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 2a8 8 0 0 0-8 8c0 3.3 2 6.2 5 7.4V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.6c3-1.2 5-4.1 5-7.4a8 8 0 0 0-8-8z"/><path d="M9 10h.01M15 10h.01"/></svg>
-              </div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:15px;font-weight:700;color:var(--text-main)">Yuki AI Companion</div>
-                <div style="font-size:12.5px;color:var(--text-muted);margin-top:2px">Ask questions, debug code, or chat 24/7</div>
-              </div>
-              <svg viewBox="0 0 24 24" style="color:var(--primary-blue)"><path d="m9 18 6-6-6-6"/></svg>
-            </div>
-            <p style="font-size:13px;color:var(--text-muted);line-height:1.45;padding:8px 4px">
+<div class="screen" id="screenInbox">
+<!-- Header -->
+<header class="app-header">
+<div class="brand-badge" id="btnBrandMenu">
+<div class="brand-logo-icon">
+<svg viewbox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="12" r="2"></circle></svg>
+</div>
+<span class="brand-title">Chat</span>
+</div>
+<div class="header-actions">
+<button aria-label="Settings" class="action-btn-circle" id="btnOpenSettings" title="Settings">
+<svg viewbox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+</button>
+<!-- Point 1: Circular Header Profile Button with strictly clipped image -->
+<button aria-label="My Profile" class="header-profile-btn" id="btnHeaderProfile">
+<div class="av" id="headerProfileAvatar" style="background:#1d72fe">U</div>
+</button>
+</div>
+</header>
+<!-- Scrollable Inbox List -->
+<div class="inbox-scroll-body">
+<!-- Search Input -->
+<div class="search-container" id="searchBoxWrap">
+<svg viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+<input autocomplete="off" id="searchInput" placeholder="Search by username..."/>
+<button aria-label="Clear Search" id="searchClear"><svg viewbox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+</div>
+<!-- Search Results Dropdown -->
+<div id="searchResultsView"></div>
+<!-- Main Tabs (Rooms vs Directs) -->
+<div class="inbox-tab-bar" id="inboxTabBar">
+<button class="inbox-tab active" data-tab="0">
+<span>Directs</span>
+<span class="tab-badge" id="directsUnreadBadge" style="display:none">0</span>
+</button>
+<button class="inbox-tab" data-tab="1">
+<span>AI Room</span>
+</button>
+<div class="inbox-tab-indicator" id="tabIndicator"></div>
+</div>
+<!-- Panes for Directs & Rooms -->
+<div class="panes-wrapper">
+<div class="panes-track" id="panesTrack">
+<!-- Directs Pane -->
+<div class="pane-col" id="paneDirects">
+<div id="directsListContainer"></div>
+</div>
+<!-- Rooms Pane -->
+<div class="pane-col" id="paneRooms">
+<div class="ai-companion-card" id="btnOpenYukiRoom">
+<div class="ai-companion-icon">
+<svg viewbox="0 0 24 24"><path d="M12 2a8 8 0 0 0-8 8c0 3.3 2 6.2 5 7.4V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.6c3-1.2 5-4.1 5-7.4a8 8 0 0 0-8-8z"></path><path d="M9 10h.01M15 10h.01"></path></svg>
+</div>
+<div style="flex:1;min-width:0">
+<div style="font-size:15px;font-weight:700;color:var(--text-main)">Yuki AI Companion</div>
+<div style="font-size:12.5px;color:var(--text-muted);margin-top:2px">Ask questions, debug code, or chat 24/7</div>
+</div>
+<svg style="color:var(--primary-blue)" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+</div>
+<p style="font-size:13px;color:var(--text-muted);line-height:1.45;padding:8px 4px">
               Connected to your <code>/api/yuki</code> endpoint. Powered by Firebase Firestore realtime engine.
             </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ==========================================
        ACTIVE CHAT CONVERSATION SCREEN
        ========================================== -->
-  <div class="screen" id="screenChat">
-    <!-- Chat Header -->
-    <header class="chat-top-header">
-      <button class="chat-back-btn" id="btnChatBack" aria-label="Back">
-        <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
-      </button>
-
-      <div class="chat-contact-info" id="btnOpenContactDetails">
-        <div class="chat-header-avatar" id="chatHeaderAvatar">LA</div>
-        <div class="chat-header-meta">
-          <b id="chatHeaderTitle">Leslie Alexander</b>
-          <span id="chatHeaderSubtitle">Active now</span>
-        </div>
-      </div>
-
-      <button class="action-btn-circle" id="btnChatSettingsGear" aria-label="Chat Settings">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-      </button>
-    </header>
-
-    <!-- Message Stream -->
-    <div class="messages-container" id="messagesContainer">
-      <div class="date-divider"><span class="date-pill">Today</span></div>
-      <!-- Messages will render dynamically here -->
-      <div class="typing-bar" id="typingIndicator">
-        <div class="typing-dots"><span></span><span></span><span></span></div>
-        <span id="typingLabel">Typing...</span>
-      </div>
-    </div>
-
-    <!-- Composer Dock -->
-    <div class="composer-dock">
-      <!-- Mentions Suggestions Autocomplete -->
-      <div class="mentions-box" id="mentionsBox"></div>
-
-      <div class="composer-inner">
-        <button class="composer-btn" id="btnAttachFile" aria-label="Attach File">
-          <svg viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l7.9-7.9"/></svg>
-        </button>
-
-        <textarea class="composer-textarea" id="chatInputText" rows="1" placeholder="Write a message..." autocomplete="off"></textarea>
-
-        <button class="composer-btn send-action-btn" id="btnSendMessage" aria-label="Send Message">
-          <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================
+<div class="screen" id="screenChat">
+<!-- Chat Header -->
+<header class="chat-top-header">
+<button aria-label="Back" class="chat-back-btn" id="btnChatBack">
+<svg viewbox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+</button>
+<div class="chat-contact-info" id="btnOpenContactDetails">
+<div class="chat-header-avatar" id="chatHeaderAvatar">LA</div>
+<div class="chat-header-meta">
+<b id="chatHeaderTitle">Leslie Alexander</b>
+<span id="chatHeaderSubtitle">Active now</span>
+</div>
+</div>
+<button aria-label="Chat Settings" class="action-btn-circle" id="btnChatSettingsGear">
+<svg viewbox="0 0 24 24"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+</button>
+</header>
+<!-- Message Stream -->
+<div class="messages-container" id="messagesContainer">
+<div class="date-divider"><span class="date-pill">Today</span></div>
+<!-- Messages will render dynamically here -->
+<div class="typing-bar" id="typingIndicator">
+<div class="typing-dots"><span></span><span></span><span></span></div>
+<span id="typingLabel">Typing...</span>
+</div>
+</div>
+<!-- Composer Dock -->
+<div class="composer-dock">
+<!-- Mentions Suggestions Autocomplete -->
+<div class="mentions-box" id="mentionsBox"></div>
+<div class="composer-inner">
+<button aria-label="Attach File" class="composer-btn" id="btnAttachFile">
+<svg viewbox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l7.9-7.9"></path></svg>
+</button>
+<textarea autocomplete="off" class="composer-textarea" id="chatInputText" placeholder="Write a message..." rows="1"></textarea>
+<button aria-label="Send Message" class="composer-btn send-action-btn" id="btnSendMessage">
+<svg viewbox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+</button>
+</div>
+</div>
+</div>
+<!-- ==========================================
        BACKDROP SCRIM (SHARED)
        ========================================== -->
-  <div class="backdrop-scrim" id="masterScrim"></div>
-
-  <!-- ==========================================
+<div class="backdrop-scrim" id="masterScrim"></div>
+<!-- ==========================================
        SETTINGS DRAWER
        ========================================== -->
-  <div class="settings-drawer" id="settingsDrawer">
-    <div class="drawer-header">
-      <div class="drawer-title-group">
-        <button class="drawer-back-btn" id="btnDrawerBack" style="display:none" aria-label="Back">
-          <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
-        </button>
-        <h3 class="drawer-title" id="drawerTitle">Settings</h3>
-      </div>
-      <button class="action-btn-circle" id="btnDrawerClose" aria-label="Close Settings">
-        <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-
-    <div class="drawer-body">
-      <!-- 1. MAIN DRAWER MENU -->
-      <div id="drawerMainView">
-        <div class="settings-sec-label">View & Theme</div>
-        <div class="settings-card">
-          <div class="settings-row" id="rowToggleTheme">
-            <div class="settings-info">
-              <span class="settings-main-title">Dark Mode</span>
-              <span class="settings-sub-title">Toggle between Light & Dark themes</span>
-            </div>
-            <div class="toggle-switch" id="switchTheme"></div>
-          </div>
-        </div>
-
-        <div class="settings-sec-label">Safety & Privacy</div>
-        <div class="settings-card">
-          <div class="settings-row" id="rowOpenBlockList">
-            <div class="settings-info">
-              <span class="settings-main-title">Block List</span>
-              <span class="settings-sub-title">Manage accounts you have blocked</span>
-            </div>
-            <svg viewBox="0 0 24 24" style="color:var(--text-muted)"><path d="m9 18 6-6-6-6"/></svg>
-          </div>
-          <div class="settings-row" id="rowOpenProfile">
-            <div class="settings-info">
-              <span class="settings-main-title">Your Profile</span>
-              <span class="settings-sub-title">Display name, unique username & photo</span>
-            </div>
-            <svg viewBox="0 0 24 24" style="color:var(--text-muted)"><path d="m9 18 6-6-6-6"/></svg>
-          </div>
-        </div>
-
-        <!-- Chat Specific Actions when opened from active room -->
-        <div id="chatContextActions" style="display:none">
-          <div class="settings-sec-label">Chat Actions</div>
-          <div class="settings-card">
-            <div class="settings-row" id="btnContextBlock">
-              <div class="settings-info">
-                <span class="settings-main-title" style="color:#ef4444" id="labelBlockChatUser">Block User</span>
-              </div>
-            </div>
-            <div class="settings-row" id="btnContextDeleteChat">
-              <div class="settings-info">
-                <span class="settings-main-title" style="color:#ef4444">Delete Conversation</span>
-                <span class="settings-sub-title">Hide this chat from your directs</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. PROFILE SUBVIEW -->
-      <div id="drawerProfileView">
-        <div style="text-align:center;padding:12px 0 18px">
-          <div class="chat-card-avatar" id="subviewProfileAvatar" style="width:72px;height:72px;margin:0 auto 10px;font-size:24px;border:3px solid var(--primary-blue)">U</div>
-          <button class="profile-pill-btn outline" id="btnTriggerPhotoUpload" style="font-size:12px;padding:6px 14px">Change Photo</button>
-        </div>
-
-        <div class="profile-form-group">
-          <label class="profile-form-label">Display Name</label>
-          <div style="display:flex;gap:8px">
-            <input class="profile-input" id="inputDisplayName" placeholder="Display name" maxlength="32">
-            <button class="profile-pill-btn" id="btnSaveDisplayName">Save</button>
-          </div>
-        </div>
-
-        <div class="profile-form-group">
-          <label class="profile-form-label">Username (Unique)</label>
-          <div style="display:flex;gap:8px">
-            <input class="profile-input" id="inputUsername" placeholder="Username" maxlength="20">
-            <button class="profile-pill-btn" id="btnSaveUsername">Save</button>
-          </div>
-          <span style="font-size:11.5px;color:var(--text-muted);display:block;margin-top:4px" id="tipUsernameCopy">Tap username to copy ID</span>
-        </div>
-
-        <div class="profile-form-group">
-          <label class="profile-form-label">Email (Verified)</label>
-          <input class="profile-input" id="inputEmail" readonly style="opacity:0.75">
-        </div>
-
-        <div style="padding-top:20px">
-          <button class="profile-pill-btn danger" id="btnLogout" style="width:100%">Log Out</button>
-        </div>
-      </div>
-
-      <!-- 3. BLOCKED ACCOUNTS SUBVIEW -->
-      <div id="drawerBlockView">
-        <div id="blockedUsersContainer">
-          <p style="text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13.5px">No blocked accounts.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================
+<div class="settings-drawer" id="settingsDrawer">
+<div class="drawer-header">
+<div class="drawer-title-group">
+<button aria-label="Back" class="drawer-back-btn" id="btnDrawerBack" style="display:none">
+<svg viewbox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+</button>
+<h3 class="drawer-title" id="drawerTitle">Settings</h3>
+</div>
+<button aria-label="Close Settings" class="action-btn-circle" id="btnDrawerClose">
+<svg viewbox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+</button>
+</div>
+<div class="drawer-body">
+<!-- 1. MAIN DRAWER MENU -->
+<div id="drawerMainView">
+<div class="settings-sec-label">View &amp; Theme</div>
+<div class="settings-card">
+<div class="settings-row" id="rowToggleTheme">
+<div class="settings-info">
+<span class="settings-main-title">Dark Mode</span>
+<span class="settings-sub-title">Toggle between Light &amp; Dark themes</span>
+</div>
+<div class="toggle-switch" id="switchTheme"></div>
+</div>
+</div>
+<div class="settings-sec-label">Safety &amp; Privacy</div>
+<div class="settings-card">
+<div class="settings-row" id="rowOpenBlockList">
+<div class="settings-info">
+<span class="settings-main-title">Block List</span>
+<span class="settings-sub-title">Manage accounts you have blocked</span>
+</div>
+<svg style="color:var(--text-muted)" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+</div>
+<div class="settings-row" id="rowOpenProfile">
+<div class="settings-info">
+<span class="settings-main-title">Your Profile</span>
+<span class="settings-sub-title">Display name, unique username &amp; photo</span>
+</div>
+<svg style="color:var(--text-muted)" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+</div>
+</div>
+<!-- Chat Specific Actions when opened from active room -->
+<div id="chatContextActions" style="display:none">
+<div class="settings-sec-label">Chat Actions</div>
+<div class="settings-card">
+<div class="settings-row" id="btnContextBlock">
+<div class="settings-info">
+<span class="settings-main-title" id="labelBlockChatUser" style="color:#ef4444">Block User</span>
+</div>
+</div>
+<div class="settings-row" id="btnContextDeleteChat">
+<div class="settings-info">
+<span class="settings-main-title" style="color:#ef4444">Delete Conversation</span>
+<span class="settings-sub-title">Hide this chat from your directs</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. PROFILE SUBVIEW -->
+<div id="drawerProfileView">
+<div style="text-align:center;padding:12px 0 18px">
+<!-- Point 1: Strictly circular avatar in profile view -->
+<div class="chat-card-avatar" id="subviewProfileAvatar" style="width:72px;height:72px;margin:0 auto 10px;font-size:24px;border:3px solid var(--primary-blue)">U</div>
+<button class="profile-pill-btn outline" id="btnTriggerPhotoUpload" style="font-size:12px;padding:6px 14px">Change Photo</button>
+</div>
+<div class="profile-form-group">
+<label class="profile-form-label">Display Name</label>
+<div style="display:flex;gap:8px">
+<input class="profile-input" id="inputDisplayName" maxlength="32" placeholder="Display name"/>
+<button class="profile-pill-btn" id="btnSaveDisplayName">Save</button>
+</div>
+</div>
+<div class="profile-form-group">
+<label class="profile-form-label">Username (Unique)</label>
+<div style="display:flex;gap:8px">
+<input class="profile-input" id="inputUsername" maxlength="20" placeholder="Username"/>
+<button class="profile-pill-btn" id="btnSaveUsername">Save</button>
+</div>
+<span id="tipUsernameCopy" style="font-size:11.5px;color:var(--text-muted);display:block;margin-top:4px">Tap username to copy ID</span>
+</div>
+<div class="profile-form-group">
+<label class="profile-form-label">Email (Verified)</label>
+<input class="profile-input" id="inputEmail" readonly="" style="opacity:0.75"/>
+</div>
+<div style="padding-top:20px">
+<button class="profile-pill-btn danger" id="btnLogout" style="width:100%">Log Out</button>
+</div>
+</div>
+<!-- 3. BLOCKED ACCOUNTS SUBVIEW -->
+<div id="drawerBlockView">
+<div id="blockedUsersContainer">
+<p style="text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13.5px">No blocked accounts.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- ==========================================
        USER DETAILS BOTTOM MODAL
        ========================================== -->
-  <div class="user-sheet-modal" id="contactDetailsModal">
-    <div class="modal-drag-pill"></div>
-    <div style="text-align:center;margin-bottom:18px">
-      <div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#f59e0b">LA</div>
-      <h3 style="font-size:18px;font-weight:800;color:var(--text-main)" id="modalContactName">Leslie Alexander</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="modalContactRole">Active Member</p>
-    </div>
-
-    <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
+<div class="user-sheet-modal" id="contactDetailsModal">
+<div class="modal-drag-pill"></div>
+<div style="text-align:center;margin-bottom:18px">
+<!-- Point 1: Strictly circular avatar in details modal -->
+<div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#f59e0b">LA</div>
+<h3 id="modalContactName" style="font-size:18px;font-weight:800;color:var(--text-main)">Leslie Alexander</h3>
+<p id="modalContactRole" style="font-size:13px;color:var(--text-muted);margin-top:2px">Active Member</p>
+</div>
+<div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
       Information
     </div>
-
-    <div class="settings-card" style="margin-bottom:0">
-      <div class="settings-row">
-        <div>
-          <b style="font-size:14px;display:block">Direct Status</b>
-          <span style="font-size:12px;color:var(--text-muted)">Encrypted Firestore Realtime Channel</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Notification -->
-  <div class="app-toast" id="appToast">Notification</div>
-
-  <!-- Hidden Photo File Input -->
-  <input type="file" id="fileAvatarUpload" accept="image/*" hidden>
-
+<div class="settings-card" style="margin-bottom:0">
+<div class="settings-row">
+<div>
+<b style="font-size:14px;display:block">Direct Status</b>
+<span style="font-size:12px;color:var(--text-muted)">Encrypted Firestore Realtime Channel</span>
 </div>
-
+</div>
+</div>
+</div>
+<!-- Toast Notification -->
+<div class="app-toast" id="appToast">Notification</div>
+<!-- Hidden Photo File Input -->
+<input accept="image/*" hidden="" id="fileAvatarUpload" type="file"/>
+</div>
 <!-- Firebase & Application Modules -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
@@ -1549,7 +1623,7 @@ const getInitials = (n = '?') => String(n).replace(/^[@_]/,'').slice(0, 2).toUpp
 const getAvColor = (n = '') => AV_COLORS[[...String(n)].reduce((a,c)=>a+c.charCodeAt(0),0) % AV_COLORS.length];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* Point 2: Central Helper to render avatar HTML (Image DP if available, otherwise initials fallback) */
+/* Point 1: Universal markup generation ensuring strictly circular images and fallbacks */
 function getAvatarMarkup(profileOrName, photoURL = null) {
   let photo = photoURL;
   let name = 'User';
@@ -1568,9 +1642,9 @@ function getAvatarMarkup(profileOrName, photoURL = null) {
   const color = getAvColor(uname || name);
 
   if (photo && photo.trim() !== '') {
-    return `<img src="${esc(photo)}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    return `<img src="${esc(photo)}" alt="${esc(name)}" class="avatar-img-circle" style="width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important;display:block!important;aspect-ratio:1/1!important;">`;
   }
-  return `<div class="av" style="background:${color};width:100%;height:100%;display:grid;place-items:center;font-weight:700;border-radius:50%;color:#fff">${esc(initial)}</div>`;
+  return `<div class="av" style="background:${color};width:100%!important;height:100%!important;display:grid!important;place-items:center!important;font-weight:700;border-radius:50%!important;color:#fff;aspect-ratio:1/1!important;">${esc(initial)}</div>`;
 }
 
 /* App State */
@@ -1652,7 +1726,6 @@ const restoreChat = (u, o) => {
 
 /* ==========================================================================
    AUTHENTICATION LOGIC
-   Point 3: Name & unique Username inputs during registration
    ========================================================================== */
 $('btnToggleAuthMode')?.addEventListener('click', () => {
   isSignUpMode = !isSignUpMode;
@@ -1661,7 +1734,6 @@ $('btnToggleAuthMode')?.addEventListener('click', () => {
   $('authSubmitText').textContent = isSignUpMode ? 'Create Account' : 'Sign in';
   $('btnToggleAuthMode').textContent = isSignUpMode ? 'Already registered? Sign in' : 'New here? Create account';
   
-  // Point 3: Toggle display name & username inputs
   $('authDisplayName').style.display = isSignUpMode ? 'block' : 'none';
   $('authUsername').style.display = isSignUpMode ? 'block' : 'none';
 
@@ -1710,7 +1782,6 @@ async function handleAuthSubmit() {
 
   try {
     if (isSignUpMode) {
-      // Point 3: Validate uniqueness of username before account creation
       const usernameSnap = await getDoc(doc(db, 'usernames', rawUsername));
       if (usernameSnap.exists()) {
         errEl.textContent = `@${rawUsername} is already taken. Please choose another username.`;
@@ -1720,7 +1791,6 @@ async function handleAuthSubmit() {
 
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Store in users and username map
       await setDoc(doc(db, 'users', cred.user.uid), {
         username: rawUsername,
         display: rawDisplayName,
@@ -1825,7 +1895,6 @@ onAuthStateChanged(auth, async user => {
     $('authScreen')?.classList.remove('active');
     $('authPassword').value = '';
     
-    // Realtime listener for currentUser profile so DP updates instantaneously everywhere
     listenToCurrentProfile(user.uid);
 
     updateProfileBadges();
@@ -1848,7 +1917,6 @@ function listenToCurrentProfile(uid) {
       updateProfileBadges();
       renderDirectsList();
       if (activeChatId) {
-        // Re-render local messages avatar if needed
         const myAvs = document.querySelectorAll('.chat-message-row.is-mine .msg-avatar');
         myAvs.forEach(el => {
           el.innerHTML = getAvatarMarkup(currentProfile);
@@ -1858,7 +1926,6 @@ function listenToCurrentProfile(uid) {
   });
 }
 
-/* Point 2: Update DP across all places (Header button, settings drawer, profile view) */
 function updateProfileBadges() {
   if (!currentProfile) return;
 
@@ -1921,7 +1988,6 @@ function renderDirectsList() {
   const blocked = currentProfile?.blockedUids || [];
   const visible = conversationList.filter(c => !blocked.includes(c.otherUid));
   
-  // Total unread badge
   const totalUnread = visible.reduce((acc, c) => acc + ((c.data.unread && currentUser && c.data.unread[currentUser.uid]) || 0), 0);
   const badgeEl = $('directsUnreadBadge');
   if (badgeEl) {
@@ -1937,7 +2003,6 @@ function renderDirectsList() {
     const unread = (c.data.unread && currentUser && c.data.unread[currentUser.uid]) || 0;
     const isSelected = (activePeer && activePeer.uid === c.otherUid) || selectedCardUid === c.otherUid;
     
-    // Point 2: Profile DP in Directs list
     const avMarkup = getAvatarMarkup(prof);
 
     return `
@@ -2029,7 +2094,6 @@ async function executeSearch(queryStr) {
 
 /* ==========================================================================
    CONVERSATION OPENING & REALTIME MESSAGING
-   Point 4 Fix: Completely clear previous chat state immediately to prevent old chat flicker
    ========================================================================== */
 function stopAllListeners() {
   unsubscribeMessages && unsubscribeMessages();
@@ -2039,12 +2103,10 @@ function stopAllListeners() {
 }
 
 function openChatView(peerUid, profile = null) {
-  // Point 4 Fix: Immediately unsubscribe & clear old chat stream so it never leaks onto next chat screen
   stopAllListeners();
   lastRenderedMessagesKey = '';
 
   const msgsContainer = $('messagesContainer');
-  // Immediately reset container to empty with smooth loader to prevent old message flicker
   msgsContainer.innerHTML = `
     <div class="date-divider"><span class="date-pill">Today</span></div>
     <div class="typing-bar active" style="margin: auto auto 12px; justify-content: center">
@@ -2072,17 +2134,14 @@ function openChatView(peerUid, profile = null) {
   $('chatHeaderTitle').textContent = activePeer.display;
   $('chatHeaderSubtitle').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
   
-  // Point 2: Active chat top header avatar
   $('chatHeaderAvatar').innerHTML = getAvatarMarkup(activePeer);
 
-  // Clear search box smoothly
   $('searchInput').value = '';
   $('searchBoxWrap')?.classList.remove('has-value');
   $('searchResultsView').classList.remove('active');
 
   subscribeToMessages(activeChatId);
 
-  // Mark unread as seen
   if (currentUser && !activePeer.isYuki) {
     updateDoc(doc(db, 'chats', activeChatId), {
       [`unread.${currentUser.uid}`]: 0
@@ -2132,7 +2191,6 @@ function subscribeToMessages(chatId) {
       return;
     }
 
-    // Build unique snapshot fingerprint to avoid flickering re-renders
     const currentSnapKey = snap.docs.map(d => d.id + '_' + (d.data().at?.toMillis ? d.data().at.toMillis() : '0')).join('|');
     if (currentSnapKey === lastRenderedMessagesKey) {
       return;
@@ -2147,10 +2205,8 @@ function subscribeToMessages(chatId) {
       const senderName = isMine ? (currentProfile?.display || 'You') : (activePeer?.display || 'Operator');
       const timeStr = formatClock(msg.at);
       
-      // Point 2: Avatar for incoming & outgoing messages
       const avMarkup = isMine ? getAvatarMarkup(currentProfile) : getAvatarMarkup(activePeer);
 
-      // Point 1 Fix: Compact, tight-fitting bubble layout without huge empty padding
       html += `
         <div class="chat-message-row ${isMine ? 'is-mine' : ''}">
           ${!isMine ? `<div class="msg-avatar">${avMarkup}</div>` : ''}
@@ -2170,7 +2226,6 @@ function subscribeToMessages(chatId) {
 
     msgsContainer.innerHTML = html;
 
-    // Smooth scroll to bottom
     requestAnimationFrame(() => {
       msgsContainer.scrollTop = msgsContainer.scrollHeight;
     });
@@ -2179,7 +2234,6 @@ function subscribeToMessages(chatId) {
 
 /* ==========================================================================
    MESSAGE SENDING & BOT INTEGRATION
-   Point 4 & Point 6: Zero-flicker instant optimistic dispatch from bottom
    ========================================================================== */
 async function handleSendMessage() {
   const input = $('chatInputText');
@@ -2196,7 +2250,6 @@ async function handleSendMessage() {
     return;
   }
 
-  // Clear input immediately
   input.value = '';
   input.style.height = '36px';
   $('btnSendMessage')?.classList.remove('can-send');
@@ -2205,7 +2258,6 @@ async function handleSendMessage() {
   const cId = activeChatId;
   const peer = activePeer;
 
-  // Point 4 & Point 6: Optimistic append without full re-render flickering
   const msgsContainer = $('messagesContainer');
   const tempRow = document.createElement('div');
   tempRow.className = 'chat-message-row is-mine';
@@ -2222,7 +2274,6 @@ async function handleSendMessage() {
     msgsContainer.appendChild(tempRow);
   }
   
-  // Smoothly scroll to bottom
   requestAnimationFrame(() => {
     msgsContainer.scrollTop = msgsContainer.scrollHeight;
   });
@@ -2246,7 +2297,6 @@ async function handleSendMessage() {
       unread: peer.isYuki ? {} : { [peer.uid]: increment(1), [currentUser.uid]: 0 }
     }, { merge: true });
 
-    // AI companion reply flow
     if (peer.isYuki) {
       setTimeout(async () => {
         let reply = '...';
@@ -2298,7 +2348,6 @@ $('chatInputText')?.addEventListener('keydown', e => {
   }
 });
 
-/* Input auto-growth & send button activation */
 $('chatInputText')?.addEventListener('input', () => {
   const input = $('chatInputText');
   input.style.height = '36px';
@@ -2306,7 +2355,6 @@ $('chatInputText')?.addEventListener('input', () => {
   const hasText = !!input.value.trim();
   $('btnSendMessage')?.classList.toggle('can-send', hasText);
 
-  // Handle u/ mentions
   const match = input.value.match(/(?:^|\s)u\/([\w]*)$/);
   const mentionsBox = $('mentionsBox');
   if (match) {
@@ -2446,7 +2494,6 @@ $('btnSaveUsername')?.addEventListener('click', async () => {
   }
 });
 
-/* Copy username ID */
 $('tipUsernameCopy')?.addEventListener('click', async () => {
   const u = currentProfile?.username;
   if (!u) return;
@@ -2634,6 +2681,4 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
   }
 });
 </script>
-
-</body>
-</html>
+</body></html>
