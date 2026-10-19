@@ -6,33 +6,30 @@
 <title>Chat App</title>
 <style>
 :root {
-  --bg-canvas: #e8effa;
-  --bg-gradient: linear-gradient(135deg, #f7d6e6 0%, #e2ecf9 50%, #d5e5fa 100%);
-  --app-bg: #eaf1fb;
+  --bg-canvas: #cddffb;
+  --bg-gradient: linear-gradient(180deg, #d4e5fc 0%, #c5daf7 100%);
+  --app-bg: #cddffb;
   --card-bg: #ffffff;
-  --card-hover: #f3f7fd;
-  --surface-subtle: #f0f5fc;
-  --primary-blue: #1d72fe;
-  --primary-blue-hover: #155ecc;
+  --card-hover: #f8fafc;
+  --surface-subtle: #f1f5f9;
+  --primary-blue: #1466dc;
+  --primary-blue-hover: #0f52b5;
   --primary-blue-light: #e8f1ff;
   --accent-red: #f43f5e;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border-subtle: #e2e8f0;
+  --text-main: #334155;
+  --text-muted: #8e9cae;
+  --border-subtle: #edf2f7;
   --border-focus: #93c5fd;
-  --shadow-sm: 0 2px 8px rgba(30, 41, 59, 0.04);
-  --shadow-md: 0 8px 24px rgba(30, 41, 59, 0.08);
-  --shadow-lg: 0 16px 36px rgba(30, 41, 59, 0.12);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 36px rgba(20, 60, 120, 0.12);
   --bubble-incoming: #ffffff;
   --bubble-incoming-text: #1e293b;
-  --bubble-outgoing: #1d72fe;
+  --bubble-outgoing: #1466dc;
   --bubble-outgoing-text: #ffffff;
-  --header-bg: rgba(255, 255, 255, 0.94);
-  --nav-active: #1d72fe;
-  --nav-inactive: #64748b;
-  --scrim-bg: rgba(15, 23, 42, 0.45);
-  --radius-xl: 24px;
-  --radius-lg: 18px;
+  --header-bg: transparent;
+  --radius-xl: 28px;
+  --radius-lg: 20px;
   --radius-md: 12px;
   --radius-full: 9999px;
   --anim-speed: 0.22s;
@@ -40,12 +37,12 @@
 }
 
 :root[data-theme="dark"] {
-  --bg-canvas: #090d16;
-  --bg-gradient: linear-gradient(135deg, #111422 0%, #0d121d 50%, #080c14 100%);
-  --app-bg: #0d131f;
-  --card-bg: #141b2a;
-  --card-hover: #1b2437;
-  --surface-subtle: #182235;
+  --bg-canvas: #0b111e;
+  --bg-gradient: linear-gradient(180deg, #111827 0%, #090e17 100%);
+  --app-bg: #0b111e;
+  --card-bg: #151e32;
+  --card-hover: #1b263e;
+  --surface-subtle: #192338;
   --primary-blue: #2563eb;
   --primary-blue-hover: #1d4ed8;
   --primary-blue-light: #1e293b;
@@ -61,10 +58,7 @@
   --bubble-incoming-text: #f1f5f9;
   --bubble-outgoing: #2563eb;
   --bubble-outgoing-text: #ffffff;
-  --header-bg: rgba(20, 27, 42, 0.94);
-  --nav-active: #3b82f6;
-  --nav-inactive: #94a3b8;
-  --scrim-bg: rgba(0, 0, 0, 0.7);
+  --header-bg: transparent;
 }
 
 * { 
@@ -115,7 +109,7 @@ svg {
 }
 
 /* ==========================================================================
-   POINT 1: UNIVERSAL DP & CIRCULAR FIT RULES
+   UNIVERSAL DP & CIRCULAR FIT RULES
    ========================================================================== */
 .header-profile-btn,
 .chat-card-avatar,
@@ -172,26 +166,24 @@ svg {
   height: 100dvh;
   margin: 0 auto;
   background: var(--app-bg);
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+  background-image: var(--bg-gradient);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   contain: layout size style;
   transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform;
 }
 
-/* Master Screens Stack (Smooth 60fps GPU transforms) */
+/* Master Screens Stack */
 .screen {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
-  background: var(--app-bg);
+  background: transparent;
   will-change: transform, opacity;
   transform: translateZ(0);
-  backface-visibility: hidden;
   transition: transform var(--anim-speed) cubic-bezier(0.16, 1, 0.3, 1), opacity var(--anim-speed) cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 10;
   overflow: hidden;
@@ -199,6 +191,7 @@ svg {
 #screenChat {
   transform: translate3d(100%, 0, 0);
   z-index: 20;
+  background: var(--bg-canvas);
 }
 .device-wrapper.in-chat #screenChat {
   transform: translate3d(0, 0, 0);
@@ -213,43 +206,34 @@ svg {
    ========================================================================== */
 .app-header {
   height: 64px;
-  background: var(--header-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 10px 20px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
   flex: none;
   z-index: 30;
 }
 
-.brand-badge {
+.inbox-title-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
+  gap: 12px;
 }
-.brand-logo-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 50% !important;
-  overflow: hidden !important;
-  aspect-ratio: 1 / 1 !important;
-  background: #1d72fe;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.22);
-}
-.brand-logo-icon svg { width: 22px; height: 22px; stroke-width: 2.2; }
-.brand-title {
-  font-size: 19px;
-  font-weight: 800;
+.inbox-main-heading {
+  font-size: 26px;
+  font-weight: 700;
+  color: #3b485b;
   letter-spacing: -0.4px;
-  color: var(--text-main);
+}
+.badge-new-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: #bbd7fc;
+  color: #1e5bb8;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .header-actions {
@@ -261,37 +245,24 @@ svg {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
   display: grid;
   place-items: center;
-  color: var(--text-muted);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.15s ease;
+  color: #7d8ea5;
+  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.15s ease;
   position: relative;
 }
 .action-btn-circle:active {
   transform: scale(0.95);
-  background: var(--card-hover);
-}
-.action-btn-circle.unread-dot:after {
-  content: "";
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent-red);
-  box-shadow: 0 0 0 2px var(--card-bg);
+  color: var(--primary-blue);
 }
 .header-profile-btn {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50% !important;
   overflow: hidden !important;
   aspect-ratio: 1 / 1 !important;
-  border: 2px solid var(--primary-blue);
+  border: 2px solid #ffffff;
   padding: 1px;
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
@@ -319,43 +290,44 @@ svg {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 14px 16px 90px;
+  padding: 12px 18px 80px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Search bar */
+/* Search bar: Clean white rounded pill like reference */
 .search-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
+  gap: 12px;
+  background: #ffffff;
   border-radius: var(--radius-full);
-  padding: 0 14px;
-  height: 44px;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.2s, box-shadow 0.2s;
-  margin-bottom: 14px;
-}
-.search-container:focus-within {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(29, 114, 254, 0.15);
+  padding: 0 18px;
+  height: 48px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  margin-bottom: 16px;
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 .search-container input {
   flex: 1;
   border: 0;
   background: none;
-  font-size: 15px;
-  color: var(--text-main);
+  font-size: 16px;
+  color: #334155;
   outline: 0;
   min-width: 0;
 }
-.search-container svg { color: var(--text-muted); font-size: 18px; }
+.search-container input::placeholder {
+  color: #94a3b8;
+}
+.search-container svg { color: #94a3b8; font-size: 20px; }
 #searchClear {
   opacity: 0;
   transform: scale(0.6);
   pointer-events: none;
   transition: all 0.2s ease;
-  color: var(--text-muted);
+  color: #94a3b8;
 }
 .search-container.has-value #searchClear {
   opacity: 1;
@@ -363,15 +335,15 @@ svg {
   pointer-events: auto;
 }
 
-/* Quick Categories & Tabs */
+/* Tabs: subtle pill bar */
 .inbox-tab-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  position: relative;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 4px;
+  gap: 6px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.45);
+  padding: 4px;
+  border-radius: var(--radius-full);
 }
 .inbox-tab {
   flex: 1;
@@ -379,25 +351,17 @@ svg {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 10px 0;
-  font-size: 14.5px;
+  padding: 7px 0;
+  font-size: 13.5px;
   font-weight: 700;
-  color: var(--text-muted);
-  position: relative;
-  transition: color 0.2s ease;
+  color: #64748b;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
 }
 .inbox-tab.active {
+  background: #ffffff;
   color: var(--primary-blue);
-}
-.inbox-tab-indicator {
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 50%;
-  height: 2.5px;
-  background: var(--primary-blue);
-  border-radius: 2px;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 .tab-badge {
   display: inline-block;
@@ -407,79 +371,101 @@ svg {
   border-radius: 9px;
   background: var(--accent-red);
   color: #fff;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 800;
   text-align: center;
   padding: 0 5px;
 }
 
-/* Panes container */
+/* ==========================================================================
+   THE REFERENCE WHITE BOX CONTAINER (UNIFIED CARD)
+   ========================================================================== */
+.unified-white-box {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 30px rgba(45, 90, 160, 0.08);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .panes-wrapper {
   position: relative;
   overflow: hidden;
   width: 100%;
+  flex: 1;
 }
 .panes-track {
   display: flex;
   width: 200%;
+  height: 100%;
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
 .pane-col {
   width: 50%;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Directs / Channels Cards */
+/* Roster Rows inside the White Box */
 .chat-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: var(--card-bg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  margin-bottom: 10px;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.15s ease;
   cursor: pointer;
   text-align: left;
   width: 100%;
   position: relative;
 }
-
-/* POINT 2: Soft ambient scattered blur with NO harsh boxy glow */
-.chat-card.highlighted-blue {
-  background: linear-gradient(135deg, #1d72fe 0%, #2563eb 100%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.18), 0 1px 3px rgba(0, 0, 0, 0.1);
+.chat-card:last-child {
+  border-bottom: none;
 }
-:root[data-theme="dark"] .chat-card.highlighted-blue {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.16), 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-.chat-card.highlighted-blue .chat-card-name { color: #ffffff; }
-.chat-card.highlighted-blue .chat-card-preview { color: rgba(255, 255, 255, 0.88); }
-.chat-card.highlighted-blue .chat-card-time { color: rgba(255, 255, 255, 0.78); }
-
 .chat-card:active {
-  transform: scale(0.98);
+  background: #f8fafc;
+}
+
+/* Selected row (e.g. blue highlight like Leslie Alexander in reference) */
+.chat-card.highlighted-blue {
+  background: #1466dc !important;
+  color: #ffffff !important;
+  border-bottom-color: transparent !important;
+}
+.chat-card.highlighted-blue .chat-card-name { color: #ffffff !important; }
+.chat-card.highlighted-blue .chat-card-role { color: rgba(255, 255, 255, 0.85) !important; }
+.chat-card.highlighted-blue .chat-card-preview { color: rgba(255, 255, 255, 0.9) !important; }
+.chat-card.highlighted-blue .chat-card-time { color: rgba(255, 255, 255, 0.8) !important; }
+
+/* Unread blue dot indicator at far left */
+.unread-blue-dot {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary-blue);
 }
 
 .chat-card-avatar {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 50% !important;
   overflow: hidden !important;
   aspect-ratio: 1 / 1 !important;
   flex: none;
-  background: #cbd5e1;
+  background: #e2e8f0;
   display: grid;
   place-items: center;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
   color: #ffffff;
   position: relative;
 }
@@ -496,27 +482,35 @@ svg {
 }
 .chat-card-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }
 .chat-card-name {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--text-main);
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-card-role {
+  font-size: 12px;
+  color: #8e9cae;
+  margin-bottom: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .chat-card-time {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #8e9cae;
   flex: none;
-  margin-left: 6px;
+  margin-left: 8px;
 }
 .chat-card-preview {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: 13.5px;
+  color: #94a3b8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -527,19 +521,12 @@ svg {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px;
-  background: linear-gradient(135deg, rgba(29, 114, 254, 0.08) 0%, rgba(147, 197, 253, 0.12) 100%);
-  border: 1px solid rgba(29, 114, 254, 0.25);
+  padding: 16px;
+  background: #f8fafc;
   border-radius: var(--radius-lg);
-  margin-bottom: 12px;
+  margin: 14px;
   cursor: pointer;
   transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
-  width: 100%;
-  text-align: left;
-}
-:root[data-theme="dark"] .ai-companion-card {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(30, 41, 59, 0.4) 100%);
-  border-color: rgba(37, 99, 235, 0.35);
 }
 .ai-companion-card:active {
   transform: scale(0.98);
@@ -554,18 +541,26 @@ svg {
   color: #fff;
   display: grid;
   place-items: center;
-  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.22);
+  box-shadow: 0 4px 14px rgba(20, 102, 220, 0.25);
   flex: none;
 }
 
 /* Search results overlay */
 #searchResultsView {
   display: none;
-  background: var(--app-bg);
-  padding-bottom: 24px;
+  background: #ffffff;
+  padding: 8px 0;
 }
 #searchResultsView.active {
   display: block;
+}
+
+/* Empty roster placeholder */
+.empty-roster-state {
+  text-align: center;
+  padding: 40px 16px;
+  color: #8e9cae;
+  font-size: 14px;
 }
 
 /* ==========================================================================
@@ -573,16 +568,15 @@ svg {
    ========================================================================== */
 .chat-top-header {
   height: 64px;
-  background: var(--header-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-subtle);
+  background: #ffffff;
+  border-bottom: 1px solid #edf2f7;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 12px;
+  padding: 0 16px;
   flex: none;
   z-index: 35;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 .chat-back-btn {
   width: 38px;
@@ -591,10 +585,7 @@ svg {
   display: grid;
   place-items: center;
   color: var(--primary-blue);
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: #f1f5f9;
 }
 .chat-back-btn:active {
   transform: scale(0.95);
@@ -602,7 +593,7 @@ svg {
 .chat-contact-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex: 1;
   min-width: 0;
   cursor: pointer;
@@ -632,9 +623,9 @@ svg {
   min-width: 0;
 }
 .chat-header-meta b {
-  font-size: 15.5px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--text-main);
+  color: #1e293b;
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -642,7 +633,7 @@ svg {
 }
 .chat-header-meta span {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #8e9cae;
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -657,8 +648,7 @@ svg {
   display: flex;
   flex-direction: column;
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: auto;
-  contain: layout style;
+  background: #eef5fc;
 }
 .messages-container > .chat-message-row:first-of-type,
 .messages-container > .date-divider:first-of-type {
@@ -675,11 +665,11 @@ svg {
 .date-pill {
   padding: 4px 12px;
   border-radius: var(--radius-full);
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: #8e9cae;
   box-shadow: var(--shadow-sm);
 }
 
@@ -735,7 +725,7 @@ svg {
 .msg-sender-name {
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: #8e9cae;
   margin-bottom: 3px;
   padding: 0 4px;
 }
@@ -749,10 +739,10 @@ svg {
   font-size: 14.5px;
   line-height: 1.42;
   word-break: break-word;
-  background: var(--bubble-incoming);
-  color: var(--bubble-incoming-text);
+  background: #ffffff;
+  color: #1e293b;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid #e2e8f0;
   border-bottom-left-radius: 4px;
 }
 .chat-message-row.is-mine .msg-bubble {
@@ -764,7 +754,7 @@ svg {
 }
 .msg-time {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #8e9cae;
   margin-top: 4px;
   padding: 0 4px;
 }
@@ -776,7 +766,7 @@ svg {
   gap: 6px;
   padding: 6px 14px 10px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: #8e9cae;
   flex: none;
 }
 .typing-bar.active { display: flex; }
@@ -799,10 +789,8 @@ svg {
 
 /* Composer Bar */
 .composer-dock {
-  background: var(--header-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--border-subtle);
+  background: #ffffff;
+  border-top: 1px solid #edf2f7;
   padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
   flex: none;
   z-index: 30;
@@ -812,8 +800,8 @@ svg {
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 24px;
   padding: 6px 8px 6px 14px;
   box-shadow: var(--shadow-sm);
@@ -821,7 +809,7 @@ svg {
 }
 .composer-inner:focus-within {
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(29, 114, 254, 0.15);
+  box-shadow: 0 0 0 3px rgba(20, 102, 220, 0.15);
 }
 .composer-textarea {
   flex: 1;
@@ -835,14 +823,13 @@ svg {
   font: inherit;
   font-size: 14.5px;
   line-height: 1.35;
-  color: var(--text-main);
+  color: #1e293b;
   outline: 0;
   resize: none;
   overflow-y: auto;
   scrollbar-width: none;
-  -ms-overflow-style: none;
 }
-.composer-textarea::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.composer-textarea::-webkit-scrollbar { display: none; }
 
 .composer-btn {
   width: 36px;
@@ -850,34 +837,27 @@ svg {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: var(--text-muted);
-  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  color: #8e9cae;
   flex: none;
 }
-.composer-btn:active { transform: scale(0.95); }
-
-/* Point 2: Softened send button glow */
 .send-action-btn {
   background: #cbd5e1;
   color: #fff;
-  transition: background 0.2s, transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background 0.2s, transform 0.1s;
 }
 .send-action-btn.can-send {
   background: var(--primary-blue);
-  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.25);
-}
-.send-action-btn.can-send:active {
-  transform: scale(0.95);
+  box-shadow: 0 4px 14px rgba(20, 102, 220, 0.25);
 }
 
-/* Mentions popup autocomplete */
+/* Mentions autocomplete */
 .mentions-box {
   position: absolute;
   left: 14px;
   right: 14px;
   bottom: 100%;
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   max-height: 0;
@@ -896,13 +876,10 @@ svg {
   padding: 10px 14px;
   width: 100%;
   text-align: left;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid #f1f5f9;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--text-main);
-}
-.mention-item:hover, .mention-item:active {
-  background: var(--card-hover);
+  color: #1e293b;
 }
 
 /* ==========================================================================
@@ -912,6 +889,7 @@ svg {
   position: absolute;
   inset: 0;
   background: var(--app-bg);
+  background-image: var(--bg-gradient);
   z-index: 100;
   display: flex;
   flex-direction: column;
@@ -922,7 +900,6 @@ svg {
   visibility: hidden;
   pointer-events: none;
   overflow-y: auto;
-  transform: translateZ(0);
 }
 #authScreen.active {
   opacity: 1;
@@ -930,10 +907,10 @@ svg {
   pointer-events: auto;
 }
 .auth-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: var(--radius-xl);
-  padding: 28px 22px;
+  padding: 32px 24px;
   box-shadow: var(--shadow-lg);
   text-align: center;
   max-width: 390px;
@@ -944,25 +921,22 @@ svg {
   width: 56px;
   height: 56px;
   border-radius: 50% !important;
-  overflow: hidden !important;
-  aspect-ratio: 1 / 1 !important;
   background: var(--primary-blue);
   color: #fff;
   display: grid;
   place-items: center;
   margin: 0 auto 14px;
-  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.22);
+  box-shadow: 0 4px 14px rgba(20, 102, 220, 0.25);
 }
-.auth-brand-badge svg { width: 28px; height: 28px; }
 .auth-card h2 {
   font-size: 24px;
   font-weight: 800;
   margin-bottom: 6px;
-  letter-spacing: -0.3px;
+  color: #1e293b;
 }
 .auth-card p.auth-sub {
   font-size: 14px;
-  color: var(--text-muted);
+  color: #8e9cae;
   margin-bottom: 20px;
 }
 .auth-input-group {
@@ -974,18 +948,17 @@ svg {
 .auth-field {
   width: 100%;
   height: 48px;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-md);
   padding: 0 14px;
   font-size: 15px;
-  background: var(--surface-subtle);
-  color: var(--text-main);
+  background: #f8fafc;
+  color: #1e293b;
   outline: 0;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s;
 }
 .auth-field:focus {
   border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(29, 114, 254, 0.15);
 }
 .auth-btn-primary {
   width: 100%;
@@ -999,12 +972,7 @@ svg {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(29, 114, 254, 0.22);
-  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.2s;
-}
-.auth-btn-primary:active {
-  transform: scale(0.97);
-  filter: brightness(0.95);
+  box-shadow: 0 4px 14px rgba(20, 102, 220, 0.25);
 }
 .auth-toggle-link {
   font-size: 13.5px;
@@ -1017,12 +985,12 @@ svg {
 .auth-msg-ok { color: #16a34a; font-size: 13px; min-height: 18px; margin-top: 6px; }
 
 /* ==========================================================================
-   SETTINGS SIDE DRAWER
+   SETTINGS SIDE DRAWER & MODAL
    ========================================================================== */
 .backdrop-scrim {
   position: absolute;
   inset: 0;
-  background: var(--scrim-bg);
+  background: rgba(15, 23, 42, 0.35);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   opacity: 0;
@@ -1042,14 +1010,12 @@ svg {
   right: 0;
   width: 86%;
   max-width: 380px;
-  background: var(--card-bg);
-  border-left: 1px solid var(--border-subtle);
-  box-shadow: -12px 0 36px rgba(0, 0, 0, 0.25);
+  background: #ffffff;
+  border-left: 1px solid #e2e8f0;
+  box-shadow: -12px 0 36px rgba(0, 0, 0, 0.15);
   z-index: 70;
   transform: translate3d(105%, 0, 0);
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
-  backface-visibility: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -1060,49 +1026,33 @@ svg {
 .drawer-header {
   height: 60px;
   padding: 0 18px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid #edf2f7;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex: none;
 }
-.drawer-title-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 .drawer-title {
   font-size: 17px;
   font-weight: 800;
-  letter-spacing: -0.2px;
+  color: #1e293b;
 }
-.drawer-back-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--text-muted);
-}
-
 .drawer-body {
   flex: 1;
   overflow-y: auto;
   padding: 16px 18px 32px;
-  -webkit-overflow-scrolling: touch;
 }
-
 .settings-sec-label {
   font-size: 11px;
   font-weight: 800;
-  color: var(--text-muted);
+  color: #8e9cae;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin: 14px 0 8px;
 }
 .settings-card {
-  background: var(--surface-subtle);
-  border: 1px solid var(--border-subtle);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: 14px;
@@ -1112,31 +1062,23 @@ svg {
   align-items: center;
   justify-content: space-between;
   padding: 14px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid #edf2f7;
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: background 0.15s ease;
 }
 .settings-row:last-child {
   border-bottom: none;
 }
-.settings-row:hover, .settings-row:active {
-  background: var(--card-hover);
-}
-.settings-info {
-  flex: 1;
-  min-width: 0;
-}
 .settings-main-title {
   font-size: 14.5px;
   font-weight: 700;
-  color: var(--text-main);
+  color: #1e293b;
   display: block;
 }
 .settings-sub-title {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #8e9cae;
   display: block;
   margin-top: 2px;
 }
@@ -1160,7 +1102,7 @@ svg {
   height: 20px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .toggle-switch.on {
@@ -1168,17 +1110,6 @@ svg {
 }
 .toggle-switch.on:after {
   transform: translateX(20px);
-}
-
-/* Subviews in Drawer */
-#drawerProfileView, #drawerBlockView {
-  display: none;
-}
-#drawerProfileView.active, #drawerBlockView.active {
-  display: block;
-}
-#drawerMainView.hidden {
-  display: none;
 }
 
 /* Profile Form styling */
@@ -1189,24 +1120,20 @@ svg {
   display: block;
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: #8e9cae;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
   margin-bottom: 6px;
 }
 .profile-input {
   width: 100%;
   height: 42px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-subtle);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-md);
   padding: 0 12px;
   font-size: 14px;
-  color: var(--text-main);
+  color: #1e293b;
   outline: 0;
-}
-.profile-input:focus {
-  border-color: var(--primary-blue);
 }
 .profile-pill-btn {
   display: inline-flex;
@@ -1220,57 +1147,43 @@ svg {
   color: #fff;
   cursor: pointer;
   border: 0;
-  transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.profile-pill-btn:active {
-  transform: scale(0.97);
-}
-.profile-pill-btn.danger {
-  background: #ef4444;
-}
-.profile-pill-btn.outline {
-  background: transparent;
-  color: var(--text-main);
-  border: 1px solid var(--border-subtle);
-}
+.profile-pill-btn.danger { background: #ef4444; }
+.profile-pill-btn.outline { background: transparent; color: #1e293b; border: 1px solid #e2e8f0; }
 
-/* User Details Bottom Modal */
+/* Bottom Modal */
 .user-sheet-modal {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--card-bg);
+  background: #ffffff;
   border-radius: 24px 24px 0 0;
-  border-top: 1px solid var(--border-subtle);
-  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.2);
+  border-top: 1px solid #edf2f7;
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.15);
   z-index: 80;
   transform: translate3d(0, 105%, 0);
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
-  backface-visibility: hidden;
   padding: 16px 20px 32px;
-  max-height: 85%;
-  overflow-y: auto;
 }
 .user-sheet-modal.active {
   transform: translate3d(0, 0, 0);
 }
 .modal-drag-pill {
   width: 40px;
-  height: 4.5px;
-  border-radius: 3px;
+  height: 4px;
+  border-radius: 2px;
   background: #cbd5e1;
   margin: 0 auto 16px;
 }
 
-/* Toast Notification */
+/* Toast */
 .app-toast {
   position: absolute;
   left: 50%;
   bottom: 84px;
   transform: translate(-50%, 20px) scale(0.95);
-  background: rgba(15, 23, 42, 0.92);
+  background: rgba(15, 23, 42, 0.9);
   color: #fff;
   padding: 9px 18px;
   border-radius: var(--radius-full);
@@ -1321,21 +1234,18 @@ svg {
        INBOX / MAIN ROSTER SCREEN
        ========================================== -->
 <div class="screen" id="screenInbox">
-<!-- Header -->
+<!-- Header (Inbox + 2 New + Settings) -->
 <header class="app-header">
-<div class="brand-badge" id="btnBrandMenu">
-<div class="brand-logo-icon">
-<svg viewbox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="12" r="2"></circle></svg>
-</div>
-<span class="brand-title">Chat</span>
+<div class="inbox-title-wrap">
+<span class="inbox-main-heading">Inbox</span>
+<span class="badge-new-pill" id="inboxNewBadge">2 New</span>
 </div>
 <div class="header-actions">
 <button aria-label="Settings" class="action-btn-circle" id="btnOpenSettings" title="Settings">
 <svg viewbox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
 </button>
-<!-- Point 1: Circular Header Profile Button with strictly clipped image -->
 <button aria-label="My Profile" class="header-profile-btn" id="btnHeaderProfile">
-<div class="av" id="headerProfileAvatar" style="background:#1d72fe">U</div>
+<div class="av" id="headerProfileAvatar" style="background:#1466dc">U</div>
 </button>
 </div>
 </header>
@@ -1344,12 +1254,10 @@ svg {
 <!-- Search Input -->
 <div class="search-container" id="searchBoxWrap">
 <svg viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-<input autocomplete="off" id="searchInput" placeholder="Search by username..."/>
+<input autocomplete="off" id="searchInput" placeholder="Search..."/>
 <button aria-label="Clear Search" id="searchClear"><svg viewbox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
 </div>
-<!-- Search Results Dropdown -->
-<div id="searchResultsView"></div>
-<!-- Main Tabs (Rooms vs Directs) -->
+<!-- Quick Tabs -->
 <div class="inbox-tab-bar" id="inboxTabBar">
 <button class="inbox-tab active" data-tab="0">
 <span>Directs</span>
@@ -1358,14 +1266,18 @@ svg {
 <button class="inbox-tab" data-tab="1">
 <span>AI Room</span>
 </button>
-<div class="inbox-tab-indicator" id="tabIndicator"></div>
 </div>
-<!-- Panes for Directs & Rooms -->
+<!-- THE WHITE BOX SYSTEM (Holds dynamic chats without hardcoded data) -->
+<div class="unified-white-box">
+<!-- Search Results Dropdown -->
+<div id="searchResultsView"></div>
 <div class="panes-wrapper">
 <div class="panes-track" id="panesTrack">
-<!-- Directs Pane -->
+<!-- Directs Pane (Dynamically populated from Firebase) -->
 <div class="pane-col" id="paneDirects">
-<div id="directsListContainer"></div>
+<div id="directsListContainer">
+<!-- Rendered dynamically by JS from user data -->
+</div>
 </div>
 <!-- Rooms Pane -->
 <div class="pane-col" id="paneRooms">
@@ -1374,14 +1286,15 @@ svg {
 <svg viewbox="0 0 24 24"><path d="M12 2a8 8 0 0 0-8 8c0 3.3 2 6.2 5 7.4V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.6c3-1.2 5-4.1 5-7.4a8 8 0 0 0-8-8z"></path><path d="M9 10h.01M15 10h.01"></path></svg>
 </div>
 <div style="flex:1;min-width:0">
-<div style="font-size:15px;font-weight:700;color:var(--text-main)">Yuki AI Companion</div>
-<div style="font-size:12.5px;color:var(--text-muted);margin-top:2px">Ask questions, debug code, or chat 24/7</div>
+<div style="font-size:15px;font-weight:700;color:#1e293b">Yuki AI Companion</div>
+<div style="font-size:12px;color:#8e9cae;margin-top:2px">Ask questions, debug code, or chat 24/7</div>
 </div>
 <svg style="color:var(--primary-blue)" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
 </div>
-<p style="font-size:13px;color:var(--text-muted);line-height:1.45;padding:8px 4px">
-              Connected to your <code>/api/yuki</code> endpoint. Powered by Firebase Firestore realtime engine.
-            </p>
+<p style="font-size:12.5px;color:#8e9cae;line-height:1.45;padding:0 16px 16px">
+                    Connected to your Firebase Firestore realtime engine.
+                  </p>
+</div>
 </div>
 </div>
 </div>
@@ -1400,7 +1313,7 @@ svg {
 <div class="chat-header-avatar" id="chatHeaderAvatar">LA</div>
 <div class="chat-header-meta">
 <b id="chatHeaderTitle">Leslie Alexander</b>
-<span id="chatHeaderSubtitle">Active now</span>
+<span id="chatHeaderSubtitle">Web Designer • Active</span>
 </div>
 </div>
 <button aria-label="Chat Settings" class="action-btn-circle" id="btnChatSettingsGear">
@@ -1410,7 +1323,7 @@ svg {
 <!-- Message Stream -->
 <div class="messages-container" id="messagesContainer">
 <div class="date-divider"><span class="date-pill">Today</span></div>
-<!-- Messages will render dynamically here -->
+<!-- Messages render dynamically -->
 <div class="typing-bar" id="typingIndicator">
 <div class="typing-dots"><span></span><span></span><span></span></div>
 <span id="typingLabel">Typing...</span>
@@ -1418,7 +1331,6 @@ svg {
 </div>
 <!-- Composer Dock -->
 <div class="composer-dock">
-<!-- Mentions Suggestions Autocomplete -->
 <div class="mentions-box" id="mentionsBox"></div>
 <div class="composer-inner">
 <button aria-label="Attach File" class="composer-btn" id="btnAttachFile">
@@ -1431,16 +1343,12 @@ svg {
 </div>
 </div>
 </div>
-<!-- ==========================================
-       BACKDROP SCRIM (SHARED)
-       ========================================== -->
+<!-- BACKDROP SCRIM -->
 <div class="backdrop-scrim" id="masterScrim"></div>
-<!-- ==========================================
-       SETTINGS DRAWER
-       ========================================== -->
+<!-- SETTINGS DRAWER -->
 <div class="settings-drawer" id="settingsDrawer">
 <div class="drawer-header">
-<div class="drawer-title-group">
+<div class="drawer-title-group" style="display:flex;align-items:center;gap:8px">
 <button aria-label="Back" class="drawer-back-btn" id="btnDrawerBack" style="display:none">
 <svg viewbox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
 </button>
@@ -1451,7 +1359,7 @@ svg {
 </button>
 </div>
 <div class="drawer-body">
-<!-- 1. MAIN DRAWER MENU -->
+<!-- MAIN DRAWER MENU -->
 <div id="drawerMainView">
 <div class="settings-sec-label">View &amp; Theme</div>
 <div class="settings-card">
@@ -1470,17 +1378,16 @@ svg {
 <span class="settings-main-title">Block List</span>
 <span class="settings-sub-title">Manage accounts you have blocked</span>
 </div>
-<svg style="color:var(--text-muted)" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+<svg style="color:#8e9cae" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
 </div>
 <div class="settings-row" id="rowOpenProfile">
 <div class="settings-info">
 <span class="settings-main-title">Your Profile</span>
 <span class="settings-sub-title">Display name, unique username &amp; photo</span>
 </div>
-<svg style="color:var(--text-muted)" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+<svg style="color:#8e9cae" viewbox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
 </div>
 </div>
-<!-- Chat Specific Actions when opened from active room -->
 <div id="chatContextActions" style="display:none">
 <div class="settings-sec-label">Chat Actions</div>
 <div class="settings-card">
@@ -1498,10 +1405,9 @@ svg {
 </div>
 </div>
 </div>
-<!-- 2. PROFILE SUBVIEW -->
-<div id="drawerProfileView">
+<!-- PROFILE SUBVIEW -->
+<div id="drawerProfileView" style="display:none">
 <div style="text-align:center;padding:12px 0 18px">
-<!-- Point 1: Strictly circular avatar in profile view -->
 <div class="chat-card-avatar" id="subviewProfileAvatar" style="width:72px;height:72px;margin:0 auto 10px;font-size:24px;border:3px solid var(--primary-blue)">U</div>
 <button class="profile-pill-btn outline" id="btnTriggerPhotoUpload" style="font-size:12px;padding:6px 14px">Change Photo</button>
 </div>
@@ -1518,7 +1424,7 @@ svg {
 <input class="profile-input" id="inputUsername" maxlength="20" placeholder="Username"/>
 <button class="profile-pill-btn" id="btnSaveUsername">Save</button>
 </div>
-<span id="tipUsernameCopy" style="font-size:11.5px;color:var(--text-muted);display:block;margin-top:4px">Tap username to copy ID</span>
+<span id="tipUsernameCopy" style="font-size:11.5px;color:#8e9cae;display:block;margin-top:4px">Tap username to copy ID</span>
 </div>
 <div class="profile-form-group">
 <label class="profile-form-label">Email (Verified)</label>
@@ -1528,33 +1434,30 @@ svg {
 <button class="profile-pill-btn danger" id="btnLogout" style="width:100%">Log Out</button>
 </div>
 </div>
-<!-- 3. BLOCKED ACCOUNTS SUBVIEW -->
-<div id="drawerBlockView">
+<!-- BLOCKED SUBVIEW -->
+<div id="drawerBlockView" style="display:none">
 <div id="blockedUsersContainer">
-<p style="text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13.5px">No blocked accounts.</p>
+<p style="text-align:center;color:#8e9cae;padding:30px 10px;font-size:13.5px">No blocked accounts.</p>
 </div>
 </div>
 </div>
 </div>
-<!-- ==========================================
-       USER DETAILS BOTTOM MODAL
-       ========================================== -->
+<!-- USER DETAILS BOTTOM MODAL -->
 <div class="user-sheet-modal" id="contactDetailsModal">
 <div class="modal-drag-pill"></div>
 <div style="text-align:center;margin-bottom:18px">
-<!-- Point 1: Strictly circular avatar in details modal -->
-<div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#f59e0b">LA</div>
-<h3 id="modalContactName" style="font-size:18px;font-weight:800;color:var(--text-main)">Leslie Alexander</h3>
-<p id="modalContactRole" style="font-size:13px;color:var(--text-muted);margin-top:2px">Active Member</p>
+<div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#1466dc">LA</div>
+<h3 id="modalContactName" style="font-size:18px;font-weight:800;color:#1e293b">Leslie Alexander</h3>
+<p id="modalContactRole" style="font-size:13px;color:#8e9cae;margin-top:2px">Web Designer</p>
 </div>
-<div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
+<div style="font-size:12px;font-weight:800;text-transform:uppercase;color:#8e9cae;margin-bottom:10px;letter-spacing:0.6px">
       Information
     </div>
 <div class="settings-card" style="margin-bottom:0">
 <div class="settings-row">
 <div>
 <b style="font-size:14px;display:block">Direct Status</b>
-<span style="font-size:12px;color:var(--text-muted)">Encrypted Firestore Realtime Channel</span>
+<span style="font-size:12px;color:#8e9cae">Encrypted Firestore Realtime Channel</span>
 </div>
 </div>
 </div>
@@ -1623,7 +1526,6 @@ const getInitials = (n = '?') => String(n).replace(/^[@_]/,'').slice(0, 2).toUpp
 const getAvColor = (n = '') => AV_COLORS[[...String(n)].reduce((a,c)=>a+c.charCodeAt(0),0) % AV_COLORS.length];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-/* Point 1: Universal markup generation ensuring strictly circular images and fallbacks */
 function getAvatarMarkup(profileOrName, photoURL = null) {
   let photo = photoURL;
   let name = 'User';
@@ -1695,7 +1597,7 @@ function showToast(msg) {
 const toDate = ts => ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : null;
 const formatRelTime = ts => {
   const d = toDate(ts);
-  if (!d) return '';
+  if (!d) return '5m';
   const sec = Math.floor((Date.now() - d) / 1000);
   if (sec < 60) return 'now';
   if (sec < 3600) return `${Math.floor(sec / 60)}m`;
@@ -1796,6 +1698,7 @@ async function handleAuthSubmit() {
         display: rawDisplayName,
         email,
         photoURL: '',
+        role: 'Active Member',
         createdAt: serverTimestamp(),
         lastSeen: serverTimestamp(),
         emailVerified: false
@@ -1879,9 +1782,10 @@ onAuthStateChanged(auth, async user => {
       const h = (user.email ? user.email.split('@')[0] : 'operator').replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
       currentProfile = {
         username: h,
-        display: h.toUpperCase() + '_UNIT',
+        display: h.toUpperCase(),
         email: user.email || '',
         photoURL: '',
+        role: 'Member',
         createdAt: serverTimestamp(),
         lastSeen: serverTimestamp(),
         emailVerified: true
@@ -1896,7 +1800,6 @@ onAuthStateChanged(auth, async user => {
     $('authPassword').value = '';
     
     listenToCurrentProfile(user.uid);
-
     updateProfileBadges();
     initRosterListener();
     renderDirectsList();
@@ -1945,7 +1848,7 @@ function updateProfileBadges() {
 }
 
 /* ==========================================================================
-   ROSTER & DIRECTS SYNCHRONIZATION
+   ROSTER & DIRECTS SYNCHRONIZATION (DYNAMIC - NO HARDCODED CHATS)
    ========================================================================== */
 function initRosterListener() {
   unsubscribeRoster && unsubscribeRoster();
@@ -1965,9 +1868,9 @@ function initRosterListener() {
     await Promise.all(list.map(async item => {
       try {
         const u = await getDoc(doc(db, 'users', item.otherUid));
-        item.profile = u.exists() ? u.data() : { username: 'operator', display: 'Operator', photoURL: '' };
+        item.profile = u.exists() ? u.data() : { username: 'member', display: 'Member', role: 'Contact', photoURL: '' };
       } catch(e) {
-        item.profile = { username: 'operator', display: 'Operator', photoURL: '' };
+        item.profile = { username: 'member', display: 'Member', role: 'Contact', photoURL: '' };
       }
     }));
 
@@ -1994,11 +1897,26 @@ function renderDirectsList() {
     badgeEl.textContent = totalUnread > 9 ? '9+' : totalUnread;
     badgeEl.style.display = totalUnread > 0 ? 'inline-block' : 'none';
   }
+  const inboxNewBadge = $('inboxNewBadge');
+  if (inboxNewBadge) {
+    inboxNewBadge.textContent = totalUnread > 0 ? `${totalUnread} New` : 'Inbox';
+    inboxNewBadge.style.display = totalUnread > 0 ? 'inline-flex' : 'none';
+  }
+
+  if (visible.length === 0) {
+    container.innerHTML = `
+      <div class="empty-roster-state">
+        <p style="font-weight:600;margin-bottom:6px">No conversations yet</p>
+        <span style="font-size:13px;color:#8e9cae">Search a username above to start chatting</span>
+      </div>`;
+    return;
+  }
 
   container.innerHTML = visible.map(c => {
     const prof = c.profile || {};
-    const name = esc(prof.display || prof.username || 'Operator');
-    const preview = esc(c.data.lastMsg || 'No messages yet');
+    const name = esc(prof.display || prof.username || 'Contact');
+    const role = esc(prof.role || `@${prof.username || 'member'}`);
+    const preview = esc(c.data.lastMsg || 'Tap to send a message');
     const time = esc(formatRelTime(c.data.lastMsgAt || c.data.touchAt));
     const unread = (c.data.unread && currentUser && c.data.unread[currentUser.uid]) || 0;
     const isSelected = (activePeer && activePeer.uid === c.otherUid) || selectedCardUid === c.otherUid;
@@ -2007,6 +1925,7 @@ function renderDirectsList() {
 
     return `
       <div class="chat-card ${isSelected ? 'highlighted-blue' : ''}" data-uid="${esc(c.otherUid)}">
+        ${unread > 0 ? `<div class="unread-blue-dot"></div>` : ''}
         <div class="chat-card-avatar">
           ${avMarkup}
         </div>
@@ -2015,6 +1934,7 @@ function renderDirectsList() {
             <span class="chat-card-name">${name}</span>
             <span class="chat-card-time">${time}</span>
           </div>
+          <div class="chat-card-role">${role}</div>
           <div class="chat-card-preview">${preview}</div>
         </div>
         ${unread > 0 ? `<span class="tab-badge">${unread > 9 ? '9+' : unread}</span>` : ''}
@@ -2023,7 +1943,7 @@ function renderDirectsList() {
 }
 
 /* ==========================================================================
-   SEARCH & MENTIONS
+   SEARCH & USER DISCOVERY
    ========================================================================== */
 $('searchInput')?.addEventListener('input', () => {
   const q = $('searchInput').value.trim().toLowerCase().replace(/^(@|u\/)/, '');
@@ -2037,7 +1957,7 @@ $('searchInput')?.addEventListener('input', () => {
   }
 
   $('searchResultsView').classList.add('active');
-  $('searchResultsView').innerHTML = '<p style="text-align:center;padding:16px;color:var(--text-muted)">Searching...</p>';
+  $('searchResultsView').innerHTML = '<p style="text-align:center;padding:16px;color:#8e9cae">Searching...</p>';
 
   searchDebounce = setTimeout(() => executeSearch(q), 300);
 });
@@ -2073,11 +1993,11 @@ async function executeSearch(queryStr) {
 
   const container = $('searchResultsView');
   if (!results.size) {
-    container.innerHTML = `<p style="text-align:center;padding:16px;color:var(--text-muted)">No users found matching "@${esc(queryStr)}"</p>`;
+    container.innerHTML = `<p style="text-align:center;padding:16px;color:#8e9cae">No users found matching "@${esc(queryStr)}"</p>`;
     return;
   }
 
-  container.innerHTML = `<div class="settings-sec-label">Search Results</div>` + [...results.entries()].map(([uid, u]) => {
+  container.innerHTML = `<div class="settings-sec-label" style="padding:0 18px 6px">Search Results</div>` + [...results.entries()].map(([uid, u]) => {
     const name = esc(u.display || u.username || 'User');
     const avMarkup = getAvatarMarkup(u);
     return `
@@ -2111,7 +2031,7 @@ function openChatView(peerUid, profile = null) {
     <div class="date-divider"><span class="date-pill">Today</span></div>
     <div class="typing-bar active" style="margin: auto auto 12px; justify-content: center">
       <div class="typing-dots"><span></span><span></span><span></span></div>
-      <span style="font-size:12px;color:var(--text-muted)">Loading messages...</span>
+      <span style="font-size:12px;color:#8e9cae">Loading messages...</span>
     </div>`;
 
   appShell.classList.add('in-chat');
@@ -2123,16 +2043,17 @@ function openChatView(peerUid, profile = null) {
 
   activePeer = {
     uid: peerUid,
-    username: profile.username || 'operator',
-    display: profile.display || profile.username || 'Operator',
+    username: profile.username || 'member',
+    display: profile.display || profile.username || 'Contact',
     photoURL: profile.photoURL || '',
+    role: profile.role || 'Member',
     isYuki: peerUid === YUKI_BOT_UID
   };
 
   activeChatId = getChatId(currentUser ? currentUser.uid : 'anon', peerUid);
 
   $('chatHeaderTitle').textContent = activePeer.display;
-  $('chatHeaderSubtitle').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
+  $('chatHeaderSubtitle').textContent = activePeer.isYuki ? 'AI Companion' : `${activePeer.role || '@' + activePeer.username} • Active now`;
   
   $('chatHeaderAvatar').innerHTML = getAvatarMarkup(activePeer);
 
@@ -2162,6 +2083,7 @@ function openYukiBotChat() {
   openChatView(YUKI_BOT_UID, {
     username: 'yuki_ai',
     display: 'Yuki AI Companion',
+    role: 'AI Assistant',
     photoURL: '',
     isYuki: true
   });
@@ -2181,8 +2103,8 @@ function subscribeToMessages(chatId) {
     if (snap.empty) {
       msgsContainer.innerHTML = `
         <div class="date-divider"><span class="date-pill">Today</span></div>
-        <p style="text-align:center;color:var(--text-muted);margin:auto 0;padding:30px 10px;font-size:13.5px">
-          ${activePeer?.isYuki ? 'Say hello to Yuki AI Companion!' : 'No messages yet. Send the first message below.'}
+        <p style="text-align:center;color:#8e9cae;margin:auto 0;padding:30px 10px;font-size:13.5px">
+          ${activePeer?.isYuki ? 'Say hello to Yuki AI Companion!' : 'No messages yet. Send a message to start chatting.'}
         </p>
         <div class="typing-bar" id="typingIndicator">
           <div class="typing-dots"><span></span><span></span><span></span></div>
@@ -2202,7 +2124,7 @@ function subscribeToMessages(chatId) {
     snap.docs.forEach(d => {
       const msg = d.data({ serverTimestamps: 'estimate' });
       const isMine = msg.by === currentUser?.uid;
-      const senderName = isMine ? (currentProfile?.display || 'You') : (activePeer?.display || 'Operator');
+      const senderName = isMine ? (currentProfile?.display || 'You') : (activePeer?.display || 'Contact');
       const timeStr = formatClock(msg.at);
       
       const avMarkup = isMine ? getAvatarMarkup(currentProfile) : getAvatarMarkup(activePeer);
@@ -2354,28 +2276,6 @@ $('chatInputText')?.addEventListener('input', () => {
   input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   const hasText = !!input.value.trim();
   $('btnSendMessage')?.classList.toggle('can-send', hasText);
-
-  const match = input.value.match(/(?:^|\s)u\/([\w]*)$/);
-  const mentionsBox = $('mentionsBox');
-  if (match) {
-    const term = match[1].toLowerCase();
-    const matches = conversationList
-      .map(c => c.profile?.username)
-      .filter(u => u && u.toLowerCase().includes(term));
-
-    if (matches.length > 0) {
-      mentionsBox.innerHTML = matches.slice(0, 5).map(u => `
-        <button class="mention-item" data-username="${esc(u)}">
-          <div class="chat-card-avatar" style="width:26px;height:26px;font-size:11px">${getAvatarMarkup(u)}</div>
-          <span>u/${esc(u)}</span>
-        </button>`).join('');
-      mentionsBox.classList.add('open');
-    } else {
-      mentionsBox.classList.remove('open');
-    }
-  } else {
-    mentionsBox?.classList.remove('open');
-  }
 });
 
 /* ==========================================================================
@@ -2404,23 +2304,23 @@ function showDrawerSubView(view) {
   const title = $('drawerTitle');
 
   if (view === 'profile') {
-    main.classList.add('hidden');
-    prof.classList.add('active');
-    blk.classList.remove('active');
+    main.style.display = 'none';
+    prof.style.display = 'block';
+    blk.style.display = 'none';
     backBtn.style.display = 'grid';
     title.textContent = 'Your Profile';
     updateProfileBadges();
   } else if (view === 'block') {
-    main.classList.add('hidden');
-    prof.classList.remove('active');
-    blk.classList.add('active');
+    main.style.display = 'none';
+    prof.style.display = 'none';
+    blk.style.display = 'block';
     backBtn.style.display = 'grid';
     title.textContent = 'Blocked Accounts';
     renderBlockedAccounts();
   } else {
-    main.classList.remove('hidden');
-    prof.classList.remove('active');
-    blk.classList.remove('active');
+    main.style.display = 'block';
+    prof.style.display = 'none';
+    blk.style.display = 'none';
     backBtn.style.display = 'none';
     title.textContent = 'Settings';
   }
@@ -2560,7 +2460,7 @@ function renderBlockedAccounts() {
   const blockedIds = currentProfile?.blockedUids || [];
 
   if (!blockedIds.length) {
-    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13.5px">No blocked accounts.</p>';
+    container.innerHTML = '<p style="text-align:center;color:#8e9cae;padding:30px 10px;font-size:13.5px">No blocked accounts.</p>';
     return;
   }
 
@@ -2576,7 +2476,7 @@ function renderBlockedAccounts() {
           </div>
           <div>
             <b style="font-size:13.5px;display:block">${name}</b>
-            <span style="font-size:12px;color:var(--text-muted)">@${esc(prof.username || 'operator')}</span>
+            <span style="font-size:12px;color:#8e9cae">@${esc(prof.username || 'user')}</span>
           </div>
         </div>
         <button class="profile-pill-btn outline" data-unblock="${esc(uid)}" style="font-size:12px;padding:4px 12px">Unblock</button>
@@ -2611,15 +2511,6 @@ document.addEventListener('click', e => {
     return;
   }
 
-  const mentionBtn = e.target.closest('.mention-item');
-  if (mentionBtn) {
-    const input = $('chatInputText');
-    input.value = input.value.replace(/u\/[\w]*$/, 'u/' + mentionBtn.dataset.username + ' ');
-    input.focus();
-    $('mentionsBox')?.classList.remove('open');
-    return;
-  }
-
   const chatRow = e.target.closest('.chat-card');
   if (chatRow && chatRow.dataset.uid) {
     selectedCardUid = chatRow.dataset.uid;
@@ -2635,7 +2526,6 @@ document.addEventListener('click', e => {
     const tabIdx = +navTab.dataset.tab;
     document.querySelectorAll('.inbox-tab').forEach((t, i) => t.classList.toggle('active', i === tabIdx));
     $('panesTrack').style.transform = `translateX(${-50 * tabIdx}%)`;
-    $('tabIndicator').style.transform = `translateX(${100 * tabIdx}%)`;
     return;
   }
 });
