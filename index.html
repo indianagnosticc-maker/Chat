@@ -4,6 +4,9 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" name="viewport"/>
 <title>Chat App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg-canvas: #e8effa;
@@ -1287,6 +1290,488 @@ svg {
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
 }
+
+
+/* ==========================================================================
+   FIGMA COMMUNITY DESKTOP CHAT UI
+   Desktop-only visual layer. Existing IDs, listeners and Firebase logic stay intact.
+   ========================================================================== */
+@media (min-width: 901px) {
+  :root {
+    --figma-bg: #002149;
+    --figma-panel: #001329;
+    --figma-panel-2: #002047;
+    --figma-text: #f6f9ff;
+    --figma-muted: #9fb1c8;
+    --figma-blue: #147bea;
+    --figma-line: rgba(255,255,255,.075);
+  }
+
+  html, body {
+    overflow: hidden;
+    position: static;
+    width: 100%;
+    height: 100%;
+    background: #002149;
+    background-image: none;
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: #002149;
+    z-index: -2;
+  }
+
+  .device-wrapper {
+    width: min(1272px, calc(100vw - 64px));
+    max-width: 1272px;
+    height: min(681px, calc(100dvh - 80px));
+    min-height: 620px;
+    margin: 40px auto;
+    border-radius: 10px;
+    background: var(--figma-bg);
+    box-shadow: 0 22px 60px rgba(0,0,0,.22);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Keep authentication and all drawers functional. */
+  #authScreen { z-index: 200; }
+  .backdrop-scrim { z-index: 160; }
+  .settings-drawer { z-index: 170; }
+  .user-sheet-modal { z-index: 175; }
+  .app-toast { z-index: 190; }
+
+  .desktop-sidebar {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 180px;
+    background: #001329;
+    color: var(--figma-text);
+    z-index: 30;
+    padding: 23px 0 20px;
+  }
+
+  .desktop-brand {
+    height: 62px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 28px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -1px;
+    color: #cfe2ff;
+  }
+
+  .desktop-brand-mark {
+    width: 39px; height: 39px;
+    border-radius: 50%;
+    position: relative;
+    background: #147bea;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .desktop-brand-mark::before {
+    content: "";
+    width: 23px; height: 30px;
+    border-radius: 50% 45% 45% 50%;
+    background: #001329;
+    transform: translateX(5px);
+  }
+  .desktop-brand-mark span {
+    position: absolute;
+    width: 7px; height: 16px;
+    border-radius: 5px;
+    background: #147bea;
+    left: 9px; top: 12px;
+  }
+
+  .desktop-nav {
+    margin-top: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .desktop-nav-item {
+    height: 50px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    padding: 0 29px;
+    color: #b9cce4;
+    font-size: 14px;
+    font-weight: 400;
+    text-align: left;
+    border-radius: 0;
+    position: relative;
+    background: transparent;
+  }
+  .desktop-nav-item:hover { background: rgba(20,123,234,.08); color:#eaf3ff; }
+  .desktop-nav-item.active { color: #1685f4; background: rgba(20,123,234,.055); }
+  .desktop-nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: #1685f4;
+  }
+  .nav-ico {
+    width: 18px;
+    text-align: center;
+    font-size: 17px;
+    line-height: 1;
+    color: currentColor;
+  }
+  .desktop-order-badge {
+    margin-left: auto;
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: #ff5064;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+  }
+
+  .desktop-topbar {
+    position: absolute;
+    left: 210px; right: 20px; top: 0;
+    height: 86px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .desktop-topbar h1 {
+    margin: 0;
+    color: #fff;
+    font-size: 29px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -.8px;
+  }
+  .desktop-top-actions { display:flex; align-items:center; gap:15px; pointer-events:auto; }
+  .desktop-add-chat {
+    height: 30px;
+    min-width: 100px;
+    padding: 0 17px;
+    border-radius: 5px;
+    background: #147bea;
+    color: #031b35;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .desktop-add-chat:hover { filter: brightness(1.08); }
+  .desktop-icon-btn {
+    width: 28px; height: 30px;
+    color: #fff;
+    font-size: 22px;
+    display: grid; place-items:center;
+  }
+  .desktop-user-btn {
+    display:flex; align-items:center; gap:11px;
+    color:#fff;
+    font-size:13px;
+    white-space:nowrap;
+  }
+  .desktop-top-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display:grid; place-items:center;
+    overflow:hidden;
+    background:#e9b83f;
+    border:1px solid rgba(255,255,255,.15);
+    font-size:11px;
+    font-weight:700;
+  }
+
+  /* Existing inbox becomes the left conversation list column. */
+  #screenInbox {
+    left: 210px;
+    top: 86px;
+    width: 250px;
+    height: calc(100% - 106px);
+    transform: none !important;
+    opacity: 1 !important;
+    z-index: 25;
+    background: transparent;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  #screenInbox .app-header { display:none; }
+  #screenInbox .inbox-scroll-body {
+    padding: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    flex: 1;
+  }
+  #screenInbox .inbox-scroll-body::-webkit-scrollbar { width: 3px; }
+  #screenInbox .search-container {
+    height: 41px;
+    margin: 38px 0 14px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 22px;
+    background: #001329;
+    box-shadow: none;
+  }
+  #screenInbox .search-container input {
+    color: #eaf3ff;
+    font-size: 12px;
+  }
+  #screenInbox .search-container input::placeholder { color:#8ca0b9; }
+  #screenInbox .search-container svg { color:#d6e1ef; width:16px; height:16px; }
+  #screenInbox .inbox-tab-bar {
+    height: 31px;
+    margin: 0 0 13px;
+    padding: 0;
+    border: 0;
+    gap: 4px;
+    justify-content:flex-start;
+  }
+  #screenInbox .inbox-tab {
+    flex: none;
+    padding: 0 9px;
+    justify-content:flex-start;
+    font-size: 12px;
+    font-weight: 400;
+    color:#fff;
+  }
+  #screenInbox .inbox-tab:not(.active) { display:none; }
+  #screenInbox .tab-badge {
+    background:#0d5dbd;
+    color:#8ec6ff;
+    height:17px; min-width:17px;
+    line-height:17px;
+    font-size:8px;
+    font-weight:400;
+  }
+  #screenInbox .inbox-tab-indicator { display:none; }
+  #screenInbox .chat-card {
+    height: 80px;
+    padding: 0 14px 0 28px;
+    margin: 0;
+    gap: 10px;
+    border: 0;
+    border-bottom: 1px solid var(--figma-line);
+    border-radius: 0;
+    background: transparent;
+    box-shadow:none;
+  }
+  #screenInbox .chat-card:hover { background:rgba(20,123,234,.055); }
+  #screenInbox .chat-card.highlighted-blue {
+    background:#147bea;
+    border:0;
+    box-shadow:none;
+  }
+  #screenInbox .chat-card-avatar { width:31px; height:31px; font-size:11px; }
+  #screenInbox .chat-card-body { min-width:0; }
+  #screenInbox .chat-card-header { margin-bottom:1px; }
+  #screenInbox .chat-card-name {
+    color:#dbe8f7;
+    font-size:14px;
+    font-weight:500;
+  }
+  #screenInbox .chat-card-preview {
+    color:#c2d0df;
+    font-size:10px;
+    margin-top:2px;
+  }
+  #screenInbox .chat-card-time { color:#7f93aa; font-size:8px; }
+  #screenInbox .chat-card.highlighted-blue .chat-card-name,
+  #screenInbox .chat-card.highlighted-blue .chat-card-preview,
+  #screenInbox .chat-card.highlighted-blue .chat-card-time { color:#001d3c; }
+  #screenInbox .panes-wrapper { overflow:visible; }
+  #screenInbox .panes-track { width:100%; transform:none !important; }
+  #screenInbox .pane-col { width:100%; }
+  #screenInbox #paneRooms { display:none; }
+  #screenInbox #searchResultsView { background:transparent; }
+
+  /* Existing active chat becomes the center conversation column. */
+  #screenChat {
+    left: 476px;
+    top: 86px;
+    width: 460px;
+    height: calc(100% - 106px);
+    transform: none !important;
+    opacity: 1 !important;
+    z-index: 25;
+    background: transparent;
+    border-radius: 9px;
+    overflow: hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  #screenChat .chat-top-header {
+    height: 80px;
+    min-height:80px;
+    padding:0 17px 0 25px;
+    border:0;
+    border-radius:9px;
+    background:#001329;
+  }
+  #screenChat .chat-back-btn { display:none; }
+  #screenChat .chat-contact-info { gap:10px; }
+  #screenChat .chat-header-avatar { width:31px; height:31px; }
+  #screenChat .chat-header-meta b { font-size:13px; font-weight:500; color:#f4f7fc; }
+  #screenChat .chat-header-meta span { font-size:8px; color:#91a3ba; margin-top:2px; }
+  #screenChat #btnChatSettingsGear {
+    width:30px; height:30px; border:0; background:transparent; box-shadow:none;
+    color:#fff;
+  }
+  #screenChat .messages-container {
+    margin-top:15px;
+    background:#001329;
+    border-radius:9px;
+    padding:25px 15px 12px;
+    gap:0;
+    scrollbar-width:thin;
+  }
+  #screenChat .messages-container::-webkit-scrollbar { width:3px; }
+  #screenChat .date-divider { margin:0 30px 23px; }
+  #screenChat .date-divider::before,
+  #screenChat .date-divider::after {
+    content:""; height:1px; background:#28405b; flex:1;
+  }
+  #screenChat .date-pill {
+    border:0; background:transparent; box-shadow:none;
+    color:#8ea1b8; font-size:8px; font-weight:400; padding:0 15px;
+  }
+  #screenChat .chat-message-row { gap:9px; margin-bottom:13px; }
+  #screenChat .msg-avatar { width:31px; height:31px; margin-bottom:1px; }
+  #screenChat .msg-bubble-wrap { max-width:81%; }
+  #screenChat .msg-sender-name { display:none; }
+  #screenChat .msg-bubble {
+    padding:10px 10px;
+    border-radius:4px;
+    background:#062d57;
+    border:0;
+    box-shadow:none;
+    color:#e0eaf5;
+    font-size:8px;
+    line-height:1.55;
+  }
+  #screenChat .chat-message-row.is-mine .msg-bubble {
+    background:#062d57;
+    border:0;
+    color:#e0eaf5;
+    border-radius:4px;
+  }
+  #screenChat .msg-time { font-size:7px; color:#71869e; margin-top:4px; }
+  #screenChat .typing-bar { font-size:8px; }
+  #screenChat .composer-dock {
+    padding:10px 15px 15px;
+    border:0;
+    background:#001329;
+    backdrop-filter:none;
+  }
+  #screenChat .composer-inner {
+    min-height:35px;
+    padding:0 3px 0 12px;
+    gap:4px;
+    border:1px solid #477092;
+    border-radius:3px;
+    background:#001329;
+    box-shadow:none;
+  }
+  #screenChat .composer-textarea {
+    height:32px; min-height:32px;
+    padding:9px 0;
+    font-size:8px;
+    color:#dce8f6;
+  }
+  #screenChat .composer-textarea::placeholder { color:#8aa0b8; }
+  #screenChat .composer-btn { width:28px; height:28px; color:#c3d1df; }
+  #screenChat .send-action-btn { border-radius:2px; background:#147bea; color:#06264a; }
+  #screenChat .send-action-btn.can-send { box-shadow:none; }
+
+  /* Right-side Figma-style details panel. */
+  .desktop-profile-panel {
+    position:absolute;
+    left:951px; right:20px; top:86px; bottom:20px;
+    z-index:25;
+    background:#001329;
+    border-radius:9px;
+    color:#fff;
+    padding:20px 15px 13px;
+    overflow:hidden;
+  }
+  .desktop-profile-avatar {
+    width:100px; height:100px;
+    border-radius:50%;
+    margin:0 auto 13px;
+    display:grid; place-items:center;
+    background:#f8bb28;
+    border:5px solid #147bea;
+    color:#5c3a00;
+    font-size:25px;
+    font-weight:700;
+    overflow:hidden;
+  }
+  .desktop-profile-panel h2 { text-align:center; font-size:13px; font-weight:600; margin:0; }
+  .desktop-profile-panel > p { text-align:center; font-size:8px; color:#91a3ba; margin-top:3px; }
+  .desktop-rating { text-align:center; margin-top:5px; color:#fff; font-size:7px; }
+  .desktop-rating:first-letter { color:#ff4d63; }
+  .desktop-recent-head {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:23px; margin-bottom:10px;
+  }
+  .desktop-recent-head strong { font-size:13px; font-weight:600; }
+  .desktop-recent-head button { color:#8fa1b6; font-size:8px; }
+  .desktop-recent-list { display:flex; flex-direction:column; }
+  .desktop-recent-item {
+    min-height:56px;
+    display:flex; align-items:center; gap:10px;
+    border-bottom:1px solid #18304a;
+  }
+  .desktop-recent-item:last-child { border-bottom:0; }
+  .desktop-recent-thumb {
+    width:40px; height:40px; border-radius:5px; flex:none;
+    background:#17324e; display:grid; place-items:center;
+    color:#c7d5e4; font-size:11px; font-weight:600; overflow:hidden;
+  }
+  .desktop-recent-copy { min-width:0; flex:1; }
+  .desktop-recent-copy b { display:block; font-size:10px; font-weight:600; color:#eef5fd; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .desktop-recent-copy span { display:block; font-size:7px; color:#7f94aa; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .desktop-recent-time { color:#e5edf7; font-size:7px; font-weight:600; white-space:nowrap; align-self:center; }
+
+  /* Hide the mobile-only visual chrome while preserving its DOM and listeners. */
+  #btnBrandMenu, #btnOpenSettings, #btnHeaderProfile { display:none !important; }
+
+  /* Keep drawers visually usable on desktop. */
+  .settings-drawer { width:350px; max-width:350px; }
+  .user-sheet-modal { max-width:520px; left:50%; right:auto; width:520px; transform:translate(-50%,105%); }
+  .user-sheet-modal.active { transform:translate(-50%,0); }
+}
+
+@media (min-width: 901px) and (max-height: 700px) {
+  .device-wrapper { margin-top:20px; margin-bottom:20px; height:calc(100dvh - 40px); }
+}
+
+@media (max-width: 1100px) and (min-width: 901px) {
+  .device-wrapper { width:calc(100vw - 28px); }
+  .desktop-sidebar { width:160px; }
+  .desktop-brand { padding-left:22px; }
+  .desktop-nav-item { padding-left:22px; }
+  .desktop-topbar { left:185px; right:15px; }
+  #screenInbox { left:185px; width:225px; }
+  #screenChat { left:426px; width:calc(100% - 705px); }
+  .desktop-profile-panel { left:auto; right:15px; width:255px; }
+}
+
+@media (max-width: 900px) {
+  .desktop-sidebar, .desktop-topbar, .desktop-profile-panel { display:none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -1317,6 +1802,36 @@ svg {
 <button class="auth-toggle-link" id="btnResendVerification" style="display:none;margin-top:6px">Resend verification email</button>
 </div>
 </div>
+<!-- ================= DESKTOP FIGMA-STYLE UI ================= -->
+<aside class="desktop-sidebar" aria-label="Primary navigation">
+  <div class="desktop-brand"><div class="desktop-brand-mark"><span></span></div><span>Logo</span></div>
+  <nav class="desktop-nav">
+    <button class="desktop-nav-item"><span class="nav-ico">⌘</span><span>Dashboard</span></button>
+    <button class="desktop-nav-item"><span class="nav-ico">▣</span><span>Product</span></button>
+    <button class="desktop-nav-item"><span class="nav-ico">☷</span><span>Order</span><b class="desktop-order-badge">5</b></button>
+    <button class="desktop-nav-item active" id="desktopChatNav"><span class="nav-ico">◌</span><span>Chat</span></button>
+    <button class="desktop-nav-item"><span class="nav-ico">▤</span><span>Document</span></button>
+    <button class="desktop-nav-item" id="desktopSettingsNav"><span class="nav-ico">⚙</span><span>Setting</span></button>
+    <button class="desktop-nav-item" id="desktopLogoutNav"><span class="nav-ico">↪</span><span>Logout</span></button>
+  </nav>
+</aside>
+<div class="desktop-topbar">
+  <h1>Chat</h1>
+  <div class="desktop-top-actions">
+    <button class="desktop-add-chat" id="desktopAddChat">＋ Chat</button>
+    <button class="desktop-icon-btn" id="desktopNotifications" aria-label="Notifications">♧</button>
+    <button class="desktop-user-btn" id="desktopProfile"><span class="desktop-top-avatar" id="desktopTopAvatar">U</span><span id="desktopTopName">User</span></button>
+  </div>
+</div>
+<aside class="desktop-profile-panel" id="desktopProfilePanel">
+  <div class="desktop-profile-avatar" id="desktopPeerAvatar">LA</div>
+  <h2 id="desktopPeerName">Leslie Alexander</h2>
+  <p id="desktopPeerRole">Web Designer</p>
+  <div class="desktop-rating">★ <span id="desktopPeerRating">4.7</span> Rating</div>
+  <div class="desktop-recent-head"><strong>Recent</strong><button type="button">See all</button></div>
+  <div id="desktopRecentList" class="desktop-recent-list"></div>
+</aside>
+<!-- ================= END DESKTOP FIGMA-STYLE UI ================= -->
 <!-- ==========================================
        INBOX / MAIN ROSTER SCREEN
        ========================================== -->
@@ -1942,6 +2457,7 @@ function updateProfileBadges() {
   if ($('inputDisplayName')) $('inputDisplayName').value = currentProfile.display || '';
   if ($('inputUsername')) $('inputUsername').value = currentProfile.username || '';
   if ($('inputEmail')) $('inputEmail').value = currentUser?.email || currentProfile.email || '';
+  updateDesktopProfileUI?.();
 }
 
 /* ==========================================================================
@@ -1978,6 +2494,7 @@ function initRosterListener() {
     list.sort((a, b) => getTimeMillis(b) - getTimeMillis(a));
     conversationList = list;
     renderDirectsList();
+    renderDesktopRecentList?.();
   }, err => console.error('Roster error:', err));
 }
 
@@ -2135,6 +2652,7 @@ function openChatView(peerUid, profile = null) {
   $('chatHeaderSubtitle').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
   
   $('chatHeaderAvatar').innerHTML = getAvatarMarkup(activePeer);
+  updateDesktopPeerUI?.(activePeer);
 
   $('searchInput').value = '';
   $('searchBoxWrap')?.classList.remove('has-value');
@@ -2680,5 +3198,65 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
     showToast('Conversation hidden');
   }
 });
+
+
+  /* Desktop UI sync helpers — visual only, reusing existing app state. */
+  function updateDesktopProfileUI() {
+    const topAvatar = $('desktopTopAvatar');
+    const topName = $('desktopTopName');
+    if (topAvatar && currentProfile) {
+      topAvatar.innerHTML = getAvatarMarkup(currentProfile);
+    }
+    if (topName) topName.textContent = currentProfile?.display || currentProfile?.username || 'User';
+    renderDesktopRecentList();
+  }
+
+  function updateDesktopPeerUI(profile) {
+    if (!profile) return;
+    const name = profile.display || profile.username || 'Operator';
+    const role = profile.isYuki ? 'AI Companion' : (profile.username ? `@${profile.username}` : 'Member');
+    const avatar = $('desktopPeerAvatar');
+    if (avatar) avatar.innerHTML = getAvatarMarkup(profile);
+    if ($('desktopPeerName')) $('desktopPeerName').textContent = name;
+    if ($('desktopPeerRole')) $('desktopPeerRole').textContent = role;
+    if ($('desktopPeerRating')) $('desktopPeerRating').textContent = profile.isYuki ? '5.0' : '4.7';
+  }
+
+  function renderDesktopRecentList() {
+    const list = $('desktopRecentList');
+    if (!list) return;
+    const items = conversationList.slice(0, 6);
+    if (!items.length) {
+      list.innerHTML = '<div style="padding:18px 0;text-align:center;color:#71869e;font-size:9px">No recent conversations</div>';
+      return;
+    }
+    list.innerHTML = items.map(item => {
+      const prof = item.profile || {};
+      const name = esc(prof.display || prof.username || 'Operator');
+      const sub = esc(prof.username ? '@' + prof.username : 'Member');
+      const time = esc(formatRelTime(item.data?.lastMsgAt || item.data?.touchAt));
+      return `<button class="desktop-recent-item" data-desktop-uid="${esc(item.otherUid)}" type="button">
+        <span class="desktop-recent-thumb">${getAvatarMarkup(prof)}</span>
+        <span class="desktop-recent-copy"><b>${name}</b><span>${sub}</span></span>
+        <span class="desktop-recent-time">${time || ''}</span>
+      </button>`;
+    }).join('');
+  }
+
+  $('desktopSettingsNav')?.addEventListener('click', () => $('btnOpenSettings')?.click());
+  $('desktopLogoutNav')?.addEventListener('click', () => $('btnLogout')?.click());
+  $('desktopProfile')?.addEventListener('click', () => $('btnHeaderProfile')?.click());
+  $('desktopAddChat')?.addEventListener('click', () => {
+    $('searchInput')?.focus();
+  });
+  $('desktopChatNav')?.addEventListener('click', () => {
+    appShell.classList.remove('in-chat');
+  });
+  $('desktopRecentList')?.addEventListener('click', e => {
+    const row = e.target.closest('[data-desktop-uid]');
+    if (row) openChatView(row.dataset.desktopUid);
+  });
+
+  updateDesktopProfileUI();
 </script>
 </body></html>
