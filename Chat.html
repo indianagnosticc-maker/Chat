@@ -2194,14 +2194,16 @@ onAuthStateChanged(auth, async user => {
   window.__chatBooted = true;
   document.getElementById('bootDiag')?.remove();
   if (!user) {
-  window.location.replace('index.html');
-  return;
-}
+    window.location.replace('index.html');
+    return;
+  }
 
-  if (!user.emailVerified) {
-  window.location.replace('index.html');
-  return;
-}
+  // Google-authenticated users are already verified. Keep this guard for
+  // other Firebase providers without changing the existing UI.
+  if (user.providerData?.some(p => p.providerId === 'google.com') !== true && !user.emailVerified) {
+    window.location.replace('index.html');
+    return;
+  }
 
   currentUser = user;
   try {
