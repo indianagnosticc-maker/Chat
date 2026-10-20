@@ -1248,6 +1248,51 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
 }
+
+/* ==========================================================================
+   Telegram-style continuous chat list (no gaps, thin dividers)
+   ========================================================================== */
+#directsListContainer {
+  margin: 0 -16px;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--card-bg);
+}
+.chat-card {
+  position: relative;
+  margin-bottom: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--card-bg);
+  padding: 12px 16px;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+.chat-card::after {
+  content: "";
+  position: absolute;
+  left: 72px;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--border-subtle);
+}
+.chat-card:last-child::after,
+.chat-card.highlighted-blue::after,
+.chat-card:active::after { display: none; }
+.chat-card:active { transform: none; }
+#searchResultsView { margin: 0 -16px; }
+#searchResultsView .settings-sec-label { padding: 0 16px; }
+
+/* ==========================================================================
+   Smoothness: no expensive blur on moving layers, no mass color transitions
+   while switching theme
+   ========================================================================== */
+.backdrop-scrim { backdrop-filter: none; -webkit-backdrop-filter: none; will-change: opacity; }
+.app-header, .chat-top-header, .composer-dock { backdrop-filter: none; -webkit-backdrop-filter: none; }
+.no-theme-anim, .no-theme-anim *, .no-theme-anim *::before, .no-theme-anim *::after { transition: none !important; }
+.no-theme-anim .toggle-switch { transition: background 0.25s ease !important; }
+.no-theme-anim .toggle-switch:after { transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1) !important; }
 </style>
 </head>
 <body>
@@ -1760,9 +1805,12 @@ let currentTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
 
 function setTheme(theme) {
   currentTheme = theme;
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem(THEME_STORAGE_KEY, theme);
+  const root = document.documentElement;
+  root.classList.add('no-theme-anim');
+  root.setAttribute('data-theme', theme);
   $('switchTheme')?.classList.toggle('on', theme === 'dark');
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-theme-anim')));
+  try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch(e) {}
 }
 setTheme(currentTheme);
 
@@ -2007,10 +2055,16 @@ function updateProfileBadges() {
     ? `<img src="${esc(currentProfile.photoURL)}" alt="Avatar">` 
     : `<div class="av" style="background:${color};width:100%;height:100%;display:grid;place-items:center;font-weight:700;color:#fff">${initial}</div>`;
 
-  if ($('btnHeaderProfile')) $('btnHeaderProfile').innerHTML = currentProfile.photoURL
+  const _hSig = (currentProfile.photoURL || '') + '|' + color + initial;
+  const _hChanged = $('btnHeaderProfile') && $('btnHeaderProfile').__sig !== _hSig;
+  if (_hChanged) $('btnHeaderProfile').__sig = _hSig;
+  if (_hChanged) $('btnHeaderProfile').innerHTML = currentProfile.photoURL
     ? `<img id="headerProfileAvatar" src="${esc(currentProfile.photoURL)}" alt="Avatar" decoding="async">`
     : `<div class="av" id="headerProfileAvatar" style="background:${color};width:100%;height:100%">${initial}</div>`;
-  if ($('subviewProfileAvatar')) $('subviewProfileAvatar').innerHTML = avHtml;
+  if ($('subviewProfileAvatar') && $('subviewProfileAvatar').__sig !== avHtml) {
+    $('subviewProfileAvatar').__sig = avHtml;
+    $('subviewProfileAvatar').innerHTML = avHtml;
+  }
   if ($('inputDisplayName')) $('inputDisplayName').value = currentProfile.display || '';
   if ($('inputUsername')) $('inputUsername').value = currentProfile.username || '';
   if ($('inputEmail')) $('inputEmail').value = currentUser?.email || currentProfile.email || '';
@@ -2428,6 +2482,14 @@ function subscribeToMessages(chatId) {
     const wait = chatSettleAt - Date.now();
     // don't build bubbles in the middle of the slide-in animation (keeps it 60fps)
     if (wait > 0 && !chatLoaded) setTimeout(run, wait); else run();
+
+    const last = snap.docs[snap.docs.length - 1];
+    if (last && currentUser && !activePeer?.isYuki && !activePeer?.isDemo && last.data().by !== currentUser.uid) {
+      const it = conversationList.find(c => c.chatId === chatId);
+      if (it && it.data.unread && it.data.unread[currentUser.uid] > 0) {
+        updateDoc(doc(db, 'chats', chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
+      }
+    }
   }, err => console.error('Messages sync error:', err));
 }
 
@@ -2606,7 +2668,7 @@ function toggleDrawer(open, isChatContext = false) {
     $('chatContextActions').style.display = isChatContext ? 'block' : 'none';
     drawer?.classList.add('active');
     scrim?.classList.add('active');
-    updateProfileBadges();
+    requestAnimationFrame(() => updateProfileBadges());
   } else {
     drawer?.classList.remove('active');
     scrim?.classList.remove('active');
