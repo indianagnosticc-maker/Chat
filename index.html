@@ -1,154 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sign In</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yuki · Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-  body {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f7f8fa;
-    padding: 24px;
-    -webkit-font-smoothing: antialiased;
-  }
-  .card {
-    background: #fff;
-    border: 1px solid #e8eaed;
-    border-radius: 12px;
-    padding: 48px 40px;
-    width: 100%;
-    max-width: 420px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.04);
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 52px;
-    height: 52px;
-    margin: 0 auto 24px;
-    background: #1a73e8;
-    border-radius: 12px;
-    color: #fff;
-    font-size: 24px;
-    font-weight: 700;
-  }
-  h1 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #202124;
-    text-align: center;
-    margin-bottom: 8px;
-    letter-spacing: -0.2px;
-  }
-  .subtitle {
-    color: #5f6368;
-    font-size: 14px;
-    text-align: center;
-    margin-bottom: 32px;
-    line-height: 1.5;
-  }
-  #g_id_onload { display: none; }
-  .g_id_signin { display: flex; justify-content: center; }
-  #status {
-    margin-top: 20px;
-    font-size: 13px;
-    color: #5f6368;
-    text-align: center;
-    min-height: 18px;
-    line-height: 1.4;
-  }
-  #status.error { color: #d93025; }
-  #status.success { color: #188038; }
+:root {
+  --bg-gradient: linear-gradient(135deg, #f7d6e6 0%, #e2ecf9 50%, #d5e5fa 100%);
+  --card-bg: #ffffff;
+  --primary-blue: #1d72fe;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border-subtle: #e2e8f0;
+  --shadow-lg: 0 16px 36px rgba(30, 41, 59, 0.12);
+  --radius-xl: 24px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100dvh;
+  background: var(--bg-gradient);
+  font-family: "Inter", sans-serif;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+}
+.auth-shell {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 40px 28px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+.brand-badge {
+  width: 64px; height: 64px; border-radius: 50%;
+  overflow: hidden; margin: 0 auto 16px;
+  background: var(--primary-blue);
+}
+.brand-badge img { width: 100%; height: 100%; object-fit: cover; }
+h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+p.sub { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
 
-  #userInfo {
-    display: none;
-    margin-top: 8px;
-    text-align: center;
-  }
-  #userInfo .avatar-wrap {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 16px;
-  }
-  #userInfo img {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 1px #e8eaed;
-  }
-  #userInfo .check {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 22px;
-    height: 22px;
-    background: #188038;
-    border: 2px solid #fff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 12px;
-  }
-  #userInfo .name {
-    font-weight: 600;
-    color: #202124;
-    font-size: 16px;
-    margin-bottom: 2px;
-  }
-  #userInfo .email {
-    color: #5f6368;
-    font-size: 13px;
-    margin-bottom: 24px;
-  }
-  .divider {
-    height: 1px;
-    background: #e8eaed;
-    margin: 24px 0;
-  }
-  .logout-btn {
-    padding: 10px 24px;
-    border: 1px solid #dadce0;
-    border-radius: 8px;
-    background: #fff;
-    color: #3c4043;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.15s;
-  }
-  .logout-btn:hover { background: #f8f9fa; border-color: #c6c9cc; }
+/* Google Button ke liye container */
+.google-btn-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow: hidden; /* Box ke bahar nahi jayega */
+  border-radius: 24px;
+}
 
-  .footer-note {
-    margin-top: 28px;
-    padding-top: 20px;
-    border-top: 1px solid #f1f3f4;
-    font-size: 12px;
-    color: #80868b;
-    text-align: center;
-    line-height: 1.5;
-  }
-  .footer-note a { color: #1a73e8; text-decoration: none; }
-  .footer-note a:hover { text-decoration: underline; }
+/* Google ke iframe ko box ke andar fit karne ke liye */
+.google-btn-wrap iframe {
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: 24px !important;
+}
+
+#g_id_onload { display: none; }
+.g_id_signin { display: flex; justify-content: center; width: 100%; }
+.auth-msg-err { color: #dc2626; font-size: 13px; min-height: 18px; margin-top: 16px; font-weight: 500; }
 </style>
 </head>
 <body>
-  <div class="card">
-    <div class="brand">A</div>
-    <h1>Sign in to your account</h1>
-    <p class="subtitle">Continue with your Google account to access the dashboard</p>
 
-    <!-- Google Sign-In -->
+<div class="auth-shell">
+  <div class="brand-badge">
+    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4sBVUR8Nz47PlRnmU7Mn9yBzGxjtHQbmswmVJ8g5JBLmgwhevUrlEWaiPvzu5NGe_l3mKI1oWJzedHAZUWp_1iqSxEfaynl9A6aduhVIbZY_4KOtC4c22tAzKQJYC1E7gQtuq_k0JbQTLEPWTB2buOrT_ts7cIa-kfTMx_dbvLkbqkM7D00p3E_VLcpHPW49Vuv8tc_TAMxQCZGc2hpKdGpIkXY9j6A6mDYHzquEG8yWXaVh_tMpOUw" alt="Yuki">
+  </div>
+  <h1>Yuki</h1>
+  <p class="sub">Sign in to continue to your messages</p>
+
+  <div class="google-btn-wrap">
+    <!-- Google GIS Button -->
     <div id="g_id_onload"
          data-client_id="97759085922-vu8a92l03dp86sdivb4llb0hkjhqd88a.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse"
+         data-callback="handleGoogleCredential"
          data-auto_prompt="false">
     </div>
     <div class="g_id_signin"
@@ -156,97 +88,92 @@
          data-size="large"
          data-theme="outline"
          data-text="continue_with"
-         data-shape="rectangular"
-         data-logo_alignment="left"
-         data-width="340">
-    </div>
-
-    <div id="status">Loading Google Sign-In…</div>
-
-    <!-- User Info -->
-    <div id="userInfo">
-      <div class="avatar-wrap">
-        <img id="userPic" src="" alt="avatar" />
-        <div class="check">✓</div>
-      </div>
-      <div class="name" id="userName"></div>
-      <div class="email" id="userEmail"></div>
-      <div class="divider"></div>
-      <button class="logout-btn" onclick="signOut()">Sign out</button>
-    </div>
-
-    <div class="footer-note">
-      By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+         data-shape="pill"
+         data-logo_alignment="center"
+         data-width="280">
     </div>
   </div>
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script>
-    const CLIENT_ID = "97759085922-vu8a92l03dp86sdivb4llb0hkjhqd88a.apps.googleusercontent.com";
+  <div class="auth-msg-err" id="authError"></div>
+</div>
 
-    function handleCredentialResponse(response) {
-      const status = document.getElementById('status');
+<!-- Load Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
-      if (!response.credential) {
-        setStatus("No credential received", "error");
-        return;
-      }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence,
+         GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-      try {
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const json = decodeURIComponent(atob(base64).split('').map(c =>
-          '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-        ).join(''));
-        const payload = JSON.parse(json);
+const firebaseConfig = {
+  apiKey: "AIzaSyDZWHHSGkbdN5NLRdBKwecHHf7m2yu5cAk",
+  authDomain: "yuki-820b3.firebaseapp.com",
+  projectId: "yuki-820b3",
+  storageBucket: "yuki-820b3.firebasestorage.app",
+  messagingSenderId: "1055284096143",
+  appId: "1:1055284096143:web:f9463859371eb606db14fa"
+};
 
-        if (!payload.email || !payload.sub) throw new Error("Missing required fields");
-        if (payload.exp && Date.now() / 1000 > payload.exp) throw new Error("Token expired");
-        if (payload.aud !== CLIENT_ID) throw new Error("Client ID mismatch");
+const fb = initializeApp(firebaseConfig);
+const auth = getAuth(fb);
+const db = getFirestore(fb);
+setPersistence(auth, browserLocalPersistence).catch(() => {});
 
-        // UI update
-        document.getElementById('userPic').src = payload.picture;
-        document.getElementById('userName').textContent = payload.name;
-        document.getElementById('userEmail').textContent = payload.email;
-        document.getElementById('userInfo').style.display = 'block';
+const $ = id => document.getElementById(id);
+const CHATS_PAGE = 'Chats.html'; // Apne chat page ka naam yahan daal
 
-        // Hide sign-in button
-        const btn = document.querySelector('.g_id_signin');
-        if (btn) btn.style.display = 'none';
+let redirecting = false;
+function goToChats() {
+  if (redirecting) return;
+  redirecting = true;
+  setTimeout(() => { window.location.href = CHATS_PAGE; }, 250);
+}
 
-        setStatus("Signed in successfully", "success");
-        console.log("User:", payload);
-      } catch (err) {
-        setStatus("Invalid token: " + err.message, "error");
-        console.error(err);
-      }
+/* ---------- Google GIS Callback ---------- */
+window.handleGoogleCredential = async (response) => {
+  const errEl = $('authError');
+  errEl.textContent = 'Signing in…';
+
+  try {
+    const credential = GoogleAuthProvider.credential(response.credential);
+    await signInWithCredential(auth, credential);
+  } catch (err) {
+    console.error('Google sign-in error:', err);
+    errEl.textContent = 'Sign-in failed. Please try again.';
+  }
+};
+
+/* ---------- Auth state: profile sync & redirect ---------- */
+onAuthStateChanged(auth, async user => {
+  if (!user) return;
+  $('authError').textContent = '';
+
+  try {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists()) {
+      const h = (user.email ? user.email.split('@')[0] : 'operator')
+        .replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase().slice(0, 20) || 'operator';
+      await setDoc(doc(db, 'users', user.uid), {
+        username: h,
+        display: user.displayName || h.toUpperCase(),
+        email: user.email || '',
+        photoURL: user.photoURL || '',
+        createdAt: serverTimestamp(),
+        lastSeen: serverTimestamp(),
+        emailVerified: true
+      }, { merge: true });
+      await setDoc(doc(db, 'usernames', h), { uid: user.uid }, { merge: true });
+    } else {
+      await setDoc(doc(db, 'users', user.uid), {
+        lastSeen: serverTimestamp(),
+        emailVerified: true
+      }, { merge: true });
     }
+  } catch (e) { console.warn('Profile sync:', e); }
 
-    function setStatus(msg, type) {
-      const s = document.getElementById('status');
-      s.textContent = msg;
-      s.className = type || "";
-    }
-
-    function signOut() {
-      if (window.google && google.accounts) {
-        google.accounts.id.disableAutoSelect();
-      }
-      location.reload();
-    }
-
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const s = document.getElementById('status');
-        if (s.textContent === "Loading Google Sign-In…") {
-          if (typeof google === 'undefined') {
-            setStatus("Google Sign-In failed to load. Check your connection or origin setup.", "error");
-          } else {
-            setStatus("");
-          }
-        }
-      }, 2000);
-    });
-  </script>
+  goToChats();
+});
+</script>
 </body>
 </html>
