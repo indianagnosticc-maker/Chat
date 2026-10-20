@@ -1560,42 +1560,70 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 .settings-drawer, .backdrop-scrim, .panes-track, .app-shell { will-change: transform; backface-visibility: hidden; }
 body, .device-wrapper { height: var(--app-h, 100dvh); }
 
-/* Keyboard motion: compositor-only settling for the chat surface and composer. */
-.messages-container.keyboard-settling,
-.composer-dock.keyboard-settling {
-  --keyboard-settle-y: 0px;
-  transform: translate3d(0, var(--keyboard-settle-y), 0);
-  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-  backface-visibility: hidden;
-}
+/* ==========================================================================
+   REFINEMENTS: calm, premium motion (transform + opacity only), sheet intro,
+   background fill, jank-free theme / setting changes
+   ========================================================================== */
+:root { --spring: cubic-bezier(0.22, 1, 0.36, 1); --smooth: cubic-bezier(0.22, 1, 0.36, 1); --anim-speed: 0.3s; }
 
-/* Delete Account sheet: same soft sheet/content entrance language as Settings. */
-@keyframes deleteSheetContentIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-#deleteAccountModal.active > .modal-drag-pill,
-#deleteAccountModal.active > div:nth-child(2),
-#deleteAccountModal.active > .profile-form-group,
-#deleteAccountModal.active > #deleteAccountError,
-#deleteAccountModal.active > div:last-child {
-  animation: deleteSheetContentIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-#deleteAccountModal.active > .modal-drag-pill { animation-delay: 0.02s; }
-#deleteAccountModal.active > div:nth-child(2) { animation-delay: 0.05s; }
-#deleteAccountModal.active > .profile-form-group { animation-delay: 0.10s; }
-#deleteAccountModal.active > #deleteAccountError { animation-delay: 0.15s; }
-#deleteAccountModal.active > div:last-child { animation-delay: 0.20s; }
+/* Background always fills the visible area (no light gap above the keyboard on phones) */
+@media (max-width: 440px) { html, body { background: var(--app-bg); } }
 
-/* Theme switching: compositor-friendly cross-fade without repaint-heavy transitions. */
-@supports (view-transition-name: root) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 280ms;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  }
+/* Delete Account sheet: same intro as the other sheets, content staggers in after the slide */
+#deleteAccountModal.active .del-title,
+#deleteAccountModal.active .del-text,
+#deleteAccountModal.active .profile-form-group,
+#deleteAccountModal.active .del-actions {
+  animation: drawerItemIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
+#deleteAccountModal.active .del-title { animation-delay: 0.14s; }
+#deleteAccountModal.active .del-text { animation-delay: 0.17s; }
+#deleteAccountModal.active .profile-form-group { animation-delay: 0.20s; }
+#deleteAccountModal.active .del-actions { animation-delay: 0.23s; }
+#deleteAccountModal.active .profile-pill-btn { animation: none; }
+
+/* Messages: small, soft entrance (no scale pop); no per-row compositor layers */
+.chat-message-row { will-change: auto; }
+@keyframes msgInLeft { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes msgInRight { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.chat-message-row:not(.is-mine), .chat-message-row.is-mine { animation-duration: 0.28s; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes typingBounce { 50% { opacity: 0.35; } }
+
+/* Press feedback + hover/focus states: transform and opacity only, soft ease-out, no overshoot */
+.action-btn-circle { transition: transform 0.2s var(--smooth); }
+.search-container, .composer-inner, .auth-field, .profile-input, .composer-textarea { transition: none; }
+.inbox-tab { transition: transform 0.2s var(--smooth); }
+.chat-card { transition: none; }
+.ai-companion-card, .fab-new-chat, .auth-btn-primary, .profile-pill-btn { transition: transform 0.2s var(--smooth); }
+.composer-btn, .send-action-btn { transition: transform 0.2s var(--smooth); }
+.send-action-btn.can-send { transform: scale(1.02); }
+.brand-badge, .chat-contact-info, .header-profile-btn, .drawer-back-btn, .mention-item,
+.auth-toggle-link, .msg-bubble, .msg-avatar, .chat-card-avatar, .chat-header-avatar, .settings-row {
+  transition: transform 0.2s var(--smooth);
+}
+.settings-row:active { transform: scale(0.99); }
+.app-toast { transition: opacity 0.25s ease, transform 0.3s var(--smooth); }
+.mentions-box { opacity: 0; transform: translateY(6px); transition: opacity 0.2s ease, transform 0.25s var(--smooth); }
+.mentions-box.open { opacity: 1; transform: none; }
+
+/* Toggle: track colour cross-fades with opacity, knob glides with transform (no bounce) */
+.toggle-switch { transition: none; }
+.toggle-switch::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: var(--primary-blue); opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.toggle-switch.on::before { opacity: 1; }
+.toggle-switch.on { background: #cbd5e1; }
+:root[data-theme="dark"] .toggle-switch.on::before { opacity: 0; }
+.toggle-switch:after { transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+.toggle-switch:active:after { transform: none; }
+.toggle-switch.on:active:after { transform: translateX(20px); }
+.no-theme-anim .toggle-switch, .no-theme-anim .toggle-switch::before { transition: none !important; }
+.no-theme-anim .toggle-switch:after { transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1) !important; }
+
+/* Theme change: clean cross-fade of the whole page, composited on the GPU */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.28s; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
 </style>
 </head>
 <body>
@@ -1657,7 +1685,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
       <!-- Search Input -->
       <div class="search-container" id="searchBoxWrap">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input id="searchInput" type="search" name="yuki-search" placeholder="Search by username..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search">
+        <input id="searchInput" type="text" name="yk-find-handle" placeholder="Search by username..." inputmode="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
         <button id="searchClear" aria-label="Clear Search"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
 
@@ -1772,7 +1800,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
           <svg viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l7.9-7.9"/></svg>
         </button>
 
-        <textarea class="composer-textarea" id="chatInputText" name="yuki-message" rows="1" placeholder="Write a message..." autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send"></textarea>
+        <textarea class="composer-textarea" id="chatInputText" name="yk-compose-body" rows="1" placeholder="Write a message..." enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"></textarea>
 
         <button class="composer-btn send-action-btn" id="btnSendMessage" aria-label="Send Message">
           <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
@@ -1963,14 +1991,14 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
   <div class="user-sheet-modal" id="deleteAccountModal">
     <div class="modal-drag-pill"></div>
     <div style="text-align:center;margin-bottom:14px">
-      <h3 style="font-size:18px;font-weight:600;color:#ef4444">Delete Account</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-top:6px;line-height:1.45">This is permanent. Your profile and username will be removed. Enter your password to confirm.</p>
+      <h3 class="del-title" style="font-size:18px;font-weight:600;color:#ef4444">Delete Account</h3>
+      <p class="del-text" style="font-size:13px;color:var(--text-muted);margin-top:6px;line-height:1.45">This is permanent. Your profile and username will be removed. Enter your password to confirm.</p>
     </div>
     <div class="profile-form-group">
       <input class="profile-input" id="inputDeletePassword" type="password" placeholder="Password" autocomplete="current-password">
     </div>
     <div class="auth-msg-err" id="deleteAccountError" style="text-align:center"></div>
-    <div style="display:flex;gap:10px;margin-top:6px">
+    <div class="del-actions" style="display:flex;gap:10px;margin-top:6px">
       <button class="profile-pill-btn outline" id="btnDeleteCancel" style="flex:1;height:44px">Cancel</button>
       <button class="profile-pill-btn danger" id="btnDeleteConfirm" style="flex:1">Delete</button>
     </div>
@@ -2022,6 +2050,98 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
     if(!scrim.dataset.yukiSettingsBound){ scrim.dataset.yukiSettingsBound='1'; scrim.addEventListener('click',hide); }
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
+})();
+</script>
+
+<script>
+/* Keyboard open/close: smooth, GPU-friendly glide of the chat area + composer.
+   The existing keyboard scroll logic stays untouched; this only adds a visual layer on top. */
+(function(){
+  var box = document.getElementById('messagesContainer');
+  var dock = document.querySelector('#screenChat .composer-dock');
+  var shell = document.getElementById('appShell');
+  if (!box || !dock || !shell || !window.ResizeObserver) return;
+  var DUR = 280, EASE = 'cubic-bezier(0.215, 0.61, 0.355, 1)';
+  var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var pre = null, clean = true, raf = 0, tokens = new WeakMap(), lastW = 0;
+
+  function anchorRow(){
+    var rows = box.getElementsByClassName('chat-message-row');
+    return rows.length ? rows[rows.length - 1] : null;
+  }
+  function ty(el){
+    try { return new DOMMatrix(getComputedStyle(el).transform).m42 || 0; } catch(e) { return 0; }
+  }
+  function capture(){
+    var vv = window.visualViewport;
+    var w = Math.round(vv ? vv.width : window.innerWidth);
+    var widthChanged = lastW && Math.abs(w - lastW) > 1;
+    lastW = w;
+    if (!clean) return;            /* layout already dirty in this frame: keep the first snapshot */
+    clean = false;
+    setTimeout(function(){ clean = true; if (pre && pre.stale) pre = null; }, 160);
+    if (widthChanged || reduce.matches || !shell.classList.contains('in-chat')) { pre = null; return; }
+    var a = anchorRow();
+    pre = {
+      dockTop: dock.getBoundingClientRect().top,
+      anchor: a,
+      anchorBottom: a ? a.getBoundingClientRect().bottom : 0,
+      dockTy: ty(dock),
+      boxTy: ty(box),
+      stale: true
+    };
+  }
+  function flip(el, from){
+    var t = (tokens.get(el) || 0) + 1; tokens.set(el, t);
+    el.style.transition = 'none';
+    el.style.transform = 'translate3d(0,' + from + 'px,0)';
+    void el.offsetHeight;
+    el.style.transition = 'transform ' + DUR + 'ms ' + EASE;
+    el.style.transform = 'translate3d(0,0,0)';
+    setTimeout(function(){
+      if (tokens.get(el) !== t) return;
+      el.style.transition = ''; el.style.transform = '';
+    }, DUR + 50);
+  }
+  function glideScroll(from, to){
+    cancelAnimationFrame(raf);
+    var t0 = performance.now();
+    box.scrollTop = from;
+    (function step(now){
+      var p = Math.min(1, (now - t0) / DUR), e = 1 - Math.pow(1 - p, 3);
+      box.scrollTop = from + (to - from) * e;
+      if (p < 1) raf = requestAnimationFrame(step);
+    })(t0);
+  }
+  function stopGlide(){ cancelAnimationFrame(raf); }
+  box.addEventListener('touchstart', stopGlide, { passive: true });
+  box.addEventListener('wheel', stopGlide, { passive: true });
+
+  window.addEventListener('resize', capture);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', capture);
+
+  /* registered after the app's own observer, so it sees the already-compensated layout */
+  function arm(){
+    new ResizeObserver(function(){
+      var p = pre; pre = null; clean = true;
+      if (!p) return;
+      var tD = p.dockTop - dock.getBoundingClientRect().top;
+      var tC = (p.anchor && p.anchor.isConnected) ? p.anchorBottom - p.anchor.getBoundingClientRect().bottom : 0;
+      if (Math.abs(tD) < 1 && Math.abs(tC) < 1) return;
+      if (Math.abs(tD) >= 1) flip(dock, tD + p.dockTy);
+      if (Math.abs(tC) < 1) return;
+      if (tC > 0) {
+        /* content moved up: glide the scroll position so nothing pops in from the top edge */
+        var st = box.scrollTop, start = st - tC;
+        if (start >= 0) { glideScroll(start, st); }
+        else { if (st > 0) glideScroll(0, st); flip(box, (tC - st) + p.boxTy); }
+      } else {
+        flip(box, tC + p.boxTy);   /* content moved down (keyboard closing) */
+      }
+    }).observe(box);
+  }
+  /* armed by the app right after its own keyboard observer is registered, so ours always runs second */
+  window.__kbArm = function(){ window.__kbArm = null; arm(); };
 })();
 </script>
 
@@ -2180,7 +2300,7 @@ let yukiHistory = [];
 const THEME_STORAGE_KEY = 'yuki_app_theme';
 let currentTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
 
-function setTheme(theme) {
+function setTheme(theme, instant) {
   currentTheme = theme;
   const root = document.documentElement;
   const apply = () => {
@@ -2188,21 +2308,22 @@ function setTheme(theme) {
     $('switchTheme')?.classList.toggle('on', theme === 'dark');
     $('switchContextTheme')?.classList.toggle('on', theme === 'dark');
   };
-
-  /* Use the browser compositor for a clean theme cross-fade when available.
-     Fallback remains the existing no-transition path on older browsers. */
-  if (document.startViewTransition) {
-    document.startViewTransition(apply);
+  const done = () => root.classList.remove('no-theme-anim');
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  root.classList.add('no-theme-anim');
+  if (!instant && !reduce && document.startViewTransition) {
+    try {
+      document.startViewTransition(apply).finished.then(done, done);
+    } catch(e) { apply(); done(); }
   } else {
-    root.classList.add('no-theme-anim');
     apply();
-    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-theme-anim')));
-    setTimeout(() => root.classList.remove('no-theme-anim'), 400);
+    requestAnimationFrame(() => requestAnimationFrame(done));
   }
-
-  try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch(e) {}
+  setTimeout(done, 700);
+  /* persist after the visual change so storage I/O never competes with the first frame */
+  setTimeout(() => { try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch(e) {} }, 0);
 }
-setTheme(currentTheme);
+setTheme(currentTheme, true);
 
 $('rowToggleTheme')?.addEventListener('click', () => {
   const next = currentTheme === 'dark' ? 'light' : 'dark';
@@ -3481,73 +3602,23 @@ $('btnChatBack')?.addEventListener('click', () => {
 
 $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
 
-/* Keyboard open/close: preserve the viewed message position while the resized viewport settles smoothly */
+/* Keyboard open/close: keep the same messages visible instead of hiding them below the keyboard */
 (function(){
   const box = $('messagesContainer');
-  const composer = document.querySelector('.composer-dock');
-  const chatScreen = $('screenChat');
   if (!box || !window.ResizeObserver) return;
-
   let prevH = box.clientHeight;
   let lastTop = box.scrollTop;
-  let settleRaf = 0;
-
-  const primeKeyboardMotion = (delta) => {
-    if (!delta) return;
-    const shift = delta;
-
-    /* The layout has already resized. Temporarily counter that resize without
-       animating the setup, then release it on the next frame so the compositor
-       animates only the final transform back to zero. */
-    [box, composer].forEach(el => {
-      if (!el) return;
-      el.classList.add('keyboard-settling');
-      el.style.transition = 'none';
-      el.style.transform = `translate3d(0, ${shift}px, 0)`;
-      void el.offsetWidth;
-    });
-
-    cancelAnimationFrame(settleRaf);
-    settleRaf = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        [box, composer].forEach(el => {
-          if (!el) return;
-          el.style.transition = '';
-          el.style.transform = '';
-        });
-      });
-    });
-  };
-
   box.addEventListener('scroll', () => { lastTop = box.scrollTop; }, { passive: true });
-
   new ResizeObserver(() => {
     const h = box.clientHeight;
     const d = prevH - h;          // + when keyboard opens, - when it closes
     prevH = h;
-
     if (d !== 0) {
-      /* Keep the existing working scroll compensation intact. */
       box.scrollTop = lastTop + d;
       lastTop = box.scrollTop;
-      primeKeyboardMotion(d);
     }
   }).observe(box);
-
-  if (window.visualViewport) {
-    let lastViewportHeight = Math.round(window.visualViewport.height);
-    window.visualViewport.addEventListener('resize', () => {
-      const h = Math.round(window.visualViewport.height);
-      const d = lastViewportHeight - h;
-      lastViewportHeight = h;
-      if (d !== 0) primeKeyboardMotion(d);
-    }, { passive: true });
-  }
-
-  /* Prevent a stale settling transform from remaining after leaving chat. */
-  chatScreen?.addEventListener('transitionend', () => {
-    [box, composer].forEach(el => el?.classList.remove('keyboard-settling'));
-  });
+  if (window.__kbArm) window.__kbArm();
 })();
 
 /* Keep relative times (now / 5m / 2h) live without refresh */
