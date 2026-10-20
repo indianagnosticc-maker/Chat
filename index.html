@@ -1801,7 +1801,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
     margin: 0;
     border-radius: 18px;
     border: 1px solid var(--border-subtle);
-    box-shadow: var(--shadow-lg);
+    box-shadow: none;
   }
   @media (max-height: 640px) {
     .device-wrapper { width: 100%; max-width: none; height: var(--app-h, 100dvh); border-radius: 0; border: 0; }
@@ -1851,8 +1851,8 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
   /* hover feedback (mouse only) */
   @media (hover: hover) and (pointer: fine) {
   .chat-card:not(.highlighted-blue):hover { background: var(--card-hover); }
-  .settings-drawer.chat-context .settings-row:hover,
   .settings-drawer #drawerBlockView .settings-row:hover { background: var(--card-hover); }
+  .settings-drawer.chat-context #chatContextActions .settings-row:hover { opacity: 0.75; }
   .settings-drawer.menu-context #drawerMainView .settings-row:hover { opacity: 0.75; }
   .action-btn-circle:hover,
   .chat-back-btn:hover { background: var(--card-hover); }
@@ -1889,6 +1889,89 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 
   /* comfortable reading width for bubbles on a bigger panel */
   .msg-bubble-wrap { max-width: 82%; }
+}
+
+/* ==========================================================================
+   CHAT SETTINGS: same flat list style as menu settings
+   ========================================================================== */
+.settings-drawer.chat-context #chatContextActions > .settings-sec-label {
+  display: block !important;
+  margin: 6px 0 4px 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.settings-drawer.chat-context #chatContextActions .settings-card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.settings-drawer.chat-context #chatContextActions .settings-row {
+  background: transparent;
+  padding: 12px 2px;
+  min-height: 56px;
+  border: 0;
+  border-radius: 0;
+}
+.settings-drawer.chat-context #chatContextActions .settings-row:active {
+  background: transparent;
+  opacity: 0.6;
+  transform: none;
+}
+.settings-drawer.chat-context #chatContextActions .settings-icon,
+.settings-drawer.chat-context #chatContextActions .settings-icon.danger {
+  background: transparent;
+  width: 28px;
+  height: 28px;
+  border-radius: 0;
+}
+.settings-drawer.chat-context #chatContextActions .settings-icon svg { width: 20px; height: 20px; }
+.settings-drawer.chat-context #chatContextActions .settings-card > .settings-row:not(:last-child) { border-bottom: 0; }
+
+/* ==========================================================================
+   SETTINGS OPEN: options slide in right-to-left with the drawer (no fade / stagger)
+   ========================================================================== */
+@keyframes drawerOptionsIn {
+  from { transform: translateX(56px); }
+  to { transform: none; }
+}
+.settings-drawer.active #drawerMainView:not(.hidden) > *,
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(1),
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(2),
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(3),
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(4),
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(5),
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(6),
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(7),
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(8),
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(9),
+.settings-drawer.chat-context.active #drawerMainView:not(.hidden) > #chatContextActions {
+  animation: drawerOptionsIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) 0s backwards;
+}
+
+/* ==========================================================================
+   PROFILE BUTTONS: slimmer, squarer, slightly soft corners
+   ========================================================================== */
+#drawerProfileView .profile-pill-btn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  align-self: center;
+}
+#drawerProfileView .profile-pill-btn.danger {
+  height: 40px;
+  border-radius: 8px;
+  align-self: auto;
+}
+#drawerProfileView #btnTriggerPhotoUpload {
+  height: 32px;
+  padding: 0 14px;
 }
 
 /* Restore the thin separators between settings/menu rows. */
