@@ -955,6 +955,13 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border-color: var(--primary-blue);
   box-shadow: 0 0 0 3px rgba(29, 114, 254, 0.15);
 }
+.auth-divider{display:flex;align-items:center;gap:12px;margin:18px 0 14px;color:var(--text-muted);font-size:11px}
+.auth-divider span{height:1px;background:var(--border-subtle);flex:1}
+.auth-btn-google{width:100%;height:48px;border-radius:var(--radius-full);border:1px solid var(--border-subtle);background:var(--card-bg);display:flex;align-items:center;justify-content:center;gap:10px;font-size:14.5px;font-weight:600;color:var(--text-main);transition:background .18s,transform .15s}
+.auth-btn-google svg{width:19px;height:19px;stroke:none}
+.auth-btn-google:active{transform:scale(.98);background:var(--card-hover)}
+.auth-btn-google:disabled{opacity:.65;cursor:wait}
+
 /* Name + username fields (visible only while creating an account) */
 .auth-extra { display: none; }
 .auth-extra.show {
@@ -1675,6 +1682,11 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
         <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
 
+      <div class="auth-divider"><span></span><b>OR</b><span></span></div>
+      <button class="auth-btn-google" id="btnGoogleAuth" type="button">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.7a12 12 0 0 1 0-7.4V15H5.8a20 20 0 0 0 0 18z"/><path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6.2 29.5 4 24 4A20 20 0 0 0 5.8 15l6.8 5.3c1.6-4.8 6.1-8.2 11.4-8.2z"/></svg>
+        <span>Continue with Google</span>
+      </button>
       <button class="auth-toggle-link" id="btnToggleAuthMode">New here? Create account</button>
       <button class="auth-toggle-link" id="btnResendVerification" style="display:none;margin-top:6px">Resend verification email</button>
     </div>
@@ -2113,7 +2125,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 <!-- Firebase & Application Modules -->
 <script type="module">
 /* Firebase is loaded dynamically so a load failure shows a clear on-screen error instead of a dead page */
-let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction;
+let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup, getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction;
 try {
   const [__A, __Au, __F] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
@@ -2121,7 +2133,7 @@ try {
     import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
   ]);
   ({ initializeApp } = __A);
-  ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification } = __Au);
+  ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup } = __Au);
   ({ getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction } = __F);
 } catch (err) {
   window.__fbLoadError = (err && (err.name + ': ' + err.message)) || String(err);
@@ -2343,6 +2355,26 @@ $('btnToggleAuthMode')?.addEventListener('click', () => {
   $('btnResendVerification').style.display = 'none';
   document.querySelectorAll('.auth-extra').forEach(el => el.classList.toggle('show', isSignUpMode));
   $('authPassword').setAttribute('autocomplete', isSignUpMode ? 'new-password' : 'current-password');
+});
+
+$('btnGoogleAuth')?.addEventListener('click', async () => {
+  const btn = $('btnGoogleAuth');
+  $('authError').textContent = '';
+  $('authInfo').textContent = '';
+  btn.disabled = true;
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    await signInWithPopup(auth, provider);
+  } catch (err) {
+    console.error('Google sign-in error:', err);
+    $('authError').textContent = err.code === 'auth/popup-closed-by-user' ? 'Google sign-in was cancelled.'
+      : err.code === 'auth/unauthorized-domain' ? 'This domain is not authorized in Firebase Authentication.'
+      : err.code === 'auth/popup-blocked' ? 'Popup blocked. Allow popups and try again.'
+      : 'Google sign-in failed. Check Firebase Google provider settings.';
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 $('btnAuthSubmit')?.addEventListener('click', handleAuthSubmit);
