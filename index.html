@@ -2122,10 +2122,13 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 })();
 </script>
 
+<!-- Google Identity Services: in-page Google account prompt -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 <!-- Firebase & Application Modules -->
 <script type="module">
 /* Firebase is loaded dynamically so a load failure shows a clear on-screen error instead of a dead page */
-let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup, getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction;
+let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup, signInWithCredential, getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction;
 try {
   const [__A, __Au, __F] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
@@ -2133,7 +2136,7 @@ try {
     import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
   ]);
   ({ initializeApp } = __A);
-  ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup } = __Au);
+  ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup, signInWithCredential } = __Au);
   ({ getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction } = __F);
 } catch (err) {
   window.__fbLoadError = (err && (err.name + ': ' + err.message)) || String(err);
@@ -2357,22 +2360,70 @@ $('btnToggleAuthMode')?.addEventListener('click', () => {
   $('authPassword').setAttribute('autocomplete', isSignUpMode ? 'new-password' : 'current-password');
 });
 
-$('btnGoogleAuth')?.addEventListener('click', async () => {
+const YUKI_GOOGLE_CLIENT_ID = '796907531674-hhtk3ie82p0g2id3k3anel3ae7h0pg08.apps.googleusercontent.com';
+let yukiGoogleGISInitialized = false;
+let yukiGooglePromptPending = false;
+
+// Google Identity Services returns an ID token; exchange it for a Firebase credential.
+window.handleYukiGoogleCredential = async (response) => {
+  const btn = $('btnGoogleAuth');
+  try {
+    if (!response || !response.credential) throw new Error('Google did not return an ID token.');
+    $('authError').textContent = '';
+    $('authInfo').textContent = 'Signing in with Google…';
+    const credential = GoogleAuthProvider.credential(response.credential);
+    await signInWithCredential(auth, credential);
+    $('authInfo').textContent = '';
+  } catch (err) {
+    console.error('Google sign-in error:', err);
+    $('authInfo').textContent = '';
+    $('authError').textContent = err.code === 'auth/unauthorized-domain'
+      ? 'This domain is not authorized in Firebase Authentication.'
+      : err.code === 'auth/operation-not-allowed'
+      ? 'Enable Google sign-in in Firebase Authentication settings.'
+      : 'Google sign-in failed. Check OAuth Audience/Test users and Firebase settings.';
+  } finally {
+    yukiGooglePromptPending = false;
+    if (btn) btn.disabled = false;
+  }
+};
+
+$('btnGoogleAuth')?.addEventListener('click', () => {
   const btn = $('btnGoogleAuth');
   $('authError').textContent = '';
   $('authInfo').textContent = '';
+  if (!window.google?.accounts?.id) {
+    $('authError').textContent = 'Google sign-in is still loading. Try again in a moment.';
+    return;
+  }
+  if (yukiGooglePromptPending) return;
   btn.disabled = true;
+  yukiGooglePromptPending = true;
   try {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    await signInWithPopup(auth, provider);
+    if (!yukiGoogleGISInitialized) {
+      google.accounts.id.initialize({
+        client_id: YUKI_GOOGLE_CLIENT_ID,
+        callback: window.handleYukiGoogleCredential,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        context: 'signin'
+      });
+      yukiGoogleGISInitialized = true;
+    }
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        const reason = notification.getNotDisplayedReason?.() || notification.getSkippedReason?.() || '';
+        $('authError').textContent = reason === 'browser_not_supported'
+          ? 'This browser does not support the in-page Google prompt.'
+          : 'Google account prompt could not be shown. Check browser sign-in settings or try again.';
+        yukiGooglePromptPending = false;
+        btn.disabled = false;
+      }
+    });
   } catch (err) {
-    console.error('Google sign-in error:', err);
-    $('authError').textContent = err.code === 'auth/popup-closed-by-user' ? 'Google sign-in was cancelled.'
-      : err.code === 'auth/unauthorized-domain' ? 'This domain is not authorized in Firebase Authentication.'
-      : err.code === 'auth/popup-blocked' ? 'Popup blocked. Allow popups and try again.'
-      : 'Google sign-in failed. Check Firebase Google provider settings.';
-  } finally {
+    console.error('Google prompt error:', err);
+    $('authError').textContent = 'Could not open Google account prompt. Check OAuth client settings.';
+    yukiGooglePromptPending = false;
     btn.disabled = false;
   }
 });
