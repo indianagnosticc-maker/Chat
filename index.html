@@ -138,6 +138,9 @@ window.handleGoogleCredential = async (response) => {
   try {
     const credential = GoogleAuthProvider.credential(response.credential);
     await signInWithCredential(auth, credential);
+    // Redirect immediately after Firebase confirms authentication.
+    // Firestore profile sync must never block navigation to Chat.html.
+    goToChats();
   } catch (err) {
     console.error('Google sign-in error:', err);
     errEl.textContent = 'Sign-in failed. Please try again.';
@@ -148,6 +151,10 @@ window.handleGoogleCredential = async (response) => {
 onAuthStateChanged(auth, async user => {
   if (!user) return;
   $('authError').textContent = '';
+
+  // If Firebase restores an existing session on page load, navigate immediately.
+  // Do not wait for Firestore profile work before opening the chat UI.
+  goToChats();
 
   try {
     const snap = await getDoc(doc(db, 'users', user.uid));
@@ -172,7 +179,6 @@ onAuthStateChanged(auth, async user => {
     }
   } catch (e) { console.warn('Profile sync:', e); }
 
-  goToChats();
 });
 </script>
 </body>
