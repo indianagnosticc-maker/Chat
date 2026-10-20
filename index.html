@@ -1641,6 +1641,256 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(9) { animation-delay: 0.29s; }
 .settings-drawer.chat-context.active #drawerMainView:not(.hidden) > #chatContextActions { animation-delay: 0.05s; }
 
+/* ==========================================================================
+   LOGIN / SIGN-UP: professional, smooth, evenly spaced (theme colours only)
+   ========================================================================== */
+#authScreen {
+  padding: max(24px, env(safe-area-inset-top, 0px)) 22px max(24px, env(safe-area-inset-bottom, 0px));
+  background: var(--app-bg);
+  align-items: center;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+#authScreen .auth-card {
+  width: 100%;
+  max-width: 372px;
+  margin: auto;
+  padding: 32px 24px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: center;
+}
+#authScreen .auth-brand-badge {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  box-shadow: none;
+}
+#authScreen .auth-card h2 {
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+}
+#authScreen .auth-card p.auth-sub {
+  font-size: 13.5px;
+  line-height: 1.45;
+  margin-bottom: 24px;
+}
+#authScreen .auth-input-group { gap: 10px; margin-bottom: 8px; }
+#authScreen .auth-field {
+  height: 44px;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 14.5px;
+  text-align: left;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+}
+#authScreen .auth-field::placeholder { color: var(--text-muted); opacity: 0.85; }
+#authScreen .auth-field:focus {
+  background: var(--card-bg);
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(29, 114, 254, 0.14);
+}
+#authScreen .auth-extra.show { display: block; }
+#authScreen .auth-msg-err,
+#authScreen .auth-msg-ok {
+  min-height: 0;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-align: left;
+  padding: 0 4px;
+}
+#authScreen .auth-msg-err:not(:empty),
+#authScreen .auth-msg-ok:not(:empty) { margin: 4px 0 8px; }
+#authScreen .auth-btn-primary {
+  height: 42px;
+  margin-top: 10px;
+  border-radius: 10px;
+  font-size: 14.5px;
+  font-weight: 500;
+  box-shadow: none;
+}
+#authScreen .auth-btn-primary:disabled { opacity: 0.7; cursor: wait; }
+#authScreen .auth-toggle-link {
+  align-self: center;
+  margin-top: 18px;
+  padding: 6px 10px;
+  font-size: 13.5px;
+}
+#authScreen .auth-toggle-link + .auth-toggle-link { margin-top: 2px; }
+@media (max-height: 640px) {
+  #authScreen .auth-card { padding: 22px 20px 18px; }
+  #authScreen .auth-brand-badge { width: 52px; height: 52px; margin-bottom: 10px; }
+  #authScreen .auth-card p.auth-sub { margin-bottom: 16px; }
+}
+
+/* ==========================================================================
+   MENU SETTINGS: flat list, no boxes / cards (chat settings untouched)
+   ========================================================================== */
+.settings-drawer.menu-context #drawerMainView {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.settings-drawer.menu-context #drawerMainView > .settings-sec-label {
+  display: block !important;
+  margin: 22px 0 4px 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.settings-drawer.menu-context #drawerMainView > .settings-sec-label:first-child { margin-top: 6px; }
+.settings-drawer.menu-context #drawerMainView > .settings-card {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.settings-drawer.menu-context #drawerMainView > .settings-card + .settings-card { border-top: 0; }
+.settings-drawer.menu-context #drawerMainView .settings-row {
+  background: transparent;
+  padding: 12px 2px;
+  min-height: 56px;
+  border: 0;
+  border-radius: 0;
+}
+.settings-drawer.menu-context #drawerMainView .settings-row:active {
+  background: transparent;
+  opacity: 0.6;
+  transform: none;
+}
+.settings-drawer.menu-context #drawerMainView .settings-icon,
+.settings-drawer.menu-context #drawerMainView .settings-icon.danger {
+  background: transparent;
+  width: 28px;
+  height: 28px;
+  border-radius: 0;
+}
+.settings-drawer.menu-context #drawerMainView .settings-icon svg { width: 20px; height: 20px; }
+.settings-drawer.menu-context #drawerMainView .settings-card > .settings-row:not(:last-child) { border-bottom: 0; }
+
+/* ==========================================================================
+   DESKTOP / LAPTOP / PC ONLY (mouse + wide screen). Mobile & touch untouched.
+   ========================================================================== */
+@media (min-width: 900px) {
+  /* Two-pane desktop layout: chats list on the left, conversation on the right */
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .device-wrapper {
+    --inbox-w: clamp(320px, 34%, 400px);
+    width: calc(100% - 48px);
+    max-width: 1200px;
+    height: min(var(--app-h, 100dvh) - 48px, 900px);
+    margin: 0;
+    border-radius: 18px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-lg);
+  }
+  @media (max-height: 640px) {
+    .device-wrapper { width: 100%; max-width: none; height: var(--app-h, 100dvh); border-radius: 0; border: 0; }
+  }
+
+  .screen { transition: none; }
+  #screenInbox,
+  .device-wrapper.in-chat #screenInbox {
+    right: auto;
+    width: var(--inbox-w);
+    transform: none;
+    opacity: 1;
+    border-right: 1px solid var(--border-subtle);
+  }
+  #screenChat,
+  .device-wrapper.in-chat #screenChat {
+    left: var(--inbox-w);
+    transform: none;
+  }
+  #btnChatBack { display: none; }
+
+  /* Empty state while no conversation is open */
+  .device-wrapper:not(.in-chat) #screenChat > .chat-top-header,
+  .device-wrapper:not(.in-chat) #screenChat > .messages-container,
+  .device-wrapper:not(.in-chat) #screenChat > .composer-dock { display: none; }
+  .device-wrapper:not(.in-chat) #screenChat::after {
+    content: "Select a conversation to start messaging";
+    flex: 1;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  /* Bottom sheets: keep a sensible width instead of stretching across the panel */
+  .user-sheet-modal {
+    left: 50%;
+    right: auto;
+    width: 440px;
+    max-width: calc(100% - 32px);
+    margin-left: -220px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  /* hover feedback (mouse only) */
+  @media (hover: hover) and (pointer: fine) {
+  .chat-card:not(.highlighted-blue):hover { background: var(--card-hover); }
+  .settings-drawer.chat-context .settings-row:hover,
+  .settings-drawer #drawerBlockView .settings-row:hover { background: var(--card-hover); }
+  .settings-drawer.menu-context #drawerMainView .settings-row:hover { opacity: 0.75; }
+  .action-btn-circle:hover,
+  .chat-back-btn:hover { background: var(--card-hover); }
+  .ai-companion-card:hover { filter: brightness(0.98); }
+  .fab-new-chat:hover,
+  .auth-btn-primary:hover,
+  .profile-pill-btn:hover { filter: brightness(0.94); }
+  .inbox-tab:hover { color: var(--primary-blue); }
+  .mention-item:hover { background: var(--card-hover); }
+  .msg-bubble:active { transform: none; }
+  }
+
+  /* keyboard focus */
+  button:focus-visible,
+  .chat-card:focus-visible,
+  .settings-row:focus-visible {
+    outline: 2px solid var(--primary-blue);
+    outline-offset: 2px;
+  }
+
+  /* slim scrollbars */
+  .inbox-scroll-body, .messages-container, .drawer-body, #authScreen, .user-sheet-modal {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-subtle) transparent;
+  }
+  .inbox-scroll-body::-webkit-scrollbar,
+  .messages-container::-webkit-scrollbar,
+  .drawer-body::-webkit-scrollbar,
+  #authScreen::-webkit-scrollbar { width: 6px; }
+  .inbox-scroll-body::-webkit-scrollbar-thumb,
+  .messages-container::-webkit-scrollbar-thumb,
+  .drawer-body::-webkit-scrollbar-thumb,
+  #authScreen::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
+
+  /* comfortable reading width for bubbles on a bigger panel */
+  .msg-bubble-wrap { max-width: 82%; }
+}
+
 /* Restore the thin separators between settings/menu rows. */
 .settings-drawer .settings-card > .settings-row:not(:last-child),
 .settings-drawer.menu-context .settings-row:not(:last-child),
@@ -1679,14 +1929,8 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 
       <button class="auth-btn-primary" id="btnAuthSubmit">
         <span id="authSubmitText">Sign in</span>
-        <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
 
-      <div class="auth-divider"><span></span><b>OR</b><span></span></div>
-      <button class="auth-btn-google" id="btnGoogleAuth" type="button">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.8l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.7a12 12 0 0 1 0-7.4V15H5.8a20 20 0 0 0 0 18z"/><path fill="#EA4335" d="M24 12.1c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6.2 29.5 4 24 4A20 20 0 0 0 5.8 15l6.8 5.3c1.6-4.8 6.1-8.2 11.4-8.2z"/></svg>
-        <span>Continue with Google</span>
-      </button>
       <button class="auth-toggle-link" id="btnToggleAuthMode">New here? Create account</button>
       <button class="auth-toggle-link" id="btnResendVerification" style="display:none;margin-top:6px">Resend verification email</button>
     </div>
