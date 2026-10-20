@@ -1455,6 +1455,30 @@ h1, h2, h3 { font-weight: 600; }
 .settings-drawer { transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
 .settings-drawer.chat-context #drawerMainView > :not(#chatContextActions) { display: none !important; }
 .settings-drawer.chat-context #chatContextActions { display: block !important; }
+.settings-drawer.menu-context #chatContextActions { display: none !important; }
+.settings-drawer.menu-context #drawerMainView > :not(#chatContextActions) { display: block; }
+/* Keep menu settings visually identical to the single continuous chat-settings card. */
+.settings-drawer.menu-context #drawerMainView {
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.settings-drawer.menu-context #drawerMainView > .settings-sec-label { display: none !important; }
+.settings-drawer.menu-context #drawerMainView > .settings-card {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.settings-drawer.menu-context #drawerMainView > .settings-card + .settings-card {
+  border-top: 1px solid var(--border-subtle);
+}
+.settings-drawer.menu-context .settings-row,
+.settings-drawer.chat-context .settings-row { min-height: 54px; box-sizing: border-box; }
 .user-sheet-modal { transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
 .backdrop-scrim { transition: opacity 0.3s ease; }
 .panes-track { transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -1498,7 +1522,25 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 
 .user-sheet-modal { transition: transform 0.45s var(--smooth); }
 .user-sheet-modal.active .settings-row { animation: drawerItemIn 0.4s var(--smooth) backwards; }
+/* DP preview: show only the selected profile photo, hide contact details. */
 .user-sheet-modal.dp-preview .dp-preview-meta { display: none !important; }
+.user-sheet-modal.dp-preview .dp-preview-avatar-wrap { display: block !important; margin: 0 !important; }
+.user-sheet-modal.dp-preview #modalContactAvatar {
+  width: min(78vw, 320px) !important;
+  height: min(78vw, 320px) !important;
+  margin: 8px auto 4px !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  font-size: 72px !important;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+.user-sheet-modal.dp-preview #modalContactAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 .user-sheet-modal.dp-preview .modal-drag-pill { margin-bottom: 0; }
 .user-sheet-modal.active .settings-row:nth-child(2) { animation-delay: 0.06s; }
 .user-sheet-modal.active .profile-form-group,
@@ -1855,7 +1897,7 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
        ========================================== -->
   <div class="user-sheet-modal" id="contactDetailsModal">
     <div class="modal-drag-pill"></div>
-    <div class="dp-preview-meta" style="text-align:center;margin-bottom:18px">
+    <div class="dp-preview-avatar-wrap" style="text-align:center;margin-bottom:18px">
       <div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#f59e0b">LA</div>
       <h3 style="font-size:18px;font-weight:600;color:var(--text-main)" id="modalContactName">Leslie Alexander</h3>
       <p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="modalContactRole">Web Designer</p>
@@ -1912,8 +1954,28 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
     const nav=document.getElementById('btnNavSettings');
     const close=document.getElementById('btnDrawerClose');
     if(!drawer||!scrim) return;
-    const show=()=>{ drawer.classList.add('active'); scrim.classList.add('active'); document.documentElement.style.overflow='hidden'; };
-    const hide=()=>{ drawer.classList.remove('active'); scrim.classList.remove('active'); document.documentElement.style.overflow=''; };
+    const show=()=>{
+      drawer.classList.remove('chat-context');
+      drawer.classList.add('menu-context');
+      const chatActions=document.getElementById('chatContextActions');
+      const main=document.getElementById('drawerMainView');
+      if(chatActions) chatActions.style.display='none';
+      if(main) main.dataset.context='menu';
+      if(document.getElementById('drawerTitle')) document.getElementById('drawerTitle').textContent='Settings';
+      drawer.classList.add('active');
+      scrim.classList.add('active');
+      document.documentElement.style.overflow='hidden';
+    };
+    const hide=()=>{
+      drawer.classList.remove('chat-context','menu-context');
+      const chatActions=document.getElementById('chatContextActions');
+      const main=document.getElementById('drawerMainView');
+      if(chatActions) chatActions.style.display='none';
+      if(main) delete main.dataset.context;
+      drawer.classList.remove('active');
+      scrim.classList.remove('active');
+      document.documentElement.style.overflow='';
+    };
     if(open && !open.dataset.yukiSettingsBound){ open.dataset.yukiSettingsBound='1'; open.addEventListener('click',show); }
     if(nav && !nav.dataset.yukiSettingsBound){ nav.dataset.yukiSettingsBound='1'; nav.addEventListener('click',show); }
     if(close && !close.dataset.yukiSettingsBound){ close.dataset.yukiSettingsBound='1'; close.addEventListener('click',hide); }
@@ -3013,18 +3075,26 @@ $('chatInputText')?.addEventListener('input', () => {
 function toggleDrawer(open, isChatContext = false) {
   const drawer = $('settingsDrawer');
   const scrim = $('masterScrim');
+  const chatActions = $('chatContextActions');
+  const main = $('drawerMainView');
   if (open) {
+    const chatMode = !!isChatContext;
     showDrawerSubView('main');
-    drawer?.classList.toggle('chat-context', !!isChatContext);
-    $('chatContextActions').style.display = isChatContext ? 'block' : 'none';
-    $('drawerTitle').textContent = isChatContext ? 'Chat Settings' : 'Settings';
+    drawer?.classList.toggle('chat-context', chatMode);
+    drawer?.classList.toggle('menu-context', !chatMode);
+    if (chatActions) chatActions.style.display = chatMode ? 'block' : 'none';
+    if (main) main.dataset.context = chatMode ? 'chat' : 'menu';
+    $('drawerTitle').textContent = chatMode ? 'Chat Settings' : 'Settings';
     drawer?.classList.add('active');
     scrim?.classList.add('active');
+    document.documentElement.style.overflow = 'hidden';
     requestAnimationFrame(() => updateProfileBadges());
   } else {
-    drawer?.classList.remove('chat-context');
+    drawer?.classList.remove('chat-context', 'menu-context');
     drawer?.classList.remove('active');
     scrim?.classList.remove('active');
+    if (chatActions) chatActions.style.display = 'none';
+    if (main) delete main.dataset.context;
     document.documentElement.style.overflow = '';
   }
 }
@@ -3077,9 +3147,21 @@ $('masterScrim')?.addEventListener('click', () => {
 });
 
 $('rowOpenProfile')?.addEventListener('click', () => showDrawerSubView('profile'));
-$('btnHeaderProfile')?.addEventListener('click', () => {
-  if (!currentProfile) return;
-  openDpPreview(currentProfile, currentProfile.display || currentProfile.username || 'Profile');
+$('btnHeaderProfile')?.addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  const p = currentProfile || {
+    display: currentUser?.email ? currentUser.email.split('@')[0] : 'Profile',
+    username: currentUser?.email ? currentUser.email.split('@')[0] : 'profile',
+    photoURL: ''
+  };
+  openDpPreview(p, p.display || p.username || 'Profile');
+});
+$('headerProfileAvatar')?.addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  const p = currentProfile || {};
+  openDpPreview(p, p.display || p.username || 'Profile');
 });
 $('rowOpenBlockList')?.addEventListener('click', () => showDrawerSubView('block'));
 
@@ -3300,14 +3382,35 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
 function openDpPreview(profile, fallbackName = 'Profile') {
   const modal = $('contactDetailsModal');
   const avatar = $('modalContactAvatar');
-  if (!modal || !avatar || !profile) return;
-  avatar.innerHTML = avatarInner(profile, fallbackName);
-  avatar.style.background = getAvColor(profile.display || profile.username || fallbackName);
-  modal.classList.add('dp-preview');
+  if (!modal || !avatar) return;
+  const p = profile || {};
+  const name = p.display || p.username || fallbackName;
+  avatar.innerHTML = avatarInner(p, name);
+  avatar.style.background = getAvColor(name);
+  $('modalContactName').textContent = name;
+  $('modalContactRole').textContent = p.username ? '@' + p.username : 'Profile';
+
+  const countryEl = $('modalContactCountry');
+  const deviceEl = $('modalContactDevice');
+  if (p.isYuki) {
+    countryEl.textContent = '\u2014';
+    deviceEl.textContent = 'AI';
+  } else {
+    countryEl.textContent = p.country || '\u2014';
+    deviceEl.textContent = p.device || '\u2014';
+  }
+
+  /* Keep the info visible directly below the DP. */
+  modal.classList.remove('dp-preview');
+  void modal.offsetWidth;
   modal.classList.add('active');
   $('masterScrim')?.classList.add('active');
 }
 $('chatHeaderAvatar')?.addEventListener('click', e => {
+  e.stopPropagation();
+  if (activePeer) openDpPreview(activePeer, activePeer.display);
+});
+$('btnOpenContactDetails')?.addEventListener('click', e => {
   e.stopPropagation();
   if (activePeer) openDpPreview(activePeer, activePeer.display);
 });
