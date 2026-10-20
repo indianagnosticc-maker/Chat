@@ -6,7 +6,7 @@
 <title>Chat App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root {
   --bg-canvas: #e8effa;
@@ -1950,7 +1950,7 @@ function patchList(container, entries) {
   const seen = new Set();
   const firstTops = new Map();
   const finalEls = new Map();
-  existing.forEach((el, uid) => firstTops.set(uid, el.getBoundingClientRect().top));
+  try { existing.forEach((el, uid) => firstTops.set(uid, el.getBoundingClientRect().top)); } catch(e) {}
   let prev = null;
   entries.forEach(({ uid, html }) => {
     seen.add(uid);
@@ -1971,7 +1971,7 @@ function patchList(container, entries) {
   existing.forEach((el, uid) => { if (!seen.has(uid)) el.remove(); });
 
   // FLIP: rows glide to their new position instead of jumping
-  finalEls.forEach((el, uid) => {
+  try { finalEls.forEach((el, uid) => {
     const f = firstTops.get(uid);
     if (f === undefined || !el.animate) return;
     const d = f - el.getBoundingClientRect().top;
@@ -1979,7 +1979,7 @@ function patchList(container, entries) {
       el.animate([{ transform: `translateY(${d}px)` }, { transform: 'none' }],
                  { duration: 340, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
     }
-  });
+  }); } catch(e) {}
 }
 
 /* App State */
@@ -2011,14 +2011,9 @@ function setTheme(theme) {
     $('switchTheme')?.classList.toggle('on', theme === 'dark');
   };
   root.classList.add('no-theme-anim');
-  if (document.startViewTransition && root.dataset.themeReady) {
-    const vt = document.startViewTransition(apply);
-    vt.finished.catch(() => {}).then(() => root.classList.remove('no-theme-anim'));
-  } else {
-    apply();
-    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-theme-anim')));
-  }
-  root.dataset.themeReady = '1';
+  apply();
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-theme-anim')));
+  setTimeout(() => root.classList.remove('no-theme-anim'), 400);
   try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch(e) {}
 }
 setTheme(currentTheme);
@@ -2308,7 +2303,7 @@ function initRosterListener() {
         item.profile = { username: 'operator', display: 'Operator' };
       }
     }));
-    list.forEach(it => watchProfile(it.otherUid));
+    try { list.forEach(it => watchProfile(it.otherUid)); } catch(e) { console.error(e); }
 
     const getTimeMillis = it => {
       const t = it.data.lastMsgAt || it.data.touchAt;
@@ -2366,7 +2361,8 @@ function renderDirectsList() {
         ${unread > 0 ? `<span class="tab-badge">${unread > 9 ? '9+' : unread}</span>` : ''}
       </div>` };
   });
-  patchList(container, entries);
+  try { patchList(container, entries); }
+  catch(e) { console.error(e); container.innerHTML = entries.map(x => x.html).join(''); }
 }
 
 /* ==========================================================================
@@ -2978,5 +2974,4 @@ $('btnSaveUsername')?.addEventListener('click', async () => {
     if (err.message === 'TAKEN') {
       showToast(`@${handle} is already taken!`);
     } else {
-      showToast('Could not update username');
-    }
+      showToast('Could
