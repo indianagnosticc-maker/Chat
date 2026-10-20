@@ -1633,6 +1633,85 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(8) { animation-delay: 0.26s; }
 .settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(9) { animation-delay: 0.29s; }
 .settings-drawer.chat-context.active #drawerMainView:not(.hidden) > #chatContextActions { animation-delay: 0.05s; }
+
+/* Performance pass: motion-only overrides. Existing markup and application JS are untouched. */
+:root {
+  --smooth: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.screen {
+  transition: transform var(--anim-speed) var(--smooth), opacity var(--anim-speed) ease;
+  will-change: auto;
+  backface-visibility: visible;
+}
+.device-wrapper.in-chat #screenChat,
+.device-wrapper.in-chat #screenInbox { will-change: transform, opacity; }
+.panes-track { will-change: auto; }
+.chat-message-row { contain: none; will-change: auto; }
+.settings-drawer, .user-sheet-modal, .backdrop-scrim { will-change: auto; }
+.settings-drawer.active, .user-sheet-modal.active, .backdrop-scrim.active {
+  will-change: transform, opacity;
+}
+.action-btn-circle,
+.chat-back-btn,
+.composer-btn,
+.send-action-btn,
+.profile-pill-btn,
+.ai-companion-card,
+.fab-new-chat,
+.auth-btn-primary,
+.inbox-tab-indicator,
+.panes-track,
+.settings-drawer,
+.user-sheet-modal,
+.app-toast,
+.mentions-box {
+  transition-timing-function: var(--smooth);
+}
+.action-btn-circle { transition: transform 0.2s var(--smooth); }
+.chat-back-btn { transition: transform 0.2s var(--smooth); }
+.ai-companion-card { transition: transform 0.2s var(--smooth); }
+.fab-new-chat, .auth-btn-primary, .profile-pill-btn {
+  transition: transform 0.2s var(--smooth);
+}
+.composer-btn, .send-action-btn { transition: transform 0.2s var(--smooth); }
+.inbox-tab-indicator, .panes-track { transition-duration: 0.28s; }
+.settings-drawer, .user-sheet-modal { transition-duration: 0.3s; }
+.app-toast { transition: opacity 0.22s ease, transform 0.28s var(--smooth); }
+.mentions-box {
+  max-height: 180px;
+  overflow: hidden;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.25s var(--smooth);
+}
+.mentions-box.open {
+  opacity: 1;
+  transform: scaleY(1);
+  overflow-y: auto;
+}
+.mentions-box:not(.open) { pointer-events: none; }
+.chat-card, .settings-row, .inbox-tab, .toggle-switch,
+.search-container, .composer-inner, .auth-field, .profile-input {
+  transition-property: none;
+}
+.chat-card:active { transform: none; }
+.fab-new-chat:active, .auth-btn-primary:active { filter: none; }
+.profile-pill-btn { transition: transform 0.2s var(--smooth); }
+.toggle-switch:after { transition: transform 0.25s var(--smooth); }
+.no-theme-anim .toggle-switch:after { transition: transform 0.25s var(--smooth) !important; }
+
+/* Some states intentionally retain color/background changes to preserve their exact appearance:
+   focus rings, toggle tracks, selected cards, and the send-button enabled state. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 </style>
 </head>
 <body>
