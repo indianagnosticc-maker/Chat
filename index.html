@@ -1897,35 +1897,22 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 
 <!-- Firebase & Application Modules -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged, 
-  setPersistence, 
-  browserLocalPersistence, 
-  sendEmailVerification
-} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import { 
-  getFirestore, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  addDoc, 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  limit, 
-  onSnapshot, 
-  serverTimestamp, 
-  getDocs, 
-  increment, 
-  runTransaction
-} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+/* Firebase is loaded dynamically so a load failure shows a clear on-screen error instead of a dead page */
+let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction;
+try {
+  const [__A, __Au, __F] = await Promise.all([
+    import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js"),
+    import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
+  ]);
+  ({ initializeApp } = __A);
+  ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification } = __Au);
+  ({ getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction } = __F);
+} catch (err) {
+  window.__fbLoadError = (err && (err.name + ': ' + err.message)) || String(err);
+  window.dispatchEvent(new CustomEvent('fbloadfail'));
+  throw err;
+}
 
 /* Firebase Config from previous sessions */
 const firebaseConfig = {
@@ -2885,18 +2872,4 @@ $('chatInputText')?.addEventListener('input', () => {
   input.style.height = '36px';
   input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   const hasText = !!input.value.trim();
-  $('btnSendMessage')?.classList.toggle('can-send', hasText);
-
-  // Handle u/ mentions
-  const match = input.value.match(/(?:^|\s)u\/([\w]*)$/);
-  const mentionsBox = $('mentionsBox');
-  if (match) {
-    const term = match[1].toLowerCase();
-    const matches = conversationList
-      .map(c => c.profile)
-      .filter(p => p && p.username && p.username.toLowerCase().includes(term));
-
-    if (matches.length > 0) {
-      mentionsBox.innerHTML = matches.slice(0, 5).map(p => `
-        <button class="mention-item" data-username="${esc(p.username)}">
-          <div class="chat-card-avatar" style="width:26px;height:26px;font-size:11px;background:${getAvColor(p.username)}
+  $('btnSendMessage')?.classList.
