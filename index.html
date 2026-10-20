@@ -2189,6 +2189,8 @@ $('btnResendVerification')?.addEventListener('click', async () => {
 
 /* Auth State Listener (With resilient fallback to never lock out) */
 onAuthStateChanged(auth, async user => {
+  window.__chatBooted = true;
+  document.getElementById('bootDiag')?.remove();
   if (!user) {
     currentUser = null;
     currentProfile = null;
@@ -2215,7 +2217,10 @@ onAuthStateChanged(auth, async user => {
 
   currentUser = user;
   try {
-    const uSnap = await getDoc(doc(db, 'users', user.uid));
+    const uSnap = await Promise.race([
+      getDoc(doc(db, 'users', user.uid)),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Firestore timeout')), 8000))
+    ]);
     if (uSnap.exists()) {
       currentProfile = uSnap.data();
     } else {
@@ -2247,6 +2252,7 @@ onAuthStateChanged(auth, async user => {
     currentProfile = { username: h, display: h.toUpperCase(), email: user.email || '' };
     $('authScreen')?.classList.remove('active');
     updateProfileBadges();
+    try { initRosterListener(); renderDirectsList(); } catch(e2) { console.error(e2); }
   }
 });
 
@@ -2974,4 +2980,222 @@ $('btnSaveUsername')?.addEventListener('click', async () => {
     if (err.message === 'TAKEN') {
       showToast(`@${handle} is already taken!`);
     } else {
-      showToast('Could
+      showToast('Could not update username');
+    }
+  }
+});
+
+/* Copy username ID */
+$('tipUsernameCopy')?.addEventListener('click', async () => {
+  const u = currentProfile?.username;
+  if (!u) return;
+  try {
+    await navigator.clipboard.writeText(u);
+    showToast(`Copied ID: @${u}`);
+  } catch(e) {
+    showToast(`ID: @${u}`);
+  }
+});
+
+/* Change Profile Photo */
+$('btnTriggerPhotoUpload')?.addEventListener('click', () => $('fileAvatarUpload').click());
+$('fileAvatarUpload')?.addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file || !currentUser) return;
+  if (!file.type.startsWith('image/')) return showToast('Please pick an image file');
+
+  try {
+    const dataUrl = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+
+    const img = await new Promise((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = rej;
+      im.src = dataUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    const scale = Math.min(1, 320 / Math.max(img.width, img.height));
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const compressedPhoto = canvas.toDataURL('image/jpeg', 0.7);
+    await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: compressedPhoto });
+    currentProfile.photoURL = compressedPhoto;
+    updateProfileBadges();
+    renderDirectsList();
+    showToast('Profile photo updated!');
+  } catch(err) {
+    showToast('Failed to update photo');
+  }
+});
+
+/* Logout */
+$('btnLogout')?.addEventListener('click', async () => {
+  toggleDrawer(false);
+  if (currentUser) {
+    updateDoc(doc(db, 'users', currentUser.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
+  }
+  await signOut(auth);
+  showToast('Logged out');
+});
+
+/* Block List Rendering & Unblock */
+function renderBlockedAccounts() {
+  const container = $('blockedUsersContainer');
+  const blockedIds = currentProfile?.blockedUids || [];
+
+  if (!blockedIds.length) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13.5px">No blocked accounts.</p>';
+    return;
+  }
+
+  container.innerHTML = blockedIds.map(uid => {
+    const ch = conversationList.find(c => c.otherUid === uid);
+    const prof = ch?.profile || profileCache.get(uid) || {};
+    const name = esc(prof.display || prof.username || 'Blocked User');
+    return `
+      <div class="settings-row">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="chat-card-avatar" style="width:34px;height:34px;font-size:12px;background:${getAvColor(prof.username || name)}">
+            ${avatarInner(prof, name)}
+          </div>
+          <div>
+            <b style="font-size:13.5px;display:block">${name}</b>
+            <span style="font-size:12px;color:var(--text-muted)">@${esc(prof.username || 'operator')}</span>
+          </div>
+        </div>
+        <button class="profile-pill-btn outline" data-unblock="${esc(uid)}" style="font-size:12px;padding:4px 12px">Unblock</button>
+      </div>`;
+  }).join('');
+}
+
+async function toggleBlockUser(targetUid, shouldBlock) {
+  if (!targetUid || !currentUser || targetUid === YUKI_BOT_UID) return;
+  const setIds = new Set(currentProfile?.blockedUids || []);
+  shouldBlock ? setIds.add(targetUid) : setIds.delete(targetUid);
+  const blockedUids = [...setIds];
+
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), { blockedUids });
+    currentProfile.blockedUids = blockedUids;
+    renderDirectsList();
+    renderBlockedAccounts();
+    showToast(shouldBlock ? 'User blocked' : 'User unblocked');
+  } catch(e) {
+    showToast('Could not update block list');
+  }
+}
+
+/* ==========================================================================
+   NAVIGATION & CLICK DELEGATION
+   ========================================================================== */
+document.addEventListener('click', e => {
+  const unblockBtn = e.target.closest('[data-unblock]');
+  if (unblockBtn) {
+    toggleBlockUser(unblockBtn.dataset.unblock, false);
+    return;
+  }
+
+  const mentionBtn = e.target.closest('.mention-item');
+  if (mentionBtn) {
+    const input = $('chatInputText');
+    input.value = input.value.replace(/u\/[\w]*$/, 'u/' + mentionBtn.dataset.username + ' ');
+    input.focus();
+    $('mentionsBox')?.classList.remove('open');
+    return;
+  }
+
+  const chatRow = e.target.closest('.chat-card');
+  if (chatRow && chatRow.dataset.uid) {
+    selectedCardUid = chatRow.dataset.uid;
+    document.querySelectorAll('#directsListContainer .chat-card').forEach(el => {
+      el.classList.toggle('highlighted-blue', el === chatRow);
+    });
+    openChatView(chatRow.dataset.uid);
+    return;
+  }
+
+  const navTab = e.target.closest('.inbox-tab');
+  if (navTab) {
+    const tabIdx = +navTab.dataset.tab;
+    document.querySelectorAll('.inbox-tab').forEach((t, i) => t.classList.toggle('active', i === tabIdx));
+    $('panesTrack').dataset.active = tabIdx;
+    $('panesTrack').style.transform = `translateX(${-50 * tabIdx}%)`;
+    $('tabIndicator').style.transform = `translateX(${100 * tabIdx}%)`;
+    return;
+  }
+
+  
+});
+
+$('btnChatBack')?.addEventListener('click', () => {
+  appShell.classList.remove('in-chat');
+  activePeer = null;
+  activeChatId = null;
+  stopAllListeners();
+  renderDirectsList();
+});
+
+$('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
+
+
+/* Contact details bottom sheet modal */
+$('btnOpenContactDetails')?.addEventListener('click', () => {
+  if (activePeer) {
+    $('modalContactName').textContent = activePeer.display;
+    $('modalContactRole').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
+    $('modalContactAvatar').innerHTML = avatarInner(activePeer, activePeer.display);
+    $('modalContactAvatar').style.background = getAvColor(activePeer.display);
+    $('contactDetailsModal')?.classList.add('active');
+    $('masterScrim')?.classList.add('active');
+  }
+});
+
+/* Context actions in chat drawer */
+$('btnContextBlock')?.addEventListener('click', () => {
+  if (activePeer && !activePeer.isYuki) {
+    const isBlocked = (currentProfile?.blockedUids || []).includes(activePeer.uid);
+    toggleBlockUser(activePeer.uid, !isBlocked);
+    toggleDrawer(false);
+  }
+});
+
+$('btnContextDeleteChat')?.addEventListener('click', () => {
+  if (activePeer && currentUser) {
+    addDeletedChat(currentUser.uid, activePeer.uid);
+    conversationList = conversationList.filter(c => c.otherUid !== activePeer.uid);
+    toggleDrawer(false);
+    appShell.classList.remove('in-chat');
+    renderDirectsList();
+    showToast('Conversation hidden');
+  }
+});
+</script>
+
+<script>
+(function(){
+  var errs=[];
+  function show(){
+    if(window.__chatBooted) return;
+    var b=document.getElementById('bootDiag');
+    if(!b){ b=document.createElement('div'); b.id='bootDiag';
+      b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#1e293b;color:#fff;padding:10px 12px;border-radius:12px;font:12px/1.4 monospace;max-height:40vh;overflow:auto;white-space:pre-wrap';
+      document.body.appendChild(b); }
+    b.textContent='App did not start:\n'+errs.join('\n');
+  }
+  window.addEventListener('error',function(e){ if(!e.message) return; errs.push(e.message+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'')); setTimeout(show,300); },true);
+  window.addEventListener('unhandledrejection',function(e){ errs.push('promise: '+((e.reason&&e.reason.message)||e.reason)); setTimeout(show,300); });
+  var m=document.querySelector('script[type=module]');
+  if(m) m.addEventListener('error',function(){ errs.push('module script failed to load (Firebase/network?)'); show(); });
+  setTimeout(function(){ if(!window.__chatBooted){ if(!errs.length) errs.push('no error captured - still waiting for Firebase/network'); show(); } },7000);
+})();
+</script>
+</body>
+</html>
