@@ -1906,10 +1906,7 @@ import {
   onAuthStateChanged, 
   setPersistence, 
   browserLocalPersistence, 
-  sendEmailVerification,
-  deleteUser,
-  reauthenticateWithCredential,
-  EmailAuthProvider
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { 
   getFirestore, 
@@ -1927,9 +1924,7 @@ import {
   serverTimestamp, 
   getDocs, 
   increment, 
-  runTransaction,
-  deleteDoc,
-  writeBatch
+  runTransaction
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /* Firebase Config from previous sessions */
@@ -2904,4 +2899,4 @@ $('chatInputText')?.addEventListener('input', () => {
     if (matches.length > 0) {
       mentionsBox.innerHTML = matches.slice(0, 5).map(p => `
         <button class="mention-item" data-username="${esc(p.username)}">
-          <div class="chat-
+          <div class="chat-card-avatar" style="width:26px;height:26px;font-size:11px;background:${getAvColor(p.username)}
