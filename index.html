@@ -2122,8 +2122,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 })();
 </script>
 
-
-<!-- Google Identity Services: in-page account chooser -->
+<!-- Google Identity Services: in-page Google account prompt -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <!-- Firebase & Application Modules -->
@@ -2361,98 +2360,104 @@ $('btnToggleAuthMode')?.addEventListener('click', () => {
   $('authPassword').setAttribute('autocomplete', isSignUpMode ? 'new-password' : 'current-password');
 });
 
-/* Google sign-in: in-page account chooser (Google One Tap / FedCM sheet) first,
-   Firebase popup only as a fallback if the browser refuses to draw the sheet. */
 const YUKI_GOOGLE_CLIENT_ID = '796907531674-hhtk3ie82p0g2id3k3anel3ae7h0pg08.apps.googleusercontent.com';
 let yukiGoogleGISInitialized = false;
-let yukiGooglePending = false;
+let yukiGooglePromptPending = false;
+let yukiUseFirebasePopupFallback = false;
 
-function yukiGoogleDone() {
-  yukiGooglePending = false;
-  const b = $('btnGoogleAuth');
-  if (b) b.disabled = false;
-}
-
-function yukiGoogleError(err) {
-  console.error('Google sign-in error:', err);
-  const code = (err && err.code) || '';
-  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
-    $('authError').textContent = '';
-    return;
-  }
-  $('authInfo').textContent = '';
-  $('authError').textContent =
-      code === 'auth/popup-blocked' ? 'Popup was blocked. Allow popups for this site and try again.'
-    : code === 'auth/unauthorized-domain' ? 'This domain is not in Firebase Authentication > Settings > Authorized domains.'
-    : code === 'auth/operation-not-allowed' ? 'Enable Google sign-in in Firebase Authentication > Sign-in method.'
-    : 'Google sign-in failed. Please try again.';
-}
-
-async function yukiGooglePopupFallback() {
-  try {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    await signInWithPopup(auth, provider);
-    $('authInfo').textContent = '';
-  } catch (err) {
-    yukiGoogleError(err);
-  } finally {
-    yukiGoogleDone();
-  }
-}
-
-// One Tap returns a Google ID token; exchange it for a Firebase credential.
+// Google Identity Services returns an ID token; exchange it for a Firebase credential.
 window.handleYukiGoogleCredential = async (response) => {
+  const btn = $('btnGoogleAuth');
   try {
-    if (!response || !response.credential) throw new Error('No ID token');
+    if (!response || !response.credential) throw new Error('Google did not return an ID token.');
     $('authError').textContent = '';
     $('authInfo').textContent = 'Signing in with Google…';
-    await signInWithCredential(auth, GoogleAuthProvider.credential(response.credential));
+    const credential = GoogleAuthProvider.credential(response.credential);
+    await signInWithCredential(auth, credential);
     $('authInfo').textContent = '';
   } catch (err) {
-    yukiGoogleError(err);
+    console.error('Google sign-in error:', err);
+    $('authInfo').textContent = '';
+    $('authError').textContent = err.code === 'auth/unauthorized-domain'
+      ? 'This domain is not authorized in Firebase Authentication.'
+      : err.code === 'auth/operation-not-allowed'
+      ? 'Enable Google sign-in in Firebase Authentication settings.'
+      : 'Google sign-in failed. Check OAuth Audience/Test users and Firebase settings.';
   } finally {
-    yukiGoogleDone();
+    yukiGooglePromptPending = false;
+    if (btn) btn.disabled = false;
   }
 };
 
-$('btnGoogleAuth')?.addEventListener('click', () => {
-  if (yukiGooglePending) return;
+$('btnGoogleAuth')?.addEventListener('click', async () => {
+  const btn = $('btnGoogleAuth');
   $('authError').textContent = '';
   $('authInfo').textContent = '';
-  yukiGooglePending = true;
-  $('btnGoogleAuth').disabled = true;
+  if (yukiGooglePromptPending) return;
 
-  // Google script not loaded (blocked / slow) -> popup straight away
-  if (!window.google?.accounts?.id) { yukiGooglePopupFallback(); return; }
+  // If One Tap was suppressed earlier, use Firebase's popup flow on this fresh tap.
+  // Calling it directly from the click keeps it eligible for the browser's popup permission.
+  if (yukiUseFirebasePopupFallback) {
+    btn.disabled = true;
+    $('authInfo').textContent = 'Opening Google sign-in…';
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error('Google popup fallback error:', err);
+      $('authInfo').textContent = '';
+      $('authError').textContent = err.code === 'auth/popup-blocked'
+        ? 'Browser blocked the sign-in popup. Allow popups and tap Google again.'
+        : err.code === 'auth/unauthorized-domain'
+        ? 'This domain is not authorized in Firebase Authentication.'
+        : err.code === 'auth/operation-not-allowed'
+        ? 'Enable Google sign-in in Firebase Authentication settings.'
+        : err.code === 'auth/popup-closed-by-user'
+        ? 'Google sign-in was cancelled. Tap Google to try again.'
+        : 'Google sign-in failed. Check Firebase Google provider settings.';
+    } finally {
+      btn.disabled = false;
+      $('authInfo').textContent = '';
+    }
+    return;
+  }
 
+  if (!window.google?.accounts?.id) {
+    yukiUseFirebasePopupFallback = true;
+    $('authError').textContent = 'In-page Google prompt is unavailable. Tap Google again to continue.';
+    return;
+  }
+
+  btn.disabled = true;
+  yukiGooglePromptPending = true;
   try {
     if (!yukiGoogleGISInitialized) {
       google.accounts.id.initialize({
         client_id: YUKI_GOOGLE_CLIENT_ID,
         callback: window.handleYukiGoogleCredential,
-        use_fedcm_for_prompt: true,
         auto_select: false,
         cancel_on_tap_outside: true,
-        itp_support: true,
         context: 'signin'
       });
       yukiGoogleGISInitialized = true;
     }
-    google.accounts.id.prompt(n => {
-      if (n.isDismissedMoment && n.isDismissedMoment()) {
-        // user closed the sheet (X) or an account was picked; nothing more to do
-        if (n.getDismissedReason && n.getDismissedReason() !== 'credential_returned') yukiGoogleDone();
-        return;
-      }
-      if ((n.isNotDisplayed && n.isNotDisplayed()) || (n.isSkippedMoment && n.isSkippedMoment())) {
-        // browser refused to draw the sheet -> use the Firebase popup instead
-        yukiGooglePopupFallback();
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        const reason = notification.getNotDisplayedReason?.() || notification.getSkippedReason?.() || '';
+        console.warn('Google One Tap unavailable:', reason || 'unknown');
+        yukiUseFirebasePopupFallback = true;
+        $('authError').textContent = 'In-page Google prompt is unavailable here. Tap Google again to open the sign-in popup.';
+        yukiGooglePromptPending = false;
+        btn.disabled = false;
       }
     });
   } catch (err) {
-    console.error('One Tap error:', err);
-    yukiGooglePopupFallback();
+    console.error('Google prompt error:', err);
+    yukiUseFirebasePopupFallback = true;
+    $('authError').textContent = 'In-page prompt unavailable. Tap Google again to open the sign-in popup.';
+    yukiGooglePromptPending = false;
+    btn.disabled = false;
   }
 });
 
