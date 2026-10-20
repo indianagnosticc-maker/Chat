@@ -121,13 +121,13 @@ const db = getFirestore(fb);
 setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 const $ = id => document.getElementById(id);
-const CHATS_PAGE = 'Chats.html'; // Apne chat page ka naam yahan daal
+const CHATS_PAGE = 'Chat.html';
 
 let redirecting = false;
 function goToChats() {
   if (redirecting) return;
   redirecting = true;
-  setTimeout(() => { window.location.href = CHATS_PAGE; }, 250);
+  window.location.replace(CHATS_PAGE);
 }
 
 /* ---------- Google GIS Callback ---------- */
