@@ -1624,6 +1624,15 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 
 /* Theme change: clean cross-fade of the whole page, composited on the GPU */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.28s; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Delete sheet slide-up (keyframes always play, even if a transition would be skipped) */
+@keyframes sheetUp { from { transform: translateY(105%); } to { transform: translateY(0); } }
+#deleteAccountModal.active { animation: sheetUp 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Settings intro: stagger covers every child (Delete Account card is child 8 and was animating first) */
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(8) { animation-delay: 0.26s; }
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(9) { animation-delay: 0.29s; }
+.settings-drawer.chat-context.active #drawerMainView:not(.hidden) > #chatContextActions { animation-delay: 0.05s; }
 </style>
 </head>
 <body>
@@ -2054,104 +2063,29 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 </script>
 
 <script>
-/* Keyboard open/close: smooth, GPU-friendly glide of the chat area + composer.
-   The existing keyboard scroll logic stays untouched; this only adds a visual layer on top. */
 (function(){
-  var box = document.getElementById('messagesContainer');
-  var dock = document.querySelector('#screenChat .composer-dock');
-  var shell = document.getElementById('appShell');
-  if (!box || !dock || !shell || !window.ResizeObserver) return;
-  var DUR = 280, EASE = 'cubic-bezier(0.215, 0.61, 0.355, 1)';
-  var reduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
-  var pre = null, clean = true, raf = 0, tokens = new WeakMap(), lastW = 0;
-
-  function anchorRow(){
-    var rows = box.getElementsByClassName('chat-message-row');
-    return rows.length ? rows[rows.length - 1] : null;
+  /* Viewport height -> --app-h. When the keyboard opens/closes the height glides (ease-out ~280ms)
+     instead of jumping, so the composer and the messages move together, smoothly. */
+  var root = document.documentElement, target = 0, shown = 0, from = 0, t0 = 0, raf = 0, lastW = 0;
+  var DUR = 280;
+  function put(v){ shown = v; root.style.setProperty('--app-h', v + 'px'); }
+  function tick(now){
+    var p = Math.min(1, (now - t0) / DUR), e = 1 - Math.pow(1 - p, 3);
+    put(from + (target - from) * e);
+    raf = p < 1 ? requestAnimationFrame(tick) : 0;
   }
-  function ty(el){
-    try { return new DOMMatrix(getComputedStyle(el).transform).m42 || 0; } catch(e) { return 0; }
-  }
-  function capture(){
-    var vv = window.visualViewport;
-    var w = Math.round(vv ? vv.width : window.innerWidth);
-    var widthChanged = lastW && Math.abs(w - lastW) > 1;
-    lastW = w;
-    if (!clean) return;            /* layout already dirty in this frame: keep the first snapshot */
-    clean = false;
-    setTimeout(function(){ clean = true; if (pre && pre.stale) pre = null; }, 160);
-    if (widthChanged || reduce.matches || !shell.classList.contains('in-chat')) { pre = null; return; }
-    var a = anchorRow();
-    pre = {
-      dockTop: dock.getBoundingClientRect().top,
-      anchor: a,
-      anchorBottom: a ? a.getBoundingClientRect().bottom : 0,
-      dockTy: ty(dock),
-      boxTy: ty(box),
-      stale: true
-    };
-  }
-  function flip(el, from){
-    var t = (tokens.get(el) || 0) + 1; tokens.set(el, t);
-    el.style.transition = 'none';
-    el.style.transform = 'translate3d(0,' + from + 'px,0)';
-    void el.offsetHeight;
-    el.style.transition = 'transform ' + DUR + 'ms ' + EASE;
-    el.style.transform = 'translate3d(0,0,0)';
-    setTimeout(function(){
-      if (tokens.get(el) !== t) return;
-      el.style.transition = ''; el.style.transform = '';
-    }, DUR + 50);
-  }
-  function glideScroll(from, to){
-    cancelAnimationFrame(raf);
-    var t0 = performance.now();
-    box.scrollTop = from;
-    (function step(now){
-      var p = Math.min(1, (now - t0) / DUR), e = 1 - Math.pow(1 - p, 3);
-      box.scrollTop = from + (to - from) * e;
-      if (p < 1) raf = requestAnimationFrame(step);
-    })(t0);
-  }
-  function stopGlide(){ cancelAnimationFrame(raf); }
-  box.addEventListener('touchstart', stopGlide, { passive: true });
-  box.addEventListener('wheel', stopGlide, { passive: true });
-
-  window.addEventListener('resize', capture);
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', capture);
-
-  /* registered after the app's own observer, so it sees the already-compensated layout */
-  function arm(){
-    new ResizeObserver(function(){
-      var p = pre; pre = null; clean = true;
-      if (!p) return;
-      var tD = p.dockTop - dock.getBoundingClientRect().top;
-      var tC = (p.anchor && p.anchor.isConnected) ? p.anchorBottom - p.anchor.getBoundingClientRect().bottom : 0;
-      if (Math.abs(tD) < 1 && Math.abs(tC) < 1) return;
-      if (Math.abs(tD) >= 1) flip(dock, tD + p.dockTy);
-      if (Math.abs(tC) < 1) return;
-      if (tC > 0) {
-        /* content moved up: glide the scroll position so nothing pops in from the top edge */
-        var st = box.scrollTop, start = st - tC;
-        if (start >= 0) { glideScroll(start, st); }
-        else { if (st > 0) glideScroll(0, st); flip(box, (tC - st) + p.boxTy); }
-      } else {
-        flip(box, tC + p.boxTy);   /* content moved down (keyboard closing) */
-      }
-    }).observe(box);
-  }
-  /* armed by the app right after its own keyboard observer is registered, so ours always runs second */
-  window.__kbArm = function(){ window.__kbArm = null; arm(); };
-})();
-</script>
-
-<script>
-(function(){
-  var root = document.documentElement, last = 0;
   function fit(){
     var vv = window.visualViewport;
     var h = Math.round(vv ? vv.height * vv.scale : window.innerHeight);
-    if (h > 0 && h !== last) { last = h; root.style.setProperty('--app-h', h + 'px'); }
+    var w = Math.round(vv ? vv.width : window.innerWidth);
+    if (!(h > 0) || h === target) return;
+    var widthChanged = lastW && Math.abs(w - lastW) > 1;
+    lastW = w;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target = h;
+    if (!shown || widthChanged || reduce) { cancelAnimationFrame(raf); raf = 0; put(h); return; }
+    from = shown; t0 = performance.now();
+    if (!raf) raf = requestAnimationFrame(tick);
   }
   fit();
   window.addEventListener('resize', fit);
@@ -3618,7 +3552,6 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
       lastTop = box.scrollTop;
     }
   }).observe(box);
-  if (window.__kbArm) window.__kbArm();
 })();
 
 /* Keep relative times (now / 5m / 2h) live without refresh */
@@ -3753,7 +3686,11 @@ function openDeleteAccount() {
   toggleDrawer(false);
   $('inputDeletePassword').value = '';
   $('deleteAccountError').textContent = '';
-  deleteModal?.classList.add('active');
+  if (deleteModal) {
+    deleteModal.classList.remove('active');
+    void deleteModal.offsetWidth;
+    requestAnimationFrame(() => deleteModal.classList.add('active'));
+  }
   $('masterScrim')?.classList.add('active');
 }
 function closeDeleteAccount() {
