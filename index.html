@@ -1502,6 +1502,9 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Smoothness-only rendering hints; visual design is unchanged. */
+.settings-drawer, .backdrop-scrim, .panes-track, .app-shell { will-change: transform; backface-visibility: hidden; }
 </style>
 </head>
 <body>
@@ -1895,6 +1898,27 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 
 </div>
 
+<!-- Early UI safety bindings: keeps Settings usable even if the Firebase module is delayed. No visual/layout changes. -->
+<script>
+(function(){
+  function bind(){
+    const drawer=document.getElementById('settingsDrawer');
+    const scrim=document.getElementById('masterScrim');
+    const open=document.getElementById('btnOpenSettings');
+    const nav=document.getElementById('btnNavSettings');
+    const close=document.getElementById('btnDrawerClose');
+    if(!drawer||!scrim) return;
+    const show=()=>{ drawer.classList.add('active'); scrim.classList.add('active'); document.documentElement.style.overflow='hidden'; };
+    const hide=()=>{ drawer.classList.remove('active'); scrim.classList.remove('active'); document.documentElement.style.overflow=''; };
+    if(open && !open.dataset.yukiSettingsBound){ open.dataset.yukiSettingsBound='1'; open.addEventListener('click',show); }
+    if(nav && !nav.dataset.yukiSettingsBound){ nav.dataset.yukiSettingsBound='1'; nav.addEventListener('click',show); }
+    if(close && !close.dataset.yukiSettingsBound){ close.dataset.yukiSettingsBound='1'; close.addEventListener('click',hide); }
+    if(!scrim.dataset.yukiSettingsBound){ scrim.dataset.yukiSettingsBound='1'; scrim.addEventListener('click',hide); }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
+})();
+</script>
+
 <!-- Firebase & Application Modules -->
 <script type="module">
 /* Firebase is loaded dynamically so a load failure shows a clear on-screen error instead of a dead page */
@@ -2022,6 +2046,8 @@ let unsubscribeMessages = null;
 let unsubscribeChatMeta = null;
 let unsubscribeUser = null;
 let unsubscribeRoster = null;
+let rosterRetryTimer = null;
+let rosterRetryCount = 0;
 let isSignUpMode = false;
 let searchDebounce = null;
 let typingTimeout = null;
@@ -2314,16 +2340,18 @@ function updateProfileBadges() {
    ROSTER & DIRECTS SYNCHRONIZATION
    ========================================================================== */
 function initRosterListener() {
-  unsubscribeRoster && unsubscribeRoster();
   if (!currentUser) return;
+  if (unsubscribeRoster) { try { unsubscribeRoster(); } catch(e) {} }
+  unsubscribeRoster = null;
+  if (rosterRetryTimer) { clearTimeout(rosterRetryTimer); rosterRetryTimer = null; }
 
-  unsubscribeRoster = onSnapshot(query(collection(db, 'chats'), where('users', 'array-contains', currentUser.uid)), async snap => {
+  const processRoster = async snap => {
     const list = [];
     const delList = getDeletedList(currentUser.uid);
 
     snap.docs.forEach(d => {
-      const data = d.data();
-      const other = (data.users || []).find(u => u !== currentUser.uid);
+      const data = d.data() || {};
+      const other = (Array.isArray(data.users) ? data.users : []).find(u => u !== currentUser.uid);
       if (!other || other === YUKI_BOT_UID || delList.includes(other)) return;
       list.push({ chatId: d.id, data, otherUid: other });
     });
@@ -2339,16 +2367,34 @@ function initRosterListener() {
         item.profile = { username: 'operator', display: 'Operator' };
       }
     }));
-    try { list.forEach(it => watchProfile(it.otherUid)); } catch(e) { console.error(e); }
 
+    try { list.forEach(it => watchProfile(it.otherUid)); } catch(e) { console.error(e); }
     const getTimeMillis = it => {
       const t = it.data.lastMsgAt || it.data.touchAt;
       return t && t.toMillis ? t.toMillis() : 0;
     };
     list.sort((a, b) => getTimeMillis(b) - getTimeMillis(a));
     conversationList = list;
+    rosterRetryCount = 0;
     renderDirectsList();
-  }, err => console.error('Roster error:', err));
+  };
+
+  const retry = err => {
+    console.error('Roster error:', err);
+    if (!currentUser || rosterRetryCount >= 4) return;
+    const delay = Math.min(5000, 700 * Math.pow(2, rosterRetryCount++));
+    rosterRetryTimer = setTimeout(() => { rosterRetryTimer = null; initRosterListener(); }, delay);
+  };
+
+  try {
+    unsubscribeRoster = onSnapshot(
+      query(collection(db, 'chats'), where('users', 'array-contains', currentUser.uid)),
+      processRoster,
+      retry
+    );
+  } catch (e) {
+    retry(e);
+  }
 }
 
 function renderDirectsList() {
@@ -2479,9 +2525,13 @@ function stopAllListeners() {
   unsubscribeMessages && unsubscribeMessages();
   unsubscribeChatMeta && unsubscribeChatMeta();
   unsubscribeUser && unsubscribeUser();
+  unsubscribeRoster && unsubscribeRoster();
   unsubscribeMessages = null;
   unsubscribeChatMeta = null;
   unsubscribeUser = null;
+  unsubscribeRoster = null;
+  if (rosterRetryTimer) { clearTimeout(rosterRetryTimer); rosterRetryTimer = null; }
+  rosterRetryCount = 0;
 }
 
 function openChatView(peerUid, profile = null) {
@@ -2872,4 +2922,497 @@ $('chatInputText')?.addEventListener('input', () => {
   input.style.height = '36px';
   input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   const hasText = !!input.value.trim();
-  $('btnSendMessage')?.classList.
+  $('btnSendMessage')?.classList.toggle('can-send', hasText);
+
+  // Handle u/ mentions
+  const match = input.value.match(/(?:^|\s)u\/([\w]*)$/);
+  const mentionsBox = $('mentionsBox');
+  if (match) {
+    const term = match[1].toLowerCase();
+    const matches = conversationList
+      .map(c => c.profile)
+      .filter(p => p && p.username && p.username.toLowerCase().includes(term));
+
+    if (matches.length > 0) {
+      mentionsBox.innerHTML = matches.slice(0, 5).map(p => `
+        <button class="mention-item" data-username="${esc(p.username)}">
+          <div class="chat-card-avatar" style="width:26px;height:26px;font-size:11px;background:${getAvColor(p.username)}">${avatarInner(p)}</div>
+          <span>u/${esc(p.username)}</span>
+        </button>`).join('');
+      mentionsBox.classList.add('open');
+    } else {
+      mentionsBox.classList.remove('open');
+    }
+  } else {
+    mentionsBox?.classList.remove('open');
+  }
+});
+
+/* ==========================================================================
+   SETTINGS DRAWER & 3 CORE SECTIONS
+   ========================================================================== */
+function toggleDrawer(open, isChatContext = false) {
+  const drawer = $('settingsDrawer');
+  const scrim = $('masterScrim');
+  if (open) {
+    showDrawerSubView('main');
+    $('chatContextActions').style.display = isChatContext ? 'block' : 'none';
+    drawer?.classList.add('active');
+    scrim?.classList.add('active');
+    requestAnimationFrame(() => updateProfileBadges());
+  } else {
+    drawer?.classList.remove('active');
+    scrim?.classList.remove('active');
+    document.documentElement.style.overflow = '';
+  }
+}
+
+function showDrawerSubView(view) {
+  const main = $('drawerMainView');
+  const prof = $('drawerProfileView');
+  const blk = $('drawerBlockView');
+  const backBtn = $('btnDrawerBack');
+  const title = $('drawerTitle');
+
+  if (view === 'profile') {
+    main.classList.add('hidden');
+    prof.classList.add('active');
+    blk.classList.remove('active');
+    backBtn.style.display = 'grid';
+    title.textContent = 'Your Profile';
+    updateProfileBadges();
+  } else if (view === 'block') {
+    main.classList.add('hidden');
+    prof.classList.remove('active');
+    blk.classList.add('active');
+    backBtn.style.display = 'grid';
+    title.textContent = 'Blocked Accounts';
+    renderBlockedAccounts();
+  } else {
+    main.classList.remove('hidden');
+    prof.classList.remove('active');
+    blk.classList.remove('active');
+    backBtn.style.display = 'none';
+    title.textContent = 'Settings';
+  }
+}
+
+$('btnDrawerBack')?.addEventListener('click', () => showDrawerSubView('main'));
+if (!$('btnOpenSettings')?.dataset.yukiSettingsBound) {
+  $('btnOpenSettings')?.addEventListener('click', () => toggleDrawer(true, false));
+}
+if (!$('btnNavSettings')?.dataset.yukiSettingsBound) {
+  $('btnNavSettings')?.addEventListener('click', () => toggleDrawer(true, false));
+}
+$('btnChatSettingsGear')?.addEventListener('click', () => toggleDrawer(true, true));
+if (!$('btnDrawerClose')?.dataset.yukiSettingsBound) {
+  $('btnDrawerClose')?.addEventListener('click', () => toggleDrawer(false));
+}
+$('masterScrim')?.addEventListener('click', () => {
+  toggleDrawer(false);
+  document.documentElement.style.overflow = '';
+  $('contactDetailsModal')?.classList.remove('active');
+});
+
+$('rowOpenProfile')?.addEventListener('click', () => showDrawerSubView('profile'));
+$('btnHeaderProfile')?.addEventListener('click', () => {
+  toggleDrawer(true, false);
+  showDrawerSubView('profile');
+});
+$('rowOpenBlockList')?.addEventListener('click', () => showDrawerSubView('block'));
+
+/* Profile Saving Functions */
+$('btnSaveDisplayName')?.addEventListener('click', async () => {
+  const name = $('inputDisplayName').value.trim();
+  if (!name) return showToast('Please enter a valid name');
+  if (!currentUser) return showToast('Please sign in first');
+
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), { display: name });
+    currentProfile.display = name;
+    updateProfileBadges();
+    renderDirectsList();
+    showToast('Display name saved');
+  } catch(e) {
+    showToast('Could not update display name');
+  }
+});
+
+$('btnSaveUsername')?.addEventListener('click', async () => {
+  const handle = $('inputUsername').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  if (!handle || handle.length < 3) return showToast('Username must be 3-20 characters');
+  if (handle === currentProfile?.username?.toLowerCase()) return showToast('This is already your username');
+  if (!currentUser) return showToast('Please sign in first');
+
+  const oldHandle = currentProfile.username ? currentProfile.username.toLowerCase() : '';
+
+  try {
+    await runTransaction(db, async txn => {
+      const newRef = doc(db, 'usernames', handle);
+      const snap = await txn.get(newRef);
+      if (snap.exists()) {
+        throw new Error('TAKEN');
+      }
+      txn.set(newRef, { uid: currentUser.uid, at: serverTimestamp() });
+      txn.update(doc(db, 'users', currentUser.uid), { username: handle });
+      if (oldHandle) {
+        txn.delete(doc(db, 'usernames', oldHandle));
+      }
+    });
+
+    currentProfile.username = handle;
+    updateProfileBadges();
+    renderDirectsList();
+    showToast(`Username updated to @${handle}`);
+  } catch(err) {
+    if (err.message === 'TAKEN') {
+      showToast(`@${handle} is already taken!`);
+    } else {
+      showToast('Could not update username');
+    }
+  }
+});
+
+/* Copy username ID */
+$('tipUsernameCopy')?.addEventListener('click', async () => {
+  const u = currentProfile?.username;
+  if (!u) return;
+  try {
+    await navigator.clipboard.writeText(u);
+    showToast(`Copied ID: @${u}`);
+  } catch(e) {
+    showToast(`ID: @${u}`);
+  }
+});
+
+/* Change Profile Photo */
+$('btnTriggerPhotoUpload')?.addEventListener('click', () => $('fileAvatarUpload').click());
+$('fileAvatarUpload')?.addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file || !currentUser) return;
+  if (!file.type.startsWith('image/')) return showToast('Please pick an image file');
+
+  try {
+    const dataUrl = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+
+    const img = await new Promise((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = rej;
+      im.src = dataUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    const scale = Math.min(1, 320 / Math.max(img.width, img.height));
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const compressedPhoto = canvas.toDataURL('image/jpeg', 0.7);
+    await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: compressedPhoto });
+    currentProfile.photoURL = compressedPhoto;
+    updateProfileBadges();
+    renderDirectsList();
+    showToast('Profile photo updated!');
+  } catch(err) {
+    showToast('Failed to update photo');
+  }
+});
+
+/* Logout */
+$('btnLogout')?.addEventListener('click', async () => {
+  toggleDrawer(false);
+  if (currentUser) {
+    updateDoc(doc(db, 'users', currentUser.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
+  }
+  await signOut(auth);
+  showToast('Logged out');
+});
+
+/* Block List Rendering & Unblock */
+function renderBlockedAccounts() {
+  const container = $('blockedUsersContainer');
+  const blockedIds = currentProfile?.blockedUids || [];
+
+  if (!blockedIds.length) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13.5px">No blocked accounts.</p>';
+    return;
+  }
+
+  container.innerHTML = blockedIds.map(uid => {
+    const ch = conversationList.find(c => c.otherUid === uid);
+    const prof = ch?.profile || profileCache.get(uid) || {};
+    const name = esc(prof.display || prof.username || 'Blocked User');
+    return `
+      <div class="settings-row">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="chat-card-avatar" style="width:34px;height:34px;font-size:12px;background:${getAvColor(prof.username || name)}">
+            ${avatarInner(prof, name)}
+          </div>
+          <div>
+            <b style="font-size:13.5px;display:block">${name}</b>
+            <span style="font-size:12px;color:var(--text-muted)">@${esc(prof.username || 'operator')}</span>
+          </div>
+        </div>
+        <button class="profile-pill-btn outline" data-unblock="${esc(uid)}" style="font-size:12px;padding:4px 12px">Unblock</button>
+      </div>`;
+  }).join('');
+}
+
+async function toggleBlockUser(targetUid, shouldBlock) {
+  if (!targetUid || !currentUser || targetUid === YUKI_BOT_UID) return;
+  const setIds = new Set(currentProfile?.blockedUids || []);
+  shouldBlock ? setIds.add(targetUid) : setIds.delete(targetUid);
+  const blockedUids = [...setIds];
+
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), { blockedUids });
+    currentProfile.blockedUids = blockedUids;
+    renderDirectsList();
+    renderBlockedAccounts();
+    showToast(shouldBlock ? 'User blocked' : 'User unblocked');
+  } catch(e) {
+    showToast('Could not update block list');
+  }
+}
+
+/* ==========================================================================
+   NAVIGATION & CLICK DELEGATION
+   ========================================================================== */
+document.addEventListener('click', e => {
+  const unblockBtn = e.target.closest('[data-unblock]');
+  if (unblockBtn) {
+    toggleBlockUser(unblockBtn.dataset.unblock, false);
+    return;
+  }
+
+  const mentionBtn = e.target.closest('.mention-item');
+  if (mentionBtn) {
+    const input = $('chatInputText');
+    input.value = input.value.replace(/u\/[\w]*$/, 'u/' + mentionBtn.dataset.username + ' ');
+    input.focus();
+    $('mentionsBox')?.classList.remove('open');
+    return;
+  }
+
+  const chatRow = e.target.closest('.chat-card');
+  if (chatRow && chatRow.dataset.uid) {
+    selectedCardUid = chatRow.dataset.uid;
+    document.querySelectorAll('#directsListContainer .chat-card').forEach(el => {
+      el.classList.toggle('highlighted-blue', el === chatRow);
+    });
+    openChatView(chatRow.dataset.uid);
+    return;
+  }
+
+  const navTab = e.target.closest('.inbox-tab');
+  if (navTab) {
+    const tabIdx = +navTab.dataset.tab;
+    document.querySelectorAll('.inbox-tab').forEach((t, i) => t.classList.toggle('active', i === tabIdx));
+    $('panesTrack').dataset.active = tabIdx;
+    $('panesTrack').style.transform = `translateX(${-50 * tabIdx}%)`;
+    $('tabIndicator').style.transform = `translateX(${100 * tabIdx}%)`;
+    return;
+  }
+
+  
+});
+
+$('btnChatBack')?.addEventListener('click', () => {
+  appShell.classList.remove('in-chat');
+  activePeer = null;
+  activeChatId = null;
+  stopAllListeners();
+  renderDirectsList();
+});
+
+$('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
+
+
+/* Contact details bottom sheet modal */
+$('btnOpenContactDetails')?.addEventListener('click', () => {
+  if (activePeer) {
+    $('modalContactName').textContent = activePeer.display;
+    $('modalContactRole').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
+    $('modalContactAvatar').innerHTML = avatarInner(activePeer, activePeer.display);
+    $('modalContactAvatar').style.background = getAvColor(activePeer.display);
+    $('contactDetailsModal')?.classList.add('active');
+    $('masterScrim')?.classList.add('active');
+  }
+});
+
+/* ==========================================================================
+   COUNTRY / DEVICE INFO, CLEAR CHATS, DELETE ACCOUNT (additions)
+   ========================================================================== */
+function detectDevice() {
+  const ua = navigator.userAgent || '';
+  const iPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+  return (/Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua) || iPadOS) ? 'Mobile' : 'Desktop';
+}
+async function detectCountry() {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 4000);
+    const r = await fetch('https://ipapi.co/json/', { signal: ctrl.signal });
+    clearTimeout(t);
+    if (r.ok) { const d = await r.json(); if (d && d.country_name) return d.country_name; }
+  } catch(e) {}
+  try {
+    const reg = (navigator.language || '').split('-')[1];
+    if (reg) return new Intl.DisplayNames(['en'], { type: 'region' }).of(reg.toUpperCase()) || '';
+  } catch(e) {}
+  return '';
+}
+async function syncDeviceInfo(uid) {
+  try {
+    const device = detectDevice();
+    const country = await detectCountry();
+    const data = { device };
+    if (country) data.country = country;
+    await updateDoc(doc(db, 'users', uid), data);
+    if (currentProfile) { currentProfile.device = device; if (country) currentProfile.country = country; }
+  } catch(e) {}
+}
+
+const FB_AUTH_URL = 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+const FB_FS_URL = 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+
+/* Contact sheet: show peer's country + device */
+$('btnOpenContactDetails')?.addEventListener('click', () => {
+  if (!activePeer) return;
+  const p = profileCache.get(activePeer.uid) || {};
+  const cEl = $('modalContactCountry'), dEl = $('modalContactDevice');
+  if (activePeer.isYuki) { cEl.textContent = '\u2014'; dEl.textContent = 'AI'; return; }
+  cEl.textContent = p.country || '\u2014';
+  dEl.textContent = p.device || '\u2014';
+});
+
+/* Clear chats (messages go, contact stays) */
+$('btnContextClearChat')?.addEventListener('click', async () => {
+  if (!activePeer) return;
+  if (!confirm('Clear all messages in this chat? The contact will stay in your list.')) return;
+  toggleDrawer(false);
+  if (activePeer.isDemo) {
+    $('messagesContainer').querySelectorAll('.chat-message-row').forEach(r => r.remove());
+    showToast('Chat cleared');
+    return;
+  }
+  if (!currentUser || !activeChatId) return;
+  const cId = activeChatId;
+  const peer = activePeer;
+  try {
+    const { writeBatch } = await import(FB_FS_URL);
+    while (true) {
+      const snap = await getDocs(query(collection(db, 'chats', cId, 'messages'), limit(400)));
+      if (snap.empty) break;
+      const batch = writeBatch(db);
+      snap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+      if (snap.size < 400) break;
+    }
+    const meta = { lastMsg: '' };
+    if (!peer.isYuki) meta.unread = { [currentUser.uid]: 0, [peer.uid]: 0 };
+    await setDoc(doc(db, 'chats', cId), meta, { merge: true });
+    if (peer.isYuki) yukiHistory = [];
+    showToast('Chat cleared');
+  } catch(e) {
+    console.error('Clear chat error:', e);
+    showToast('Could not clear chat');
+  }
+});
+
+/* Delete account */
+const deleteModal = $('deleteAccountModal');
+function openDeleteAccount() {
+  toggleDrawer(false);
+  $('inputDeletePassword').value = '';
+  $('deleteAccountError').textContent = '';
+  deleteModal?.classList.add('active');
+  $('masterScrim')?.classList.add('active');
+}
+function closeDeleteAccount() {
+  deleteModal?.classList.remove('active');
+  $('masterScrim')?.classList.remove('active');
+}
+$('rowDeleteAccount')?.addEventListener('click', openDeleteAccount);
+$('btnDeleteCancel')?.addEventListener('click', closeDeleteAccount);
+$('masterScrim')?.addEventListener('click', () => deleteModal?.classList.remove('active'));
+$('btnDeleteConfirm')?.addEventListener('click', async () => {
+  const errEl = $('deleteAccountError');
+  const pw = $('inputDeletePassword').value;
+  const user = auth.currentUser;
+  if (!user) return;
+  if (!pw) { errEl.textContent = 'Enter your password to continue.'; return; }
+  const btn = $('btnDeleteConfirm');
+  btn.disabled = true;
+  errEl.textContent = '';
+  try {
+    const { reauthenticateWithCredential, EmailAuthProvider, deleteUser } = await import(FB_AUTH_URL);
+    const { deleteDoc } = await import(FB_FS_URL);
+    await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, pw));
+    const uid = user.uid;
+    const handle = (currentProfile?.username || '').toLowerCase();
+    stopAllListeners();
+    unsubscribeRoster && unsubscribeRoster();
+    unwatchProfiles();
+    try { if (handle) await deleteDoc(doc(db, 'usernames', handle)); } catch(e) {}
+    try { await deleteDoc(doc(db, 'users', uid)); } catch(e) {}
+    await deleteUser(user);
+    closeDeleteAccount();
+    showToast('Account deleted');
+  } catch(err) {
+    console.error('Delete account error:', err);
+    const code = err.code || '';
+    errEl.textContent = /wrong-password|invalid-credential/.test(code) ? 'Incorrect password.'
+      : code === 'auth/too-many-requests' ? 'Too many attempts. Try again later.'
+      : 'Could not delete account. Please try again.';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* Context actions in chat drawer */
+$('btnContextBlock')?.addEventListener('click', () => {
+  if (activePeer && !activePeer.isYuki) {
+    const isBlocked = (currentProfile?.blockedUids || []).includes(activePeer.uid);
+    toggleBlockUser(activePeer.uid, !isBlocked);
+    toggleDrawer(false);
+  }
+});
+
+$('btnContextDeleteChat')?.addEventListener('click', () => {
+  if (activePeer && currentUser) {
+    addDeletedChat(currentUser.uid, activePeer.uid);
+    conversationList = conversationList.filter(c => c.otherUid !== activePeer.uid);
+    toggleDrawer(false);
+    appShell.classList.remove('in-chat');
+    renderDirectsList();
+    showToast('Conversation hidden');
+  }
+});
+</script>
+
+<script>
+(function(){
+  var errs=[];
+  function show(force){
+    if(window.__chatBooted && !force) return;
+    var b=document.getElementById('bootDiag');
+    if(!b){ b=document.createElement('div'); b.id='bootDiag';
+      b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#7f1d1d;color:#fff;padding:10px 12px;border-radius:12px;font:12px/1.4 monospace;max-height:50vh;overflow:auto;white-space:pre-wrap';
+      document.body.appendChild(b); }
+    b.textContent=(window.__chatBooted?'App error:\n':'App did not start:\n')+errs.join('\n')+'\n\n(Screenshot this box and send it)';
+  }
+  window.addEventListener('error',function(e){ if(!e.message) return; errs.push(e.message+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'')); setTimeout(function(){show(true)},300); },true);
+  window.addEventListener('unhandledrejection',function(e){ errs.push('promise: '+((e.reason&&e.reason.message)||e.reason)); setTimeout(function(){show(true)},300); });
+  window.addEventListener('fbloadfail',function(){ errs.push('Firebase failed to load: '+window.__fbLoadError+'\nCheck internet / VPN / ad-blocker blocking gstatic.com'); show(true); });
+  setTimeout(function(){ if(!window.__chatBooted){ if(!errs.length) errs.push('no error captured - Firebase still loading (slow/blocked network?)'); show(); } },7000);
+})();
+</script>
+</body>
+</html>
