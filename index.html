@@ -74,7 +74,8 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body {
+html, html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
   height: 100%;
   height: 100dvh;
   width: 100%;
@@ -657,7 +658,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .msg-bubble-wrap {
-  max-width: calc(100% - 74px);
+  max-width: calc(100% - 12px);
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -693,10 +694,14 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border-bottom-left-radius: 4px;
 }
 .msg-time {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 4px;
-  padding: 0 4px;
+  display: inline;
+  font-size: 10.5px;
+  color: inherit;
+  opacity: 0.72;
+  margin-left: 8px;
+  padding: 0;
+  white-space: nowrap;
+  vertical-align: baseline;
 }
 
 /* Short messages no longer stretch to the sender-name width */
@@ -709,7 +714,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .chat-message-row.is-mine .msg-bubble { align-self: flex-end; }
 
 /* Smooth message animations (only for NEW messages) */
-.chat-message-row { contain: layout style; }
+.chat-message-row { contain: layout style paint; will-change: transform, opacity; }
 .chat-message-row:not(.is-mine) {
   animation: msgInLeft 0.34s cubic-bezier(0.2, 0.9, 0.3, 1) backwards;
   transform-origin: left bottom;
@@ -1448,6 +1453,8 @@ h1, h2, h3 { font-weight: 600; }
   transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.38s ease;
 }
 .settings-drawer { transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
+.settings-drawer.chat-context #drawerMainView > :not(#chatContextActions) { display: none !important; }
+.settings-drawer.chat-context #chatContextActions { display: block !important; }
 .user-sheet-modal { transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
 .backdrop-scrim { transition: opacity 0.3s ease; }
 .panes-track { transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -1491,6 +1498,8 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 
 .user-sheet-modal { transition: transform 0.45s var(--smooth); }
 .user-sheet-modal.active .settings-row { animation: drawerItemIn 0.4s var(--smooth) backwards; }
+.user-sheet-modal.dp-preview .dp-preview-meta { display: none !important; }
+.user-sheet-modal.dp-preview .modal-drag-pill { margin-bottom: 0; }
 .user-sheet-modal.active .settings-row:nth-child(2) { animation-delay: 0.06s; }
 .user-sheet-modal.active .profile-form-group,
 .user-sheet-modal.active .profile-pill-btn { animation: drawerItemIn 0.4s var(--smooth) 0.05s backwards; }
@@ -1645,35 +1654,22 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
       <div class="date-divider"><span class="date-pill">August 21</span></div>
 
       <div class="chat-message-row">
-        <div class="msg-avatar" style="background:#f59e0b">LA</div>
         <div class="msg-bubble-wrap">
-          <div class="msg-sender-name">Leslie Alexander</div>
-          <div class="msg-bubble">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dolor mollis leo proin turpis eu hac. Tortor dolor eu at bibendum suspendisse. Feugiat mi eu, rhoncus diam consectetur libero morbi pharetra. Id tristique mi eget eget tristique orci.
-          </div>
-          <div class="msg-time">10:15 pm</div>
+          <div class="msg-bubble">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dolor mollis leo proin turpis eu hac. Tortor dolor eu at bibendum suspendisse. Feugiat mi eu, rhoncus diam consectetur libero morbi pharetra. Id tristique mi eget eget tristique orci.<span class="msg-time">10:15 pm</span></div>
         </div>
       </div>
 
       <div class="chat-message-row is-mine">
         <div class="msg-bubble-wrap">
-          <div class="msg-bubble">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dolor mollis leo proin turpis eu hac. Tortor dolor eu at bibendum suspendisse.
-          </div>
-          <div class="msg-time">12:15 pm</div>
+          <div class="msg-bubble">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Dolor mollis leo proin turpis eu hac. Tortor dolor eu at bibendum suspendisse.<span class="msg-time">12:15 pm</span></div>
         </div>
       </div>
 
       <div class="date-divider"><span class="date-pill">August 22</span></div>
 
       <div class="chat-message-row">
-        <div class="msg-avatar" style="background:#f59e0b">LA</div>
         <div class="msg-bubble-wrap">
-          <div class="msg-sender-name">Leslie Alexander</div>
-          <div class="msg-bubble">
-            Sure! I have updated the project requirements and design mockups according to your recent feedback. Please review them at your earliest convenience.
-          </div>
-          <div class="msg-time">06:00 pm</div>
+          <div class="msg-bubble">Sure! I have updated the project requirements and design mockups according to your recent feedback. Please review them at your earliest convenience.<span class="msg-time">06:00 pm</span></div>
         </div>
       </div>
 
@@ -1732,7 +1728,7 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
           <div class="settings-row" id="rowOpenProfile">
             <span class="settings-icon "><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
             <div class="settings-info">
-              <span class="settings-main-title">Your Profile</span>
+              <span class="settings-main-title">Profile</span>
               <span class="settings-sub-title">Display name, unique username & photo</span>
             </div>
             <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
@@ -1779,6 +1775,14 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
         <div id="chatContextActions" style="display:none">
           <div class="settings-sec-label">Chat Actions</div>
           <div class="settings-card">
+            <div class="settings-row" id="btnContextTheme">
+              <span class="settings-icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+              <div class="settings-info">
+                <span class="settings-main-title">Dark Mode</span>
+                <span class="settings-sub-title">Toggle between Light & Dark themes</span>
+              </div>
+              <div class="toggle-switch" id="switchContextTheme"></div>
+            </div>
             <div class="settings-row" id="btnContextBlock">
               <span class="settings-icon danger"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></span>
               <div class="settings-info">
@@ -1786,16 +1790,16 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
               </div>
             </div>
             <div class="settings-row" id="btnContextClearChat">
-              <span class="settings-icon danger"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="m9 8 6 6M15 8l-6 6"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="m9 8 6 6M15 8l-6 6"/></svg></span>
               <div class="settings-info">
-                <span class="settings-main-title" style="color:#ef4444">Clear Chats</span>
+                <span class="settings-main-title">Clear Chats</span>
                 <span class="settings-sub-title">Delete all messages, keep the contact</span>
               </div>
             </div>
             <div class="settings-row" id="btnContextDeleteChat">
-              <span class="settings-icon danger"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
               <div class="settings-info">
-                <span class="settings-main-title" style="color:#ef4444">Delete Conversation</span>
+                <span class="settings-main-title">Delete Conversation</span>
                 <span class="settings-sub-title">Hide this chat from your directs</span>
               </div>
             </div>
@@ -1851,17 +1855,17 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
        ========================================== -->
   <div class="user-sheet-modal" id="contactDetailsModal">
     <div class="modal-drag-pill"></div>
-    <div style="text-align:center;margin-bottom:18px">
+    <div class="dp-preview-meta" style="text-align:center;margin-bottom:18px">
       <div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#f59e0b">LA</div>
       <h3 style="font-size:18px;font-weight:600;color:var(--text-main)" id="modalContactName">Leslie Alexander</h3>
       <p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="modalContactRole">Web Designer</p>
       </div>
 
-    <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
+    <div class="dp-preview-meta" style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
       Details
     </div>
 
-    <div class="settings-card" style="margin-bottom:0">
+    <div class="settings-card dp-preview-meta" style="margin-bottom:0">
       <div class="settings-row">
         <span style="font-size:14px;font-weight:600">Country</span>
         <span style="font-size:13.5px;color:var(--text-muted)" id="modalContactCountry">&mdash;</span>
@@ -2064,6 +2068,7 @@ function setTheme(theme) {
   const apply = () => {
     root.setAttribute('data-theme', theme);
     $('switchTheme')?.classList.toggle('on', theme === 'dark');
+    $('switchContextTheme')?.classList.toggle('on', theme === 'dark');
   };
   root.classList.add('no-theme-anim');
   apply();
@@ -2074,6 +2079,11 @@ function setTheme(theme) {
 setTheme(currentTheme);
 
 $('rowToggleTheme')?.addEventListener('click', () => {
+  const next = currentTheme === 'dark' ? 'light' : 'dark';
+  setTheme(next);
+  showToast(`Switched to ${next === 'dark' ? 'Dark' : 'Light'} Mode`);
+});
+$('btnContextTheme')?.addEventListener('click', () => {
   const next = currentTheme === 'dark' ? 'light' : 'dark';
   setTheme(next);
   showToast(`Switched to ${next === 'dark' ? 'Dark' : 'Light'} Mode`);
@@ -2659,7 +2669,6 @@ function scaffoldMessages(chatId) {
   renderedRows = new Map();
   chatLoaded = false;
   box.innerHTML = `
-    <div class="date-divider" id="msgDateDivider"><span class="date-pill">Today</span></div>
     <div class="typing-bar" id="typingIndicator">
       <div class="typing-dots"><span></span><span></span><span></span></div>
       <span id="typingLabel">${esc(activePeer?.display || 'Someone')} is typing...</span>
@@ -2667,22 +2676,43 @@ function scaffoldMessages(chatId) {
   return true;
 }
 
+function messageDayKey(ts) {
+  const d = toDate(ts);
+  if (!d) return 'unknown';
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+function formatMessageDate(ts) {
+  const d = toDate(ts);
+  if (!d) return '';
+  const now = new Date();
+  const todayKey = messageDayKey(now);
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const yesterdayKey = messageDayKey(yesterday);
+  const key = messageDayKey(d);
+  if (key === todayKey) return 'Today';
+  if (key === yesterdayKey) return 'Yesterday';
+  return `${d.getDate()}/${d.getMonth() + 1}/${String(d.getFullYear()).slice(-2)}`;
+}
+function makeDateDivider(ts) {
+  const el = document.createElement('div');
+  el.className = 'date-divider message-date-divider';
+  el.dataset.day = messageDayKey(ts);
+  el.innerHTML = `<span class="date-pill">${esc(formatMessageDate(ts))}</span>`;
+  return el;
+}
+
 function buildMessageRow(id, msg, animate) {
   const isMine = msg.by === currentUser?.uid;
   const senderName = isMine ? (currentProfile?.display || 'You') : (activePeer?.display || 'Operator');
   const timeStr = formatClock(msg.at);
-  const avHtml = activePeer?.photoURL ? `<img src="${esc(activePeer.photoURL)}" alt="" decoding="async">` : esc(getInitials(senderName));
-  const avBg = getAvColor(activePeer?.username || 'Peer');
 
   const row = document.createElement('div');
   row.className = 'chat-message-row' + (isMine ? ' is-mine' : '') + (animate ? '' : ' no-anim');
   row.dataset.id = id;
   row.innerHTML = `
-    ${!isMine ? `<div class="msg-avatar" style="background:${avBg}">${avHtml}</div>` : ''}
     <div class="msg-bubble-wrap">
-      ${!isMine ? `<div class="msg-sender-name">${esc(senderName)}</div>` : ''}
-      <div class="msg-bubble">${esc(msg.text)}</div>
-      <div class="msg-time">${esc(timeStr)}</div>
+      <div class="msg-bubble">${esc(msg.text)}<span class="msg-time">${esc(timeStr)}</span></div>
     </div>`;
   return row;
 }
@@ -2691,7 +2721,6 @@ function renderMessages(chatId, items) {
   if (activeChatId !== chatId) return;
   const box = $('messagesContainer');
   scaffoldMessages(chatId);
-  const divider = $('msgDateDivider');
   const typing = $('typingIndicator');
   const initial = !chatLoaded;
   chatLoaded = true;
@@ -2700,6 +2729,7 @@ function renderMessages(chatId, items) {
   if (!items.length) {
     renderedRows.forEach(r => r.remove());
     renderedRows.clear();
+    box.querySelectorAll('.message-date-divider').forEach(d => d.remove());
     if (!hint && !activePeer?.isDemo) {
       hint = document.createElement('p');
       hint.id = 'emptyMsgHint';
@@ -2714,13 +2744,23 @@ function renderMessages(chatId, items) {
   const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
   const ids = new Set(items.map(i => i.id));
   renderedRows.forEach((el, id) => { if (!ids.has(id)) { el.remove(); renderedRows.delete(id); } });
+  box.querySelectorAll('.message-date-divider').forEach(d => d.remove());
 
   const frag = initial ? document.createDocumentFragment() : null;
-  let anchor = divider;
+  let anchor = null;
   let addedNew = false;
   let lastMine = false;
+  let lastDay = null;
 
   items.forEach(({ id, msg }) => {
+    const day = messageDayKey(msg.at);
+    if (day !== lastDay) {
+      const divider = makeDateDivider(msg.at);
+      if (initial) frag.appendChild(divider); else (anchor ? anchor.after(divider) : typing.before(divider));
+      anchor = divider;
+      lastDay = day;
+    }
+
     const timeStr = formatClock(msg.at);
     const sig = (msg.text || '') + '|' + timeStr;
     let row = renderedRows.get(id);
@@ -2733,8 +2773,12 @@ function renderMessages(chatId, items) {
     } else {
       if (row.__sig !== sig) {
         row.__sig = sig;
-        const b = row.querySelector('.msg-bubble'); if (b) b.textContent = msg.text;
-        const t = row.querySelector('.msg-time'); if (t) t.textContent = timeStr;
+        const b = row.querySelector('.msg-bubble');
+        if (b) {
+          b.firstChild.textContent = msg.text || '';
+          const t = b.querySelector('.msg-time');
+          if (t) t.textContent = timeStr;
+        }
       }
       if (!initial && anchor.nextElementSibling !== row) anchor.after(row);
     }
@@ -2750,7 +2794,6 @@ function renderMessages(chatId, items) {
     requestAnimationFrame(() => box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' }));
   }
 }
-
 function subscribeToMessages(chatId) {
   if (!chatId) return;
   const box = $('messagesContainer');
@@ -2768,6 +2811,16 @@ function subscribeToMessages(chatId) {
   ), snap => {
     if (activeChatId !== chatId) return;
     msgCache.set(chatId, snap.docs.map(d => ({ id: d.id, msg: d.data({ serverTimestamps: 'estimate' }) })));
+
+    const lastMsgDoc = snap.docs[snap.docs.length - 1];
+    if (lastMsgDoc && activePeer && !activePeer.isYuki) {
+      const lastData = lastMsgDoc.data({ serverTimestamps: 'estimate' });
+      const localEntry = conversationList.find(c => c.otherUid === activePeer.uid);
+      if (localEntry && lastData) {
+        localEntry.data = { ...localEntry.data, lastMsg: lastData.text || '', lastMsgAt: lastData.at || new Date(), touchAt: lastData.at || new Date(), lastMsgBy: lastData.by || localEntry.data.lastMsgBy };
+        renderDirectsList();
+      }
+    }
 
     const run = () => { if (activeChatId === chatId) renderMessages(chatId, msgCache.get(chatId) || []); };
     const wait = chatSettleAt - Date.now();
@@ -2799,8 +2852,7 @@ async function handleSendMessage() {
     newRow.className = 'chat-message-row is-mine';
     newRow.innerHTML = `
       <div class="msg-bubble-wrap">
-        <div class="msg-bubble">${esc(text)}</div>
-        <div class="msg-time">Just now</div>
+        <div class="msg-bubble">${esc(text)}<span class="msg-time">Just now</span></div>
       </div>`;
     container.appendChild(newRow);
     input.value = '';
@@ -2813,11 +2865,8 @@ async function handleSendMessage() {
       const replyRow = document.createElement('div');
       replyRow.className = 'chat-message-row';
       replyRow.innerHTML = `
-        <div class="msg-avatar" style="background:#f59e0b">LA</div>
         <div class="msg-bubble-wrap">
-          <div class="msg-sender-name">Leslie Alexander</div>
-          <div class="msg-bubble">Thanks for reaching out! I've noted this in our project review file.</div>
-          <div class="msg-time">Just now</div>
+          <div class="msg-bubble">Thanks for reaching out! I've noted this in our project review file.<span class="msg-time">Just now</span></div>
         </div>`;
       container.appendChild(replyRow);
       container.scrollTop = container.scrollHeight;
@@ -2863,6 +2912,16 @@ async function handleSendMessage() {
       unread: peer.isYuki ? {} : { [peer.uid]: increment(1), [currentUser.uid]: 0 },
       typing: { [currentUser.uid]: false }
     }, { merge: true });
+
+    // Immediate local roster update; Firestore realtime will reconcile it with the server snapshot.
+    const localEntry = conversationList.find(c => c.otherUid === peer.uid);
+    const localNow = new Date();
+    if (localEntry) {
+      localEntry.data = { ...localEntry.data, lastMsg: text.slice(0, 80), lastMsgAt: localNow, touchAt: localNow, lastMsgBy: currentUser.uid };
+    } else if (!peer.isYuki) {
+      conversationList.push({ chatId: cId, data: { users: [currentUser.uid, peer.uid], lastMsg: text.slice(0, 80), lastMsgAt: localNow, touchAt: localNow, lastMsgBy: currentUser.uid, unread: { [currentUser.uid]: 0, [peer.uid]: 0 } }, otherUid: peer.uid, profile: { username: peer.username, display: peer.display, photoURL: peer.photoURL || '' } });
+    }
+    renderDirectsList();
 
     // AI companion reply flow
     if (peer.isYuki) {
@@ -2956,11 +3015,14 @@ function toggleDrawer(open, isChatContext = false) {
   const scrim = $('masterScrim');
   if (open) {
     showDrawerSubView('main');
+    drawer?.classList.toggle('chat-context', !!isChatContext);
     $('chatContextActions').style.display = isChatContext ? 'block' : 'none';
+    $('drawerTitle').textContent = isChatContext ? 'Chat Settings' : 'Settings';
     drawer?.classList.add('active');
     scrim?.classList.add('active');
     requestAnimationFrame(() => updateProfileBadges());
   } else {
+    drawer?.classList.remove('chat-context');
     drawer?.classList.remove('active');
     scrim?.classList.remove('active');
     document.documentElement.style.overflow = '';
@@ -3011,13 +3073,13 @@ if (!$('btnDrawerClose')?.dataset.yukiSettingsBound) {
 $('masterScrim')?.addEventListener('click', () => {
   toggleDrawer(false);
   document.documentElement.style.overflow = '';
-  $('contactDetailsModal')?.classList.remove('active');
+  $('contactDetailsModal')?.classList.remove('active', 'dp-preview');
 });
 
 $('rowOpenProfile')?.addEventListener('click', () => showDrawerSubView('profile'));
 $('btnHeaderProfile')?.addEventListener('click', () => {
-  toggleDrawer(true, false);
-  showDrawerSubView('profile');
+  if (!currentProfile) return;
+  openDpPreview(currentProfile, currentProfile.display || currentProfile.username || 'Profile');
 });
 $('rowOpenBlockList')?.addEventListener('click', () => showDrawerSubView('block'));
 
@@ -3235,15 +3297,19 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
 
 
 /* Contact details bottom sheet modal */
-$('btnOpenContactDetails')?.addEventListener('click', () => {
-  if (activePeer) {
-    $('modalContactName').textContent = activePeer.display;
-    $('modalContactRole').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
-    $('modalContactAvatar').innerHTML = avatarInner(activePeer, activePeer.display);
-    $('modalContactAvatar').style.background = getAvColor(activePeer.display);
-    $('contactDetailsModal')?.classList.add('active');
-    $('masterScrim')?.classList.add('active');
-  }
+function openDpPreview(profile, fallbackName = 'Profile') {
+  const modal = $('contactDetailsModal');
+  const avatar = $('modalContactAvatar');
+  if (!modal || !avatar || !profile) return;
+  avatar.innerHTML = avatarInner(profile, fallbackName);
+  avatar.style.background = getAvColor(profile.display || profile.username || fallbackName);
+  modal.classList.add('dp-preview');
+  modal.classList.add('active');
+  $('masterScrim')?.classList.add('active');
+}
+$('chatHeaderAvatar')?.addEventListener('click', e => {
+  e.stopPropagation();
+  if (activePeer) openDpPreview(activePeer, activePeer.display);
 });
 
 /* ==========================================================================
