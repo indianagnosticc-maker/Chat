@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<title>Chat App</title>
+<title>Yuki</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -162,6 +162,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   box-shadow: 0 4px 12px rgba(29, 114, 254, 0.35);
 }
 .brand-logo-icon svg { width: 22px; height: 22px; stroke-width: 2.2; }
+.brand-logo { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; } .auth-brand-badge .brand-logo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
 .brand-title {
   font-size: 19px;
   font-weight: 600;
@@ -911,6 +912,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   display: grid;
   place-items: center;
   margin: 0 auto 14px;
+  overflow: hidden;
   box-shadow: 0 8px 20px rgba(29, 114, 254, 0.35);
 }
 .auth-brand-badge svg { width: 28px; height: 28px; }
@@ -1469,6 +1471,12 @@ h1, h2, h3 { font-weight: 600; }
 /* scroll areas: no rubber-band chaining, touch friendly */
 .inbox-scroll-body, .messages-container { overscroll-behavior: contain; }
 button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
+button, .chat-card, .settings-row, .inbox-tab, .brand-badge, .chat-contact-info {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease, background-color 0.18s ease;
+}
+button:active, .settings-row:active, .inbox-tab:active, .brand-badge:active, .chat-contact-info:active {
+  transform: scale(0.985);
+}
 </style>
 </head>
 <body>
@@ -1480,10 +1488,8 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
        ========================================== -->
   <div id="authScreen">
     <div class="auth-card">
-      <div class="auth-brand-badge">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      </div>
-      <h2 id="authHeading">Chat App</h2>
+      <div class="auth-brand-badge"><img class="brand-logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4sBVUR8Nz47PlRnmU7Mn9yBzGxjtHQbmswmVJ8g5JBLmgwhevUrlEWaiPvzu5NGe_l3mKI1oWJzedHAZUWp_1iqSxEfaynl9A6aduhVIbZY_4KOtC4c22tAzKQJYC1E7gQtuq_k0JbQTLEPWTB2buOrT_ts7cIa-kfTMx_dbvLkbqkM7D00p3E_VLcpHPW49Vuv8tc_TAMxQCZGc2hpKdGpIkXY9j6A6mDYHzquEG8yWXaVh_tMpOUw" alt="logo"></div>
+      <h2 id="authHeading">Yuki</h2>
       <p class="auth-sub" id="authSub">Sign in to continue to your messages</p>
       
       <div class="auth-input-group">
@@ -1513,10 +1519,8 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
     <!-- Header -->
     <header class="app-header">
       <div class="brand-badge" id="btnBrandMenu">
-        <div class="brand-logo-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="12" r="2"/></svg>
-        </div>
-        <span class="brand-title">Chat</span>
+        <div class="brand-logo-icon"><img class="brand-logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4sBVUR8Nz47PlRnmU7Mn9yBzGxjtHQbmswmVJ8g5JBLmgwhevUrlEWaiPvzu5NGe_l3mKI1oWJzedHAZUWp_1iqSxEfaynl9A6aduhVIbZY_4KOtC4c22tAzKQJYC1E7gQtuq_k0JbQTLEPWTB2buOrT_ts7cIa-kfTMx_dbvLkbqkM7D00p3E_VLcpHPW49Vuv8tc_TAMxQCZGc2hpKdGpIkXY9j6A6mDYHzquEG8yWXaVh_tMpOUw" alt="logo"></div>
+        <span class="brand-title">Yuki</span>
       </div>
       <div class="header-actions">
         
@@ -1741,6 +1745,13 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
                 <span class="settings-main-title" style="color:#ef4444" id="labelBlockChatUser">Block User</span>
               </div>
             </div>
+            <div class="settings-row" id="btnContextClearChat">
+              <span class="settings-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg></span>
+              <div class="settings-info">
+                <span class="settings-main-title">Clear Chats</span>
+                <span class="settings-sub-title">Remove all messages but keep this chat</span>
+              </div>
+            </div>
             <div class="settings-row" id="btnContextDeleteChat">
               <span class="settings-icon danger"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
               <div class="settings-info">
@@ -1782,6 +1793,7 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
         </div>
 
         <div style="padding-top:20px">
+          <button class="profile-pill-btn danger" id="btnDeleteAccount" style="width:100%;margin-bottom:8px">Delete Account</button>
           <button class="profile-pill-btn danger" id="btnLogout" style="width:100%">Log Out</button>
         </div>
       </div>
@@ -1796,51 +1808,32 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
   </div>
 
   <!-- ==========================================
-       USER DETAILS BOTTOM MODAL (LESLIE ALEXANDER)
+       USER DETAILS BOTTOM MODAL
        ========================================== -->
   <div class="user-sheet-modal" id="contactDetailsModal">
     <div class="modal-drag-pill"></div>
     <div style="text-align:center;margin-bottom:18px">
       <div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#f59e0b">LA</div>
-      <h3 style="font-size:18px;font-weight:600;color:var(--text-main)" id="modalContactName">Leslie Alexander</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="modalContactRole">Web Designer</p>
-      <div style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;background:rgba(245, 158, 11, 0.15);color:#d97706;font-size:12px;font-weight:600;margin-top:8px">
-        <span>★ 4.7 (Rating)</span>
-      </div>
+      <h3 style="font-size:18px;font-weight:600;color:var(--text-main)" id="modalContactName">User</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="modalContactRole">@username</p>
     </div>
 
     <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
-      Experience & Companies
+      User Information
     </div>
 
     <div class="settings-card" style="margin-bottom:0">
       <div class="settings-row">
         <div>
-          <b style="font-size:14px;display:block">Acme Co.</b>
-          <span style="font-size:12px;color:var(--text-muted)">Viet Nam</span>
+          <b style="font-size:14px;display:block">Country</b>
+          <span style="font-size:12px;color:var(--text-muted)" id="modalContactCountry">Not available</span>
         </div>
-        <span style="font-size:12px;color:var(--text-muted)">04:15 am</span>
       </div>
       <div class="settings-row">
         <div>
-          <b style="font-size:14px;display:block">Biffco Enterprises</b>
-          <span style="font-size:12px;color:var(--text-muted)">Greece</span>
+          <b style="font-size:14px;display:block">Device</b>
+          <span style="font-size:12px;color:var(--text-muted)" id="modalContactDevice">Not available</span>
         </div>
-        <span style="font-size:12px;color:var(--text-muted)">06:41 pm</span>
-      </div>
-      <div class="settings-row">
-        <div>
-          <b style="font-size:14px;display:block">Binford Ltd.</b>
-          <span style="font-size:12px;color:var(--text-muted)">South Africa</span>
-        </div>
-        <span style="font-size:12px;color:var(--text-muted)">07:40 am</span>
-      </div>
-      <div class="settings-row">
-        <div>
-          <b style="font-size:14px;display:block">Big Kahuna Burger</b>
-          <span style="font-size:12px;color:var(--text-muted)">Palestine, State of</span>
-        </div>
-        <span style="font-size:12px;color:var(--text-muted)">01:34 pm</span>
       </div>
     </div>
   </div>
@@ -1916,6 +1909,13 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const avatarInner = (p, fallbackName = '?') => (p && p.photoURL)
   ? `<img src="${esc(p.photoURL)}" alt="" decoding="async">`
   : esc(getInitials((p && (p.display || p.username)) || fallbackName));
+
+const getDeviceType = () => /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? 'Mobile' : 'Desktop';
+const getCountryName = () => {
+  const region = String(navigator.language || '').split('-')[1]?.toUpperCase();
+  const names = { IN: 'India', US: 'United States', GB: 'United Kingdom', CA: 'Canada', AU: 'Australia', DE: 'Germany', FR: 'France', JP: 'Japan', SG: 'Singapore', AE: 'United Arab Emirates' };
+  return names[region] || (region || 'Not available');
+};
 
 /* Live profile cache (so everybody's DP stays in sync everywhere) */
 const profileCache = new Map();
@@ -2072,7 +2072,7 @@ const restoreChat = (u, o) => {
    ========================================================================== */
 $('btnToggleAuthMode')?.addEventListener('click', () => {
   isSignUpMode = !isSignUpMode;
-  $('authHeading').textContent = isSignUpMode ? 'Create Account' : 'Chat App';
+  $('authHeading').textContent = isSignUpMode ? 'Create Account' : 'Yuki';
   $('authSub').textContent = isSignUpMode ? 'Sign up to start messaging' : 'Sign in to continue to your messages';
   $('authSubmitText').textContent = isSignUpMode ? 'Create account' : 'Sign in';
   $('btnToggleAuthMode').textContent = isSignUpMode ? 'Already registered? Sign in' : 'New here? Create account';
@@ -2138,7 +2138,9 @@ async function handleAuthSubmit() {
         email,
         createdAt: serverTimestamp(),
         lastSeen: serverTimestamp(),
-        emailVerified: false
+        emailVerified: false,
+        country: getCountryName(),
+        device: getDeviceType()
       });
       await setDoc(doc(db, 'usernames', uniqueHandle), { uid: cred.user.uid });
 
@@ -2237,8 +2239,10 @@ onAuthStateChanged(auth, async user => {
       setDoc(doc(db, 'usernames', h), { uid: user.uid }, { merge: true }).catch(()=>{});
     }
 
-    // Non-blocking update
-    updateDoc(doc(db, 'users', user.uid), { lastSeen: serverTimestamp(), emailVerified: true }).catch(()=>{});
+    // Non-blocking profile/device metadata update
+    const sessionMeta = { lastSeen: serverTimestamp(), emailVerified: true, country: getCountryName(), device: getDeviceType() };
+    updateDoc(doc(db, 'users', user.uid), sessionMeta).catch(()=>{});
+    currentProfile = { ...(currentProfile || {}), country: sessionMeta.country, device: sessionMeta.device };
 
     $('authScreen')?.classList.remove('active');
     $('authPassword').value = '';
@@ -2485,6 +2489,8 @@ function openChatView(peerUid, profile = null) {
     username: profile.username || 'operator',
     display: profile.display || profile.username || 'Operator',
     photoURL: profile.photoURL || '',
+    country: profile.country || 'Not available',
+    device: profile.device || 'Not available',
     isYuki: peerUid === YUKI_BOT_UID
   };
 
@@ -2541,6 +2547,8 @@ function applyPeerProfile(p) {
   activePeer.username = p.username || activePeer.username;
   activePeer.display = p.display || p.username || activePeer.display;
   activePeer.photoURL = p.photoURL || '';
+  activePeer.country = p.country || 'Not available';
+  activePeer.device = p.device || 'Not available';
 
   $('chatHeaderTitle').textContent = activePeer.display;
   $('chatHeaderSubtitle').textContent = `@${activePeer.username}`;
@@ -3036,6 +3044,60 @@ $('fileAvatarUpload')?.addEventListener('change', async e => {
   }
 });
 
+/* Clear all messages in the current chat without removing the chat/user */
+$('btnContextClearChat')?.addEventListener('click', async () => {
+  if (!activePeer || !currentUser || !activeChatId) return;
+  if (!confirm('Clear all messages in this chat? The chat will remain.')) return;
+
+  try {
+    const snap = await getDocs(collection(db, 'chats', activeChatId, 'messages'));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+
+    await setDoc(doc(db, 'chats', activeChatId), {
+      lastMsg: '',
+      lastMsgAt: null,
+      lastMsgBy: null,
+      unread: { [currentUser.uid]: 0 },
+      touchAt: serverTimestamp()
+    }, { merge: true });
+
+    yukiHistory = [];
+    msgCache.delete(activeChatId);
+    scaffoldMessages(activeChatId);
+    toggleDrawer(false);
+    showToast('Chats cleared');
+  } catch (err) {
+    console.error('Clear chat error:', err);
+    showToast('Could not clear chats');
+  }
+});
+
+/* Delete account */
+$('btnDeleteAccount')?.addEventListener('click', async () => {
+  if (!currentUser) return showToast('Please sign in first');
+  const uid = currentUser.uid;
+  const username = currentProfile?.username || '';
+
+  if (!confirm('Delete your Yuki account permanently? This cannot be undone.')) return;
+
+  try {
+    if (username) await deleteDoc(doc(db, 'usernames', username));
+    await deleteDoc(doc(db, 'users', uid));
+    await deleteUser(currentUser);
+    localStorage.removeItem('yuki_deleted_' + uid);
+    showToast('Account deleted');
+  } catch (err) {
+    console.error('Delete account error:', err);
+    if (err?.code === 'auth/requires-recent-login') {
+      showToast('Please sign in again, then delete your account');
+    } else {
+      showToast('Could not delete account');
+    }
+  }
+});
+
 /* Logout */
 $('btnLogout')?.addEventListener('click', async () => {
   toggleDrawer(false);
@@ -3153,6 +3215,8 @@ $('btnOpenContactDetails')?.addEventListener('click', () => {
     $('modalContactRole').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
     $('modalContactAvatar').innerHTML = avatarInner(activePeer, activePeer.display);
     $('modalContactAvatar').style.background = getAvColor(activePeer.display);
+    $('modalContactCountry').textContent = activePeer.isYuki ? 'Not applicable' : (activePeer.country || 'Not available');
+    $('modalContactDevice').textContent = activePeer.isYuki ? 'AI' : (activePeer.device || 'Not available');
     $('contactDetailsModal')?.classList.add('active');
     $('masterScrim')?.classList.add('active');
   }
