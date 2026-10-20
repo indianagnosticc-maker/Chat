@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Chat App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg-canvas: #e8effa;
@@ -36,7 +39,7 @@
   --radius-md: 12px;
   --radius-full: 9999px;
   --anim-speed: 0.28s;
-  --glow-blue: 0 2px 8px rgba(29, 114, 254, 0.16), 0 12px 32px -6px rgba(29, 114, 254, 0.30), 0 28px 64px -12px rgba(29, 114, 254, 0.26), 0 0 90px rgba(29, 114, 254, 0.10);
+  --glow-blue: 0 1px 3px rgba(29, 114, 254, 0.12), 0 6px 18px -6px rgba(29, 114, 254, 0.22), 0 12px 28px -12px rgba(29, 114, 254, 0.14);
   box-sizing: border-box;
 }
 
@@ -66,7 +69,7 @@
   --nav-active: #3b82f6;
   --nav-inactive: #94a3b8;
   --scrim-bg: rgba(0, 0, 0, 0.7);
-  --glow-blue: 0 2px 8px rgba(59, 130, 246, 0.20), 0 12px 32px -6px rgba(59, 130, 246, 0.34), 0 28px 64px -12px rgba(59, 130, 246, 0.30), 0 0 90px rgba(59, 130, 246, 0.14);
+  --glow-blue: 0 1px 3px rgba(59, 130, 246, 0.14), 0 6px 18px -6px rgba(59, 130, 246, 0.26), 0 12px 28px -12px rgba(59, 130, 246, 0.16);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -161,7 +164,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .brand-logo-icon svg { width: 22px; height: 22px; stroke-width: 2.2; }
 .brand-title {
   font-size: 19px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.4px;
   color: var(--text-main);
 }
@@ -181,7 +184,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   place-items: center;
   color: var(--text-muted);
   box-shadow: var(--shadow-sm);
-  transition: all 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease;
   position: relative;
 }
 .action-btn-circle:active {
@@ -216,7 +219,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   object-fit: cover;
   display: grid;
   place-items: center;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
 }
 
@@ -263,7 +266,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   opacity: 0;
   transform: scale(0.6);
   pointer-events: none;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   color: var(--text-muted);
 }
 .search-container.has-value #searchClear {
@@ -290,7 +293,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   gap: 6px;
   padding: 10px 0;
   font-size: 14.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-muted);
   position: relative;
   transition: color 0.2s ease;
@@ -317,7 +320,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   background: var(--accent-red);
   color: #fff;
   font-size: 10.5px;
-  font-weight: 800;
+  font-weight: 600;
   text-align: center;
   padding: 0 5px;
 }
@@ -356,7 +359,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border: 1px solid var(--border-subtle);
   margin-bottom: 10px;
   box-shadow: var(--shadow-sm);
-  transition: all 0.18s ease;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
   cursor: pointer;
   text-align: left;
   width: 100%;
@@ -393,7 +396,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   background: #cbd5e1;
   display: grid;
   place-items: center;
-  font-weight: 700;
+  font-weight: 600;
   color: #ffffff;
   position: relative;
 }
@@ -420,7 +423,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 }
 .chat-card-name {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-main);
   white-space: nowrap;
   overflow: hidden;
@@ -451,7 +454,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   border-radius: var(--radius-lg);
   margin-bottom: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease;
   width: 100%;
   text-align: left;
 }
@@ -497,7 +500,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   background: var(--primary-blue);
   color: #fff;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   box-shadow: 0 8px 24px rgba(29, 114, 254, 0.4);
   display: flex;
   align-items: center;
@@ -557,7 +560,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   background: #cbd5e1;
   display: grid;
   place-items: center;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
   flex: none;
 }
@@ -568,7 +571,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 }
 .chat-header-meta b {
   font-size: 15.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-main);
   display: block;
   white-space: nowrap;
@@ -617,7 +620,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   background: var(--card-bg);
   border: 1px solid var(--border-subtle);
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-muted);
   box-shadow: var(--shadow-sm);
 }
@@ -646,7 +649,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   display: grid;
   place-items: center;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: #fff;
   align-self: flex-end;
 }
@@ -663,7 +666,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 }
 .msg-sender-name {
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 3px;
   padding: 0 4px;
@@ -814,7 +817,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   display: grid;
   place-items: center;
   color: var(--text-muted);
-  transition: all 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease, background-color 0.2s ease;
   flex: none;
 }
 .composer-btn:active { transform: scale(0.9); }
@@ -860,7 +863,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   text-align: left;
   border-bottom: 1px solid var(--border-subtle);
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-main);
 }
 .mention-item:hover, .mention-item:active {
@@ -913,7 +916,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .auth-brand-badge svg { width: 28px; height: 28px; }
 .auth-card h2 {
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 600;
   margin-bottom: 6px;
   letter-spacing: -0.3px;
 }
@@ -963,7 +966,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   background: var(--primary-blue);
   color: #fff;
   font-size: 15.5px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -978,7 +981,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .auth-toggle-link {
   font-size: 13.5px;
   color: var(--primary-blue);
-  font-weight: 600;
+  font-weight: 500;
   margin-top: 14px;
   display: inline-block;
 }
@@ -1040,7 +1043,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 }
 .drawer-title {
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.2px;
 }
 .drawer-back-btn {
@@ -1061,7 +1064,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 
 .settings-sec-label {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -1097,7 +1100,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 }
 .settings-main-title {
   font-size: 14.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-main);
   display: block;
 }
@@ -1155,7 +1158,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .profile-form-label {
   display: block;
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.6px;
@@ -1182,7 +1185,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   padding: 8px 18px;
   border-radius: var(--radius-full);
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 600;
   background: var(--primary-blue);
   color: #fff;
   cursor: pointer;
@@ -1236,7 +1239,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   padding: 9px 18px;
   border-radius: var(--radius-full);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   box-shadow: var(--shadow-md);
   opacity: 0;
   pointer-events: none;
@@ -1293,6 +1296,179 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 .no-theme-anim, .no-theme-anim *, .no-theme-anim *::before, .no-theme-anim *::after { transition: none !important; }
 .no-theme-anim .toggle-switch { transition: background 0.25s ease !important; }
 .no-theme-anim .toggle-switch:after { transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1) !important; }
+
+/* ==========================================================================
+   TYPOGRAPHY  (lighter, cleaner, professional)
+   ========================================================================== */
+html, body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+input, textarea, button { font-family: inherit; }
+b, strong { font-weight: 600; }
+h1, h2, h3 { font-weight: 600; }
+.brand-title { font-size: 18px; font-weight: 600; letter-spacing: -0.2px; }
+.chat-card-name { font-size: 15px; font-weight: 600; letter-spacing: -0.1px; }
+.chat-card-preview { font-size: 13.5px; font-weight: 400; }
+.chat-card-time { font-weight: 400; }
+.inbox-tab { font-size: 14px; font-weight: 500; }
+.inbox-tab.active { font-weight: 600; }
+.tab-badge { font-weight: 600; }
+.chat-header-meta b { font-size: 15px; font-weight: 600; letter-spacing: -0.1px; }
+.msg-sender-name { font-weight: 500; }
+.date-pill { font-weight: 500; }
+.msg-bubble { font-weight: 400; }
+.auth-card h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.2px; }
+.auth-btn-primary { font-weight: 600; }
+.profile-pill-btn { font-weight: 500; }
+.app-toast { font-weight: 500; }
+
+/* ==========================================================================
+   SETTINGS  (clean grouped list)
+   ========================================================================== */
+.settings-drawer { background: var(--app-bg); }
+.drawer-header { height: 58px; background: var(--card-bg); }
+.drawer-title { font-size: 17px; font-weight: 600; letter-spacing: -0.1px; }
+.drawer-body { padding: 8px 16px 32px; overscroll-behavior: contain; }
+.settings-sec-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0.1px;
+  margin: 20px 0 8px 4px;
+}
+.settings-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  box-shadow: none;
+  margin-bottom: 0;
+}
+.settings-row {
+  gap: 12px;
+  padding: 12px 14px;
+  min-height: 58px;
+  justify-content: space-between;
+  transition: background-color 0.15s ease;
+}
+.settings-row:hover { background: transparent; }
+.settings-row:active { background: var(--card-hover); }
+.settings-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--primary-blue-light);
+  color: var(--primary-blue);
+}
+.settings-icon svg { width: 18px; height: 18px; stroke-width: 1.9; }
+.settings-icon.danger { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.settings-main-title { font-size: 15px; font-weight: 500; letter-spacing: -0.1px; }
+.settings-sub-title { font-size: 12.5px; font-weight: 400; margin-top: 2px; line-height: 1.35; }
+.settings-chevron { color: var(--text-muted); opacity: 0.7; width: 18px; height: 18px; }
+#chatContextActions .settings-main-title { font-weight: 500; }
+
+/* profile sub view */
+.profile-form-group { margin-bottom: 16px; }
+.profile-form-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.1px;
+  margin: 0 0 6px 2px;
+}
+.profile-input {
+  height: 44px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  font-weight: 400;
+  background: var(--card-bg);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.profile-input:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(29, 114, 254, 0.14); }
+.profile-pill-btn { transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), filter 0.2s ease, background-color 0.2s ease; }
+.profile-pill-btn:active { transform: scale(0.96); }
+.profile-pill-btn.danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; height: 44px; font-weight: 500; }
+#subviewProfileAvatar { box-shadow: 0 0 0 3px var(--card-bg), 0 0 0 5px var(--primary-blue); border: 0 !important; }
+
+/* switch */
+.toggle-switch {
+  width: 48px;
+  height: 28px;
+  border-radius: 14px;
+  margin-left: auto;
+  background: #cbd5e1;
+  transition: background-color 0.25s ease;
+}
+:root[data-theme="dark"] .toggle-switch { background: #334155; }
+.toggle-switch.on { background: var(--primary-blue); }
+.toggle-switch:after {
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.toggle-switch.on:after { transform: translateX(20px); }
+.toggle-switch:active:after { transform: scaleX(1.18); }
+.toggle-switch.on:active:after { transform: translateX(16px) scaleX(1.18); }
+.no-theme-anim .toggle-switch { transition: background-color 0.25s ease !important; }
+.no-theme-anim .toggle-switch:after { transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) !important; }
+
+/* ==========================================================================
+   TRANSFORMATION / SWITCH ANIMATIONS  (transform + opacity only = GPU smooth)
+   ========================================================================== */
+@keyframes drawerItemIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes subViewIn {
+  from { opacity: 0; transform: translateX(22px); }
+  to { opacity: 1; transform: none; }
+}
+.settings-drawer.active #drawerMainView:not(.hidden) > * {
+  animation: drawerItemIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(1) { animation-delay: 0.05s; }
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(2) { animation-delay: 0.08s; }
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(3) { animation-delay: 0.11s; }
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(4) { animation-delay: 0.14s; }
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(5) { animation-delay: 0.17s; }
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(6) { animation-delay: 0.2s; }
+.settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(7) { animation-delay: 0.23s; }
+#drawerProfileView.active, #drawerBlockView.active { animation: subViewIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+.screen {
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.38s ease;
+}
+.settings-drawer { transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
+.user-sheet-modal { transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
+.backdrop-scrim { transition: opacity 0.3s ease; }
+.panes-track { transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
+.inbox-tab-indicator { transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
+.inbox-tab { transition: color 0.25s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1); }
+.inbox-tab:active { transform: scale(0.96); }
+.pane-col { opacity: 1; transition: opacity 0.3s ease; }
+.panes-track[data-active="0"] #paneRooms,
+.panes-track[data-active="1"] #paneDirects {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s ease, visibility 0s linear 0.37s;
+}
+.composer-btn, .send-action-btn { transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1), background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease; }
+.chat-card-avatar img, .msg-avatar img { animation: fadeIn 0.3s ease; }
+
+/* theme cross-fade (View Transitions) */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.3s; animation-timing-function: ease; }
+
+/* scroll areas: no rubber-band chaining, touch friendly */
+.inbox-scroll-body, .messages-container { overscroll-behavior: contain; }
+button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 </style>
 </head>
 <body>
@@ -1392,7 +1568,7 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
                 <svg viewBox="0 0 24 24"><path d="M12 2a8 8 0 0 0-8 8c0 3.3 2 6.2 5 7.4V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.6c3-1.2 5-4.1 5-7.4a8 8 0 0 0-8-8z"/><path d="M9 10h.01M15 10h.01"/></svg>
               </div>
               <div style="flex:1;min-width:0">
-                <div style="font-size:15px;font-weight:700;color:var(--text-main)">Yuki AI Companion</div>
+                <div style="font-size:15px;font-weight:600;color:var(--text-main)">Yuki AI Companion</div>
                 <div style="font-size:12.5px;color:var(--text-muted);margin-top:2px">Ask questions, debug code, or chat 24/7</div>
               </div>
               <svg viewBox="0 0 24 24" style="color:var(--primary-blue)"><path d="m9 18 6-6-6-6"/></svg>
@@ -1519,9 +1695,22 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
     <div class="drawer-body">
       <!-- 1. MAIN DRAWER MENU -->
       <div id="drawerMainView">
-        <div class="settings-sec-label">View & Theme</div>
+        <div class="settings-sec-label">Account</div>
+        <div class="settings-card">
+          <div class="settings-row" id="rowOpenProfile">
+            <span class="settings-icon "><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <div class="settings-info">
+              <span class="settings-main-title">Your Profile</span>
+              <span class="settings-sub-title">Display name, unique username & photo</span>
+            </div>
+            <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+
+        <div class="settings-sec-label">Appearance</div>
         <div class="settings-card">
           <div class="settings-row" id="rowToggleTheme">
+            <span class="settings-icon "><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
             <div class="settings-info">
               <span class="settings-main-title">Dark Mode</span>
               <span class="settings-sub-title">Toggle between Light & Dark themes</span>
@@ -1533,18 +1722,12 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
         <div class="settings-sec-label">Safety & Privacy</div>
         <div class="settings-card">
           <div class="settings-row" id="rowOpenBlockList">
+            <span class="settings-icon "><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></span>
             <div class="settings-info">
               <span class="settings-main-title">Block List</span>
               <span class="settings-sub-title">Manage accounts you have blocked</span>
             </div>
-            <svg viewBox="0 0 24 24" style="color:var(--text-muted)"><path d="m9 18 6-6-6-6"/></svg>
-          </div>
-          <div class="settings-row" id="rowOpenProfile">
-            <div class="settings-info">
-              <span class="settings-main-title">Your Profile</span>
-              <span class="settings-sub-title">Display name, unique username & photo</span>
-            </div>
-            <svg viewBox="0 0 24 24" style="color:var(--text-muted)"><path d="m9 18 6-6-6-6"/></svg>
+            <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
           </div>
         </div>
 
@@ -1553,11 +1736,13 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
           <div class="settings-sec-label">Chat Actions</div>
           <div class="settings-card">
             <div class="settings-row" id="btnContextBlock">
+              <span class="settings-icon danger"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></span>
               <div class="settings-info">
                 <span class="settings-main-title" style="color:#ef4444" id="labelBlockChatUser">Block User</span>
               </div>
             </div>
             <div class="settings-row" id="btnContextDeleteChat">
+              <span class="settings-icon danger"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
               <div class="settings-info">
                 <span class="settings-main-title" style="color:#ef4444">Delete Conversation</span>
                 <span class="settings-sub-title">Hide this chat from your directs</span>
@@ -1617,14 +1802,14 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
     <div class="modal-drag-pill"></div>
     <div style="text-align:center;margin-bottom:18px">
       <div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#f59e0b">LA</div>
-      <h3 style="font-size:18px;font-weight:800;color:var(--text-main)" id="modalContactName">Leslie Alexander</h3>
+      <h3 style="font-size:18px;font-weight:600;color:var(--text-main)" id="modalContactName">Leslie Alexander</h3>
       <p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="modalContactRole">Web Designer</p>
-      <div style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;background:rgba(245, 158, 11, 0.15);color:#d97706;font-size:12px;font-weight:700;margin-top:8px">
+      <div style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;background:rgba(245, 158, 11, 0.15);color:#d97706;font-size:12px;font-weight:600;margin-top:8px">
         <span>★ 4.7 (Rating)</span>
       </div>
     </div>
 
-    <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
+    <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
       Experience & Companies
     </div>
 
@@ -1763,6 +1948,9 @@ function patchList(container, entries) {
   const existing = new Map();
   [...container.children].forEach(el => { if (el.dataset && el.dataset.uid) existing.set(el.dataset.uid, el); });
   const seen = new Set();
+  const firstTops = new Map();
+  const finalEls = new Map();
+  existing.forEach((el, uid) => firstTops.set(uid, el.getBoundingClientRect().top));
   let prev = null;
   entries.forEach(({ uid, html }) => {
     seen.add(uid);
@@ -1777,9 +1965,21 @@ function patchList(container, entries) {
     }
     const expected = prev ? prev.nextElementSibling : container.firstElementChild;
     if (expected !== el) container.insertBefore(el, expected);
+    finalEls.set(uid, el);
     prev = el;
   });
   existing.forEach((el, uid) => { if (!seen.has(uid)) el.remove(); });
+
+  // FLIP: rows glide to their new position instead of jumping
+  finalEls.forEach((el, uid) => {
+    const f = firstTops.get(uid);
+    if (f === undefined || !el.animate) return;
+    const d = f - el.getBoundingClientRect().top;
+    if (Math.abs(d) > 1 && Math.abs(d) < 900) {
+      el.animate([{ transform: `translateY(${d}px)` }, { transform: 'none' }],
+                 { duration: 340, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+    }
+  });
 }
 
 /* App State */
@@ -1806,10 +2006,19 @@ let currentTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'light';
 function setTheme(theme) {
   currentTheme = theme;
   const root = document.documentElement;
+  const apply = () => {
+    root.setAttribute('data-theme', theme);
+    $('switchTheme')?.classList.toggle('on', theme === 'dark');
+  };
   root.classList.add('no-theme-anim');
-  root.setAttribute('data-theme', theme);
-  $('switchTheme')?.classList.toggle('on', theme === 'dark');
-  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-theme-anim')));
+  if (document.startViewTransition && root.dataset.themeReady) {
+    const vt = document.startViewTransition(apply);
+    vt.finished.catch(() => {}).then(() => root.classList.remove('no-theme-anim'));
+  } else {
+    apply();
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-theme-anim')));
+  }
+  root.dataset.themeReady = '1';
   try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch(e) {}
 }
 setTheme(currentTheme);
@@ -2053,7 +2262,7 @@ function updateProfileBadges() {
 
   const avHtml = currentProfile.photoURL 
     ? `<img src="${esc(currentProfile.photoURL)}" alt="Avatar">` 
-    : `<div class="av" style="background:${color};width:100%;height:100%;display:grid;place-items:center;font-weight:700;color:#fff">${initial}</div>`;
+    : `<div class="av" style="background:${color};width:100%;height:100%;display:grid;place-items:center;font-weight:600;color:#fff">${initial}</div>`;
 
   const _hSig = (currentProfile.photoURL || '') + '|' + color + initial;
   const _hChanged = $('btnHeaderProfile') && $('btnHeaderProfile').__sig !== _hSig;
@@ -2771,202 +2980,3 @@ $('btnSaveUsername')?.addEventListener('click', async () => {
     } else {
       showToast('Could not update username');
     }
-  }
-});
-
-/* Copy username ID */
-$('tipUsernameCopy')?.addEventListener('click', async () => {
-  const u = currentProfile?.username;
-  if (!u) return;
-  try {
-    await navigator.clipboard.writeText(u);
-    showToast(`Copied ID: @${u}`);
-  } catch(e) {
-    showToast(`ID: @${u}`);
-  }
-});
-
-/* Change Profile Photo */
-$('btnTriggerPhotoUpload')?.addEventListener('click', () => $('fileAvatarUpload').click());
-$('fileAvatarUpload')?.addEventListener('change', async e => {
-  const file = e.target.files?.[0];
-  if (!file || !currentUser) return;
-  if (!file.type.startsWith('image/')) return showToast('Please pick an image file');
-
-  try {
-    const dataUrl = await new Promise((res, rej) => {
-      const reader = new FileReader();
-      reader.onload = () => res(reader.result);
-      reader.onerror = rej;
-      reader.readAsDataURL(file);
-    });
-
-    const img = await new Promise((res, rej) => {
-      const im = new Image();
-      im.onload = () => res(im);
-      im.onerror = rej;
-      im.src = dataUrl;
-    });
-
-    const canvas = document.createElement('canvas');
-    const scale = Math.min(1, 320 / Math.max(img.width, img.height));
-    canvas.width = Math.max(1, Math.round(img.width * scale));
-    canvas.height = Math.max(1, Math.round(img.height * scale));
-    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    const compressedPhoto = canvas.toDataURL('image/jpeg', 0.7);
-    await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: compressedPhoto });
-    currentProfile.photoURL = compressedPhoto;
-    updateProfileBadges();
-    renderDirectsList();
-    showToast('Profile photo updated!');
-  } catch(err) {
-    showToast('Failed to update photo');
-  }
-});
-
-/* Logout */
-$('btnLogout')?.addEventListener('click', async () => {
-  toggleDrawer(false);
-  if (currentUser) {
-    updateDoc(doc(db, 'users', currentUser.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
-  }
-  await signOut(auth);
-  showToast('Logged out');
-});
-
-/* Block List Rendering & Unblock */
-function renderBlockedAccounts() {
-  const container = $('blockedUsersContainer');
-  const blockedIds = currentProfile?.blockedUids || [];
-
-  if (!blockedIds.length) {
-    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13.5px">No blocked accounts.</p>';
-    return;
-  }
-
-  container.innerHTML = blockedIds.map(uid => {
-    const ch = conversationList.find(c => c.otherUid === uid);
-    const prof = ch?.profile || profileCache.get(uid) || {};
-    const name = esc(prof.display || prof.username || 'Blocked User');
-    return `
-      <div class="settings-row">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="chat-card-avatar" style="width:34px;height:34px;font-size:12px;background:${getAvColor(prof.username || name)}">
-            ${avatarInner(prof, name)}
-          </div>
-          <div>
-            <b style="font-size:13.5px;display:block">${name}</b>
-            <span style="font-size:12px;color:var(--text-muted)">@${esc(prof.username || 'operator')}</span>
-          </div>
-        </div>
-        <button class="profile-pill-btn outline" data-unblock="${esc(uid)}" style="font-size:12px;padding:4px 12px">Unblock</button>
-      </div>`;
-  }).join('');
-}
-
-async function toggleBlockUser(targetUid, shouldBlock) {
-  if (!targetUid || !currentUser || targetUid === YUKI_BOT_UID) return;
-  const setIds = new Set(currentProfile?.blockedUids || []);
-  shouldBlock ? setIds.add(targetUid) : setIds.delete(targetUid);
-  const blockedUids = [...setIds];
-
-  try {
-    await updateDoc(doc(db, 'users', currentUser.uid), { blockedUids });
-    currentProfile.blockedUids = blockedUids;
-    renderDirectsList();
-    renderBlockedAccounts();
-    showToast(shouldBlock ? 'User blocked' : 'User unblocked');
-  } catch(e) {
-    showToast('Could not update block list');
-  }
-}
-
-/* ==========================================================================
-   NAVIGATION & CLICK DELEGATION
-   ========================================================================== */
-document.addEventListener('click', e => {
-  const unblockBtn = e.target.closest('[data-unblock]');
-  if (unblockBtn) {
-    toggleBlockUser(unblockBtn.dataset.unblock, false);
-    return;
-  }
-
-  const mentionBtn = e.target.closest('.mention-item');
-  if (mentionBtn) {
-    const input = $('chatInputText');
-    input.value = input.value.replace(/u\/[\w]*$/, 'u/' + mentionBtn.dataset.username + ' ');
-    input.focus();
-    $('mentionsBox')?.classList.remove('open');
-    return;
-  }
-
-  const chatRow = e.target.closest('.chat-card');
-  if (chatRow && chatRow.dataset.uid) {
-    selectedCardUid = chatRow.dataset.uid;
-    document.querySelectorAll('#directsListContainer .chat-card').forEach(el => {
-      el.classList.toggle('highlighted-blue', el === chatRow);
-    });
-    openChatView(chatRow.dataset.uid);
-    return;
-  }
-
-  const navTab = e.target.closest('.inbox-tab');
-  if (navTab) {
-    const tabIdx = +navTab.dataset.tab;
-    document.querySelectorAll('.inbox-tab').forEach((t, i) => t.classList.toggle('active', i === tabIdx));
-    $('panesTrack').dataset.active = tabIdx;
-    $('panesTrack').style.transform = `translateX(${-50 * tabIdx}%)`;
-    $('tabIndicator').style.transform = `translateX(${100 * tabIdx}%)`;
-    return;
-  }
-
-  
-});
-
-$('btnChatBack')?.addEventListener('click', () => {
-  appShell.classList.remove('in-chat');
-  activePeer = null;
-  activeChatId = null;
-  stopAllListeners();
-  renderDirectsList();
-});
-
-$('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
-
-
-/* Contact details bottom sheet modal */
-$('btnOpenContactDetails')?.addEventListener('click', () => {
-  if (activePeer) {
-    $('modalContactName').textContent = activePeer.display;
-    $('modalContactRole').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
-    $('modalContactAvatar').innerHTML = avatarInner(activePeer, activePeer.display);
-    $('modalContactAvatar').style.background = getAvColor(activePeer.display);
-    $('contactDetailsModal')?.classList.add('active');
-    $('masterScrim')?.classList.add('active');
-  }
-});
-
-/* Context actions in chat drawer */
-$('btnContextBlock')?.addEventListener('click', () => {
-  if (activePeer && !activePeer.isYuki) {
-    const isBlocked = (currentProfile?.blockedUids || []).includes(activePeer.uid);
-    toggleBlockUser(activePeer.uid, !isBlocked);
-    toggleDrawer(false);
-  }
-});
-
-$('btnContextDeleteChat')?.addEventListener('click', () => {
-  if (activePeer && currentUser) {
-    addDeletedChat(currentUser.uid, activePeer.uid);
-    conversationList = conversationList.filter(c => c.otherUid !== activePeer.uid);
-    toggleDrawer(false);
-    appShell.classList.remove('in-chat');
-    renderDirectsList();
-    showToast('Conversation hidden');
-  }
-});
-</script>
-
-</body>
-</html>
