@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Yuki</title>
+<link rel="icon" href="https://lh3.googleusercontent.com/aida-public/AB6AXuB4sBVUR8Nz47PlRnmU7Mn9yBzGxjtHQbmswmVJ8g5JBLmgwhevUrlEWaiPvzu5NGe_l3mKI1oWJzedHAZUWp_1iqSxEfaynl9A6aduhVIbZY_4KOtC4c22tAzKQJYC1E7gQtuq_k0JbQTLEPWTB2buOrT_ts7cIa-kfTMx_dbvLkbqkM7D00p3E_VLcpHPW49Vuv8tc_TAMxQCZGc2hpKdGpIkXY9j6A6mDYHzquEG8yWXaVh_tMpOUw">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -162,7 +163,6 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   box-shadow: 0 4px 12px rgba(29, 114, 254, 0.35);
 }
 .brand-logo-icon svg { width: 22px; height: 22px; stroke-width: 2.2; }
-.brand-logo { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; } .auth-brand-badge .brand-logo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
 .brand-title {
   font-size: 19px;
   font-weight: 600;
@@ -912,7 +912,6 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   display: grid;
   place-items: center;
   margin: 0 auto 14px;
-  overflow: hidden;
   box-shadow: 0 8px 20px rgba(29, 114, 254, 0.35);
 }
 .auth-brand-badge svg { width: 28px; height: 28px; }
@@ -1471,11 +1470,37 @@ h1, h2, h3 { font-weight: 600; }
 /* scroll areas: no rubber-band chaining, touch friendly */
 .inbox-scroll-body, .messages-container { overscroll-behavior: contain; }
 button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
-button, .chat-card, .settings-row, .inbox-tab, .brand-badge, .chat-contact-info {
-  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease, background-color 0.18s ease;
+
+/* ==========================================================================
+   LOGO + TAP / SMOOTH ANIMATIONS (additions)
+   ========================================================================== */
+:root { --spring: cubic-bezier(0.34, 1.4, 0.64, 1); --smooth: cubic-bezier(0.22, 1, 0.36, 1); }
+.brand-logo { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+.brand-logo-icon, .auth-brand-badge { background: transparent; box-shadow: none; overflow: hidden; }
+
+.brand-badge, .chat-contact-info, .header-profile-btn, .drawer-back-btn, .mention-item,
+.auth-toggle-link, .msg-bubble, .msg-avatar, .chat-card-avatar, .chat-header-avatar, .settings-row {
+  transition: transform 0.28s var(--spring), background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
-button:active, .settings-row:active, .inbox-tab:active, .brand-badge:active, .chat-contact-info:active {
-  transform: scale(0.985);
+.brand-badge:active, .chat-contact-info:active, .header-profile-btn:active, .drawer-back-btn:active,
+.mention-item:active, .auth-toggle-link:active { transform: scale(0.94); }
+.settings-row:active { transform: scale(0.985); }
+.msg-bubble:active { transform: scale(0.97); }
+.msg-avatar:active, .chat-card-avatar:active, .chat-header-avatar:active { transform: scale(0.9); }
+.chat-card:active .chat-card-avatar { transform: scale(0.92); }
+
+.user-sheet-modal { transition: transform 0.45s var(--smooth); }
+.user-sheet-modal.active .settings-row { animation: drawerItemIn 0.4s var(--smooth) backwards; }
+.user-sheet-modal.active .settings-row:nth-child(2) { animation-delay: 0.06s; }
+.user-sheet-modal.active .profile-form-group,
+.user-sheet-modal.active .profile-pill-btn { animation: drawerItemIn 0.4s var(--smooth) 0.05s backwards; }
+#drawerBlockView.active .settings-row { animation: drawerItemIn 0.35s var(--smooth) backwards; }
+.mentions-box.open .mention-item { animation: drawerItemIn 0.25s var(--smooth) backwards; }
+.app-toast { transition: opacity 0.25s ease, transform 0.35s var(--spring); }
+.auth-field, .profile-input, .composer-textarea { transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 </style>
 </head>
@@ -1735,6 +1760,18 @@ button:active, .settings-row:active, .inbox-tab:active, .brand-badge:active, .ch
           </div>
         </div>
 
+        <div class="settings-sec-label">Danger Zone</div>
+        <div class="settings-card">
+          <div class="settings-row" id="rowDeleteAccount">
+            <span class="settings-icon danger"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
+            <div class="settings-info">
+              <span class="settings-main-title" style="color:#ef4444">Delete Account</span>
+              <span class="settings-sub-title">Permanently remove your account</span>
+            </div>
+            <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+
         <!-- Chat Specific Actions when opened from active room -->
         <div id="chatContextActions" style="display:none">
           <div class="settings-sec-label">Chat Actions</div>
@@ -1746,10 +1783,10 @@ button:active, .settings-row:active, .inbox-tab:active, .brand-badge:active, .ch
               </div>
             </div>
             <div class="settings-row" id="btnContextClearChat">
-              <span class="settings-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg></span>
+              <span class="settings-icon danger"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="m9 8 6 6M15 8l-6 6"/></svg></span>
               <div class="settings-info">
-                <span class="settings-main-title">Clear Chats</span>
-                <span class="settings-sub-title">Remove all messages but keep this chat</span>
+                <span class="settings-main-title" style="color:#ef4444">Clear Chats</span>
+                <span class="settings-sub-title">Delete all messages, keep the contact</span>
               </div>
             </div>
             <div class="settings-row" id="btnContextDeleteChat">
@@ -1793,7 +1830,6 @@ button:active, .settings-row:active, .inbox-tab:active, .brand-badge:active, .ch
         </div>
 
         <div style="padding-top:20px">
-          <button class="profile-pill-btn danger" id="btnDeleteAccount" style="width:100%;margin-bottom:8px">Delete Account</button>
           <button class="profile-pill-btn danger" id="btnLogout" style="width:100%">Log Out</button>
         </div>
       </div>
@@ -1808,33 +1844,46 @@ button:active, .settings-row:active, .inbox-tab:active, .brand-badge:active, .ch
   </div>
 
   <!-- ==========================================
-       USER DETAILS BOTTOM MODAL
+       USER DETAILS BOTTOM MODAL (LESLIE ALEXANDER)
        ========================================== -->
   <div class="user-sheet-modal" id="contactDetailsModal">
     <div class="modal-drag-pill"></div>
     <div style="text-align:center;margin-bottom:18px">
       <div class="chat-card-avatar" id="modalContactAvatar" style="width:76px;height:76px;margin:0 auto 10px;font-size:26px;background:#f59e0b">LA</div>
-      <h3 style="font-size:18px;font-weight:600;color:var(--text-main)" id="modalContactName">User</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="modalContactRole">@username</p>
-    </div>
+      <h3 style="font-size:18px;font-weight:600;color:var(--text-main)" id="modalContactName">Leslie Alexander</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:2px" id="modalContactRole">Web Designer</p>
+      </div>
 
     <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;letter-spacing:0.6px">
-      User Information
+      Details
     </div>
 
     <div class="settings-card" style="margin-bottom:0">
       <div class="settings-row">
-        <div>
-          <b style="font-size:14px;display:block">Country</b>
-          <span style="font-size:12px;color:var(--text-muted)" id="modalContactCountry">Not available</span>
-        </div>
+        <span style="font-size:14px;font-weight:600">Country</span>
+        <span style="font-size:13.5px;color:var(--text-muted)" id="modalContactCountry">&mdash;</span>
       </div>
       <div class="settings-row">
-        <div>
-          <b style="font-size:14px;display:block">Device</b>
-          <span style="font-size:12px;color:var(--text-muted)" id="modalContactDevice">Not available</span>
-        </div>
+        <span style="font-size:14px;font-weight:600">Device</span>
+        <span style="font-size:13.5px;color:var(--text-muted)" id="modalContactDevice">&mdash;</span>
       </div>
+    </div>
+  </div>
+
+  <!-- Delete Account confirmation sheet -->
+  <div class="user-sheet-modal" id="deleteAccountModal">
+    <div class="modal-drag-pill"></div>
+    <div style="text-align:center;margin-bottom:14px">
+      <h3 style="font-size:18px;font-weight:600;color:#ef4444">Delete Account</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:6px;line-height:1.45">This is permanent. Your profile and username will be removed. Enter your password to confirm.</p>
+    </div>
+    <div class="profile-form-group">
+      <input class="profile-input" id="inputDeletePassword" type="password" placeholder="Password" autocomplete="current-password">
+    </div>
+    <div class="auth-msg-err" id="deleteAccountError" style="text-align:center"></div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="profile-pill-btn outline" id="btnDeleteCancel" style="flex:1;height:44px">Cancel</button>
+      <button class="profile-pill-btn danger" id="btnDeleteConfirm" style="flex:1">Delete</button>
     </div>
   </div>
 
@@ -1857,7 +1906,10 @@ import {
   onAuthStateChanged, 
   setPersistence, 
   browserLocalPersistence, 
-  sendEmailVerification 
+  sendEmailVerification,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { 
   getFirestore, 
@@ -1875,7 +1927,9 @@ import {
   serverTimestamp, 
   getDocs, 
   increment, 
-  runTransaction 
+  runTransaction,
+  deleteDoc,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /* Firebase Config from previous sessions */
@@ -1909,13 +1963,6 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const avatarInner = (p, fallbackName = '?') => (p && p.photoURL)
   ? `<img src="${esc(p.photoURL)}" alt="" decoding="async">`
   : esc(getInitials((p && (p.display || p.username)) || fallbackName));
-
-const getDeviceType = () => /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? 'Mobile' : 'Desktop';
-const getCountryName = () => {
-  const region = String(navigator.language || '').split('-')[1]?.toUpperCase();
-  const names = { IN: 'India', US: 'United States', GB: 'United Kingdom', CA: 'Canada', AU: 'Australia', DE: 'Germany', FR: 'France', JP: 'Japan', SG: 'Singapore', AE: 'United Arab Emirates' };
-  return names[region] || (region || 'Not available');
-};
 
 /* Live profile cache (so everybody's DP stays in sync everywhere) */
 const profileCache = new Map();
@@ -2138,9 +2185,7 @@ async function handleAuthSubmit() {
         email,
         createdAt: serverTimestamp(),
         lastSeen: serverTimestamp(),
-        emailVerified: false,
-        country: getCountryName(),
-        device: getDeviceType()
+        emailVerified: false
       });
       await setDoc(doc(db, 'usernames', uniqueHandle), { uid: cred.user.uid });
 
@@ -2239,10 +2284,9 @@ onAuthStateChanged(auth, async user => {
       setDoc(doc(db, 'usernames', h), { uid: user.uid }, { merge: true }).catch(()=>{});
     }
 
-    // Non-blocking profile/device metadata update
-    const sessionMeta = { lastSeen: serverTimestamp(), emailVerified: true, country: getCountryName(), device: getDeviceType() };
-    updateDoc(doc(db, 'users', user.uid), sessionMeta).catch(()=>{});
-    currentProfile = { ...(currentProfile || {}), country: sessionMeta.country, device: sessionMeta.device };
+    // Non-blocking update
+    updateDoc(doc(db, 'users', user.uid), { lastSeen: serverTimestamp(), emailVerified: true }).catch(()=>{});
+    syncDeviceInfo(user.uid);
 
     $('authScreen')?.classList.remove('active');
     $('authPassword').value = '';
@@ -2489,8 +2533,6 @@ function openChatView(peerUid, profile = null) {
     username: profile.username || 'operator',
     display: profile.display || profile.username || 'Operator',
     photoURL: profile.photoURL || '',
-    country: profile.country || 'Not available',
-    device: profile.device || 'Not available',
     isYuki: peerUid === YUKI_BOT_UID
   };
 
@@ -2547,8 +2589,6 @@ function applyPeerProfile(p) {
   activePeer.username = p.username || activePeer.username;
   activePeer.display = p.display || p.username || activePeer.display;
   activePeer.photoURL = p.photoURL || '';
-  activePeer.country = p.country || 'Not available';
-  activePeer.device = p.device || 'Not available';
 
   $('chatHeaderTitle').textContent = activePeer.display;
   $('chatHeaderSubtitle').textContent = `@${activePeer.username}`;
@@ -2864,402 +2904,4 @@ $('chatInputText')?.addEventListener('input', () => {
     if (matches.length > 0) {
       mentionsBox.innerHTML = matches.slice(0, 5).map(p => `
         <button class="mention-item" data-username="${esc(p.username)}">
-          <div class="chat-card-avatar" style="width:26px;height:26px;font-size:11px;background:${getAvColor(p.username)}">${avatarInner(p)}</div>
-          <span>u/${esc(p.username)}</span>
-        </button>`).join('');
-      mentionsBox.classList.add('open');
-    } else {
-      mentionsBox.classList.remove('open');
-    }
-  } else {
-    mentionsBox?.classList.remove('open');
-  }
-});
-
-/* ==========================================================================
-   SETTINGS DRAWER & 3 CORE SECTIONS
-   ========================================================================== */
-function toggleDrawer(open, isChatContext = false) {
-  const drawer = $('settingsDrawer');
-  const scrim = $('masterScrim');
-  if (open) {
-    showDrawerSubView('main');
-    $('chatContextActions').style.display = isChatContext ? 'block' : 'none';
-    drawer?.classList.add('active');
-    scrim?.classList.add('active');
-    requestAnimationFrame(() => updateProfileBadges());
-  } else {
-    drawer?.classList.remove('active');
-    scrim?.classList.remove('active');
-  }
-}
-
-function showDrawerSubView(view) {
-  const main = $('drawerMainView');
-  const prof = $('drawerProfileView');
-  const blk = $('drawerBlockView');
-  const backBtn = $('btnDrawerBack');
-  const title = $('drawerTitle');
-
-  if (view === 'profile') {
-    main.classList.add('hidden');
-    prof.classList.add('active');
-    blk.classList.remove('active');
-    backBtn.style.display = 'grid';
-    title.textContent = 'Your Profile';
-    updateProfileBadges();
-  } else if (view === 'block') {
-    main.classList.add('hidden');
-    prof.classList.remove('active');
-    blk.classList.add('active');
-    backBtn.style.display = 'grid';
-    title.textContent = 'Blocked Accounts';
-    renderBlockedAccounts();
-  } else {
-    main.classList.remove('hidden');
-    prof.classList.remove('active');
-    blk.classList.remove('active');
-    backBtn.style.display = 'none';
-    title.textContent = 'Settings';
-  }
-}
-
-$('btnDrawerBack')?.addEventListener('click', () => showDrawerSubView('main'));
-$('btnOpenSettings')?.addEventListener('click', () => toggleDrawer(true, false));
-$('btnNavSettings')?.addEventListener('click', () => toggleDrawer(true, false));
-$('btnChatSettingsGear')?.addEventListener('click', () => toggleDrawer(true, true));
-$('btnDrawerClose')?.addEventListener('click', () => toggleDrawer(false));
-$('masterScrim')?.addEventListener('click', () => {
-  toggleDrawer(false);
-  $('contactDetailsModal')?.classList.remove('active');
-});
-
-$('rowOpenProfile')?.addEventListener('click', () => showDrawerSubView('profile'));
-$('btnHeaderProfile')?.addEventListener('click', () => {
-  toggleDrawer(true, false);
-  showDrawerSubView('profile');
-});
-$('rowOpenBlockList')?.addEventListener('click', () => showDrawerSubView('block'));
-
-/* Profile Saving Functions */
-$('btnSaveDisplayName')?.addEventListener('click', async () => {
-  const name = $('inputDisplayName').value.trim();
-  if (!name) return showToast('Please enter a valid name');
-  if (!currentUser) return showToast('Please sign in first');
-
-  try {
-    await updateDoc(doc(db, 'users', currentUser.uid), { display: name });
-    currentProfile.display = name;
-    updateProfileBadges();
-    renderDirectsList();
-    showToast('Display name saved');
-  } catch(e) {
-    showToast('Could not update display name');
-  }
-});
-
-$('btnSaveUsername')?.addEventListener('click', async () => {
-  const handle = $('inputUsername').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-  if (!handle || handle.length < 3) return showToast('Username must be 3-20 characters');
-  if (handle === currentProfile?.username?.toLowerCase()) return showToast('This is already your username');
-  if (!currentUser) return showToast('Please sign in first');
-
-  const oldHandle = currentProfile.username ? currentProfile.username.toLowerCase() : '';
-
-  try {
-    await runTransaction(db, async txn => {
-      const newRef = doc(db, 'usernames', handle);
-      const snap = await txn.get(newRef);
-      if (snap.exists()) {
-        throw new Error('TAKEN');
-      }
-      txn.set(newRef, { uid: currentUser.uid, at: serverTimestamp() });
-      txn.update(doc(db, 'users', currentUser.uid), { username: handle });
-      if (oldHandle) {
-        txn.delete(doc(db, 'usernames', oldHandle));
-      }
-    });
-
-    currentProfile.username = handle;
-    updateProfileBadges();
-    renderDirectsList();
-    showToast(`Username updated to @${handle}`);
-  } catch(err) {
-    if (err.message === 'TAKEN') {
-      showToast(`@${handle} is already taken!`);
-    } else {
-      showToast('Could not update username');
-    }
-  }
-});
-
-/* Copy username ID */
-$('tipUsernameCopy')?.addEventListener('click', async () => {
-  const u = currentProfile?.username;
-  if (!u) return;
-  try {
-    await navigator.clipboard.writeText(u);
-    showToast(`Copied ID: @${u}`);
-  } catch(e) {
-    showToast(`ID: @${u}`);
-  }
-});
-
-/* Change Profile Photo */
-$('btnTriggerPhotoUpload')?.addEventListener('click', () => $('fileAvatarUpload').click());
-$('fileAvatarUpload')?.addEventListener('change', async e => {
-  const file = e.target.files?.[0];
-  if (!file || !currentUser) return;
-  if (!file.type.startsWith('image/')) return showToast('Please pick an image file');
-
-  try {
-    const dataUrl = await new Promise((res, rej) => {
-      const reader = new FileReader();
-      reader.onload = () => res(reader.result);
-      reader.onerror = rej;
-      reader.readAsDataURL(file);
-    });
-
-    const img = await new Promise((res, rej) => {
-      const im = new Image();
-      im.onload = () => res(im);
-      im.onerror = rej;
-      im.src = dataUrl;
-    });
-
-    const canvas = document.createElement('canvas');
-    const scale = Math.min(1, 320 / Math.max(img.width, img.height));
-    canvas.width = Math.max(1, Math.round(img.width * scale));
-    canvas.height = Math.max(1, Math.round(img.height * scale));
-    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    const compressedPhoto = canvas.toDataURL('image/jpeg', 0.7);
-    await updateDoc(doc(db, 'users', currentUser.uid), { photoURL: compressedPhoto });
-    currentProfile.photoURL = compressedPhoto;
-    updateProfileBadges();
-    renderDirectsList();
-    showToast('Profile photo updated!');
-  } catch(err) {
-    showToast('Failed to update photo');
-  }
-});
-
-/* Clear all messages in the current chat without removing the chat/user */
-$('btnContextClearChat')?.addEventListener('click', async () => {
-  if (!activePeer || !currentUser || !activeChatId) return;
-  if (!confirm('Clear all messages in this chat? The chat will remain.')) return;
-
-  try {
-    const snap = await getDocs(collection(db, 'chats', activeChatId, 'messages'));
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => batch.delete(d.ref));
-    await batch.commit();
-
-    await setDoc(doc(db, 'chats', activeChatId), {
-      lastMsg: '',
-      lastMsgAt: null,
-      lastMsgBy: null,
-      unread: { [currentUser.uid]: 0 },
-      touchAt: serverTimestamp()
-    }, { merge: true });
-
-    yukiHistory = [];
-    msgCache.delete(activeChatId);
-    scaffoldMessages(activeChatId);
-    toggleDrawer(false);
-    showToast('Chats cleared');
-  } catch (err) {
-    console.error('Clear chat error:', err);
-    showToast('Could not clear chats');
-  }
-});
-
-/* Delete account */
-$('btnDeleteAccount')?.addEventListener('click', async () => {
-  if (!currentUser) return showToast('Please sign in first');
-  const uid = currentUser.uid;
-  const username = currentProfile?.username || '';
-
-  if (!confirm('Delete your Yuki account permanently? This cannot be undone.')) return;
-
-  try {
-    if (username) await deleteDoc(doc(db, 'usernames', username));
-    await deleteDoc(doc(db, 'users', uid));
-    await deleteUser(currentUser);
-    localStorage.removeItem('yuki_deleted_' + uid);
-    showToast('Account deleted');
-  } catch (err) {
-    console.error('Delete account error:', err);
-    if (err?.code === 'auth/requires-recent-login') {
-      showToast('Please sign in again, then delete your account');
-    } else {
-      showToast('Could not delete account');
-    }
-  }
-});
-
-/* Logout */
-$('btnLogout')?.addEventListener('click', async () => {
-  toggleDrawer(false);
-  if (currentUser) {
-    updateDoc(doc(db, 'users', currentUser.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
-  }
-  await signOut(auth);
-  showToast('Logged out');
-});
-
-/* Block List Rendering & Unblock */
-function renderBlockedAccounts() {
-  const container = $('blockedUsersContainer');
-  const blockedIds = currentProfile?.blockedUids || [];
-
-  if (!blockedIds.length) {
-    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:30px 10px;font-size:13.5px">No blocked accounts.</p>';
-    return;
-  }
-
-  container.innerHTML = blockedIds.map(uid => {
-    const ch = conversationList.find(c => c.otherUid === uid);
-    const prof = ch?.profile || profileCache.get(uid) || {};
-    const name = esc(prof.display || prof.username || 'Blocked User');
-    return `
-      <div class="settings-row">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="chat-card-avatar" style="width:34px;height:34px;font-size:12px;background:${getAvColor(prof.username || name)}">
-            ${avatarInner(prof, name)}
-          </div>
-          <div>
-            <b style="font-size:13.5px;display:block">${name}</b>
-            <span style="font-size:12px;color:var(--text-muted)">@${esc(prof.username || 'operator')}</span>
-          </div>
-        </div>
-        <button class="profile-pill-btn outline" data-unblock="${esc(uid)}" style="font-size:12px;padding:4px 12px">Unblock</button>
-      </div>`;
-  }).join('');
-}
-
-async function toggleBlockUser(targetUid, shouldBlock) {
-  if (!targetUid || !currentUser || targetUid === YUKI_BOT_UID) return;
-  const setIds = new Set(currentProfile?.blockedUids || []);
-  shouldBlock ? setIds.add(targetUid) : setIds.delete(targetUid);
-  const blockedUids = [...setIds];
-
-  try {
-    await updateDoc(doc(db, 'users', currentUser.uid), { blockedUids });
-    currentProfile.blockedUids = blockedUids;
-    renderDirectsList();
-    renderBlockedAccounts();
-    showToast(shouldBlock ? 'User blocked' : 'User unblocked');
-  } catch(e) {
-    showToast('Could not update block list');
-  }
-}
-
-/* ==========================================================================
-   NAVIGATION & CLICK DELEGATION
-   ========================================================================== */
-document.addEventListener('click', e => {
-  const unblockBtn = e.target.closest('[data-unblock]');
-  if (unblockBtn) {
-    toggleBlockUser(unblockBtn.dataset.unblock, false);
-    return;
-  }
-
-  const mentionBtn = e.target.closest('.mention-item');
-  if (mentionBtn) {
-    const input = $('chatInputText');
-    input.value = input.value.replace(/u\/[\w]*$/, 'u/' + mentionBtn.dataset.username + ' ');
-    input.focus();
-    $('mentionsBox')?.classList.remove('open');
-    return;
-  }
-
-  const chatRow = e.target.closest('.chat-card');
-  if (chatRow && chatRow.dataset.uid) {
-    selectedCardUid = chatRow.dataset.uid;
-    document.querySelectorAll('#directsListContainer .chat-card').forEach(el => {
-      el.classList.toggle('highlighted-blue', el === chatRow);
-    });
-    openChatView(chatRow.dataset.uid);
-    return;
-  }
-
-  const navTab = e.target.closest('.inbox-tab');
-  if (navTab) {
-    const tabIdx = +navTab.dataset.tab;
-    document.querySelectorAll('.inbox-tab').forEach((t, i) => t.classList.toggle('active', i === tabIdx));
-    $('panesTrack').dataset.active = tabIdx;
-    $('panesTrack').style.transform = `translateX(${-50 * tabIdx}%)`;
-    $('tabIndicator').style.transform = `translateX(${100 * tabIdx}%)`;
-    return;
-  }
-
-  
-});
-
-$('btnChatBack')?.addEventListener('click', () => {
-  appShell.classList.remove('in-chat');
-  activePeer = null;
-  activeChatId = null;
-  stopAllListeners();
-  renderDirectsList();
-});
-
-$('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
-
-
-/* Contact details bottom sheet modal */
-$('btnOpenContactDetails')?.addEventListener('click', () => {
-  if (activePeer) {
-    $('modalContactName').textContent = activePeer.display;
-    $('modalContactRole').textContent = activePeer.isYuki ? 'AI Companion' : `@${activePeer.username}`;
-    $('modalContactAvatar').innerHTML = avatarInner(activePeer, activePeer.display);
-    $('modalContactAvatar').style.background = getAvColor(activePeer.display);
-    $('modalContactCountry').textContent = activePeer.isYuki ? 'Not applicable' : (activePeer.country || 'Not available');
-    $('modalContactDevice').textContent = activePeer.isYuki ? 'AI' : (activePeer.device || 'Not available');
-    $('contactDetailsModal')?.classList.add('active');
-    $('masterScrim')?.classList.add('active');
-  }
-});
-
-/* Context actions in chat drawer */
-$('btnContextBlock')?.addEventListener('click', () => {
-  if (activePeer && !activePeer.isYuki) {
-    const isBlocked = (currentProfile?.blockedUids || []).includes(activePeer.uid);
-    toggleBlockUser(activePeer.uid, !isBlocked);
-    toggleDrawer(false);
-  }
-});
-
-$('btnContextDeleteChat')?.addEventListener('click', () => {
-  if (activePeer && currentUser) {
-    addDeletedChat(currentUser.uid, activePeer.uid);
-    conversationList = conversationList.filter(c => c.otherUid !== activePeer.uid);
-    toggleDrawer(false);
-    appShell.classList.remove('in-chat');
-    renderDirectsList();
-    showToast('Conversation hidden');
-  }
-});
-</script>
-
-<script>
-(function(){
-  var errs=[];
-  function show(){
-    if(window.__chatBooted) return;
-    var b=document.getElementById('bootDiag');
-    if(!b){ b=document.createElement('div'); b.id='bootDiag';
-      b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#1e293b;color:#fff;padding:10px 12px;border-radius:12px;font:12px/1.4 monospace;max-height:40vh;overflow:auto;white-space:pre-wrap';
-      document.body.appendChild(b); }
-    b.textContent='App did not start:\n'+errs.join('\n');
-  }
-  window.addEventListener('error',function(e){ if(!e.message) return; errs.push(e.message+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'')); setTimeout(show,300); },true);
-  window.addEventListener('unhandledrejection',function(e){ errs.push('promise: '+((e.reason&&e.reason.message)||e.reason)); setTimeout(show,300); });
-  var m=document.querySelector('script[type=module]');
-  if(m) m.addEventListener('error',function(){ errs.push('module script failed to load (Firebase/network?)'); show(); });
-  setTimeout(function(){ if(!window.__chatBooted){ if(!errs.length) errs.push('no error captured - still waiting for Firebase/network'); show(); } },7000);
-})();
-</script>
-</body>
-</html>
+          <div class="chat-
