@@ -1559,6 +1559,43 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 /* Smoothness-only rendering hints; visual design is unchanged. */
 .settings-drawer, .backdrop-scrim, .panes-track, .app-shell { will-change: transform; backface-visibility: hidden; }
 body, .device-wrapper { height: var(--app-h, 100dvh); }
+
+/* Keyboard motion: compositor-only settling for the chat surface and composer. */
+.messages-container.keyboard-settling,
+.composer-dock.keyboard-settling {
+  --keyboard-settle-y: 0px;
+  transform: translate3d(0, var(--keyboard-settle-y), 0);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Delete Account sheet: same soft sheet/content entrance language as Settings. */
+@keyframes deleteSheetContentIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#deleteAccountModal.active > .modal-drag-pill,
+#deleteAccountModal.active > div:nth-child(2),
+#deleteAccountModal.active > .profile-form-group,
+#deleteAccountModal.active > #deleteAccountError,
+#deleteAccountModal.active > div:last-child {
+  animation: deleteSheetContentIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+#deleteAccountModal.active > .modal-drag-pill { animation-delay: 0.02s; }
+#deleteAccountModal.active > div:nth-child(2) { animation-delay: 0.05s; }
+#deleteAccountModal.active > .profile-form-group { animation-delay: 0.10s; }
+#deleteAccountModal.active > #deleteAccountError { animation-delay: 0.15s; }
+#deleteAccountModal.active > div:last-child { animation-delay: 0.20s; }
+
+/* Theme switching: compositor-friendly cross-fade without repaint-heavy transitions. */
+@supports (view-transition-name: root) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 280ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
 </style>
 </head>
 <body>
@@ -1620,7 +1657,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
       <!-- Search Input -->
       <div class="search-container" id="searchBoxWrap">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input id="searchInput" placeholder="Search by username..." autocomplete="off">
+        <input id="searchInput" type="search" name="yuki-search" placeholder="Search by username..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="search">
         <button id="searchClear" aria-label="Clear Search"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
 
@@ -1735,7 +1772,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
           <svg viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l7.9-7.9"/></svg>
         </button>
 
-        <textarea class="composer-textarea" id="chatInputText" rows="1" placeholder="Write a message..." autocomplete="off"></textarea>
+        <textarea class="composer-textarea" id="chatInputText" name="yuki-message" rows="1" placeholder="Write a message..." autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send"></textarea>
 
         <button class="composer-btn send-action-btn" id="btnSendMessage" aria-label="Send Message">
           <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
@@ -2151,10 +2188,18 @@ function setTheme(theme) {
     $('switchTheme')?.classList.toggle('on', theme === 'dark');
     $('switchContextTheme')?.classList.toggle('on', theme === 'dark');
   };
-  root.classList.add('no-theme-anim');
-  apply();
-  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-theme-anim')));
-  setTimeout(() => root.classList.remove('no-theme-anim'), 400);
+
+  /* Use the browser compositor for a clean theme cross-fade when available.
+     Fallback remains the existing no-transition path on older browsers. */
+  if (document.startViewTransition) {
+    document.startViewTransition(apply);
+  } else {
+    root.classList.add('no-theme-anim');
+    apply();
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-theme-anim')));
+    setTimeout(() => root.classList.remove('no-theme-anim'), 400);
+  }
+
   try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch(e) {}
 }
 setTheme(currentTheme);
@@ -3436,22 +3481,73 @@ $('btnChatBack')?.addEventListener('click', () => {
 
 $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
 
-/* Keyboard open/close: keep the same messages visible instead of hiding them below the keyboard */
+/* Keyboard open/close: preserve the viewed message position while the resized viewport settles smoothly */
 (function(){
   const box = $('messagesContainer');
+  const composer = document.querySelector('.composer-dock');
+  const chatScreen = $('screenChat');
   if (!box || !window.ResizeObserver) return;
+
   let prevH = box.clientHeight;
   let lastTop = box.scrollTop;
+  let settleRaf = 0;
+
+  const primeKeyboardMotion = (delta) => {
+    if (!delta) return;
+    const shift = delta;
+
+    /* The layout has already resized. Temporarily counter that resize without
+       animating the setup, then release it on the next frame so the compositor
+       animates only the final transform back to zero. */
+    [box, composer].forEach(el => {
+      if (!el) return;
+      el.classList.add('keyboard-settling');
+      el.style.transition = 'none';
+      el.style.transform = `translate3d(0, ${shift}px, 0)`;
+      void el.offsetWidth;
+    });
+
+    cancelAnimationFrame(settleRaf);
+    settleRaf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        [box, composer].forEach(el => {
+          if (!el) return;
+          el.style.transition = '';
+          el.style.transform = '';
+        });
+      });
+    });
+  };
+
   box.addEventListener('scroll', () => { lastTop = box.scrollTop; }, { passive: true });
+
   new ResizeObserver(() => {
     const h = box.clientHeight;
     const d = prevH - h;          // + when keyboard opens, - when it closes
     prevH = h;
+
     if (d !== 0) {
+      /* Keep the existing working scroll compensation intact. */
       box.scrollTop = lastTop + d;
       lastTop = box.scrollTop;
+      primeKeyboardMotion(d);
     }
   }).observe(box);
+
+  if (window.visualViewport) {
+    let lastViewportHeight = Math.round(window.visualViewport.height);
+    window.visualViewport.addEventListener('resize', () => {
+      const h = Math.round(window.visualViewport.height);
+      const d = lastViewportHeight - h;
+      lastViewportHeight = h;
+      if (d !== 0) primeKeyboardMotion(d);
+    }, { passive: true });
+  }
+
+  /* Prevent a stale settling transform from remaining after leaving chat. */
+  chatScreen?.addEventListener('transitionend', () => {
+    [box, composer].forEach(el => el?.classList.remove('keyboard-settling'));
+  });
 })();
 
 /* Keep relative times (now / 5m / 2h) live without refresh */
