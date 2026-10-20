@@ -1814,12 +1814,12 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
     width: var(--inbox-w);
     transform: none;
     opacity: 1;
-    border-right: 1px solid var(--border-subtle);
   }
   #screenChat,
   .device-wrapper.in-chat #screenChat {
     left: var(--inbox-w);
     transform: none;
+    border-left: 1px solid rgba(100, 116, 139, 0.32);
   }
   #btnChatBack { display: none; }
 
@@ -1972,6 +1972,63 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 #drawerProfileView #btnTriggerPhotoUpload {
   height: 32px;
   padding: 0 14px;
+}
+
+/* ==========================================================================
+   DARK MODE: same faint shadows as light mode (no heavy black shadows)
+   ========================================================================== */
+:root[data-theme="dark"] {
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.12);
+}
+
+/* ==========================================================================
+   DESKTOP: no shadow / glow / ring inside the message box area
+   ========================================================================== */
+@media (min-width: 900px) {
+  .composer-inner,
+  .composer-inner:focus-within {
+    box-shadow: none;
+  }
+  .composer-textarea,
+  .composer-textarea:focus,
+  .composer-textarea:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+  .send-action-btn,
+  .send-action-btn.can-send {
+    box-shadow: none;
+  }
+  .composer-dock button:focus,
+  .composer-dock button:focus-visible {
+    outline: none;
+  }
+}
+
+/* ==========================================================================
+   DESKTOP PERFORMANCE: smooth browser zoom / window resize
+   (fewer forced GPU layers, layout driven by CSS only)
+   ========================================================================== */
+@media (min-width: 900px) {
+  html, body { text-rendering: auto; }
+  body { height: 100dvh; }
+  .device-wrapper { height: min(calc(100dvh - 48px), 900px); }
+  @media (max-height: 640px) {
+    .device-wrapper { height: 100dvh; }
+  }
+  .screen,
+  .settings-drawer,
+  .backdrop-scrim,
+  .panes-track,
+  .user-sheet-modal,
+  .inbox-tab-indicator,
+  .chat-message-row,
+  .app-shell {
+    will-change: auto;
+    backface-visibility: visible;
+  }
 }
 
 /* Restore the thin separators between settings/menu rows. */
