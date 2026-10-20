@@ -1,0 +1,13 @@
+# Secrets — kabhi push mat karna
+.env
+.env.local
+.env.*.local
+backend/.env
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
