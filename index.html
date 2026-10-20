@@ -113,11 +113,12 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   display: flex;
   flex-direction: column;
   background: var(--app-bg);
-  transition: transform var(--anim-speed) cubic-bezier(0.25, 1, 0.3, 1), opacity var(--anim-speed) ease;
+  transition: transform var(--anim-speed) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--anim-speed) ease;
   z-index: 10;
   overflow: hidden;
   will-change: transform, opacity;
   backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 #screenChat {
   transform: translateX(100%);
@@ -1483,8 +1484,8 @@ h1, h2, h3 { font-weight: 600; }
 .settings-drawer.chat-context .settings-row { min-height: 54px; box-sizing: border-box; }
 .user-sheet-modal { transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
 .backdrop-scrim { transition: opacity 0.3s ease; }
-.panes-track { transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
-.inbox-tab-indicator { transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
+.panes-track { transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1); transform: translate3d(0, 0, 0); }
+.inbox-tab-indicator { transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
 .inbox-tab { transition: color 0.25s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1); }
 .inbox-tab:active { transform: scale(0.96); }
 .pane-col { opacity: 1; transition: opacity 0.3s ease; }
@@ -1633,85 +1634,6 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(8) { animation-delay: 0.26s; }
 .settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(9) { animation-delay: 0.29s; }
 .settings-drawer.chat-context.active #drawerMainView:not(.hidden) > #chatContextActions { animation-delay: 0.05s; }
-
-/* Performance pass: motion-only overrides. Existing markup and application JS are untouched. */
-:root {
-  --smooth: cubic-bezier(0.22, 1, 0.36, 1);
-}
-.screen {
-  transition: transform var(--anim-speed) var(--smooth), opacity var(--anim-speed) ease;
-  will-change: auto;
-  backface-visibility: visible;
-}
-.device-wrapper.in-chat #screenChat,
-.device-wrapper.in-chat #screenInbox { will-change: transform, opacity; }
-.panes-track { will-change: auto; }
-.chat-message-row { contain: none; will-change: auto; }
-.settings-drawer, .user-sheet-modal, .backdrop-scrim { will-change: auto; }
-.settings-drawer.active, .user-sheet-modal.active, .backdrop-scrim.active {
-  will-change: transform, opacity;
-}
-.action-btn-circle,
-.chat-back-btn,
-.composer-btn,
-.send-action-btn,
-.profile-pill-btn,
-.ai-companion-card,
-.fab-new-chat,
-.auth-btn-primary,
-.inbox-tab-indicator,
-.panes-track,
-.settings-drawer,
-.user-sheet-modal,
-.app-toast,
-.mentions-box {
-  transition-timing-function: var(--smooth);
-}
-.action-btn-circle { transition: transform 0.2s var(--smooth); }
-.chat-back-btn { transition: transform 0.2s var(--smooth); }
-.ai-companion-card { transition: transform 0.2s var(--smooth); }
-.fab-new-chat, .auth-btn-primary, .profile-pill-btn {
-  transition: transform 0.2s var(--smooth);
-}
-.composer-btn, .send-action-btn { transition: transform 0.2s var(--smooth); }
-.inbox-tab-indicator, .panes-track { transition-duration: 0.28s; }
-.settings-drawer, .user-sheet-modal { transition-duration: 0.3s; }
-.app-toast { transition: opacity 0.22s ease, transform 0.28s var(--smooth); }
-.mentions-box {
-  max-height: 180px;
-  overflow: hidden;
-  transform: scaleY(0);
-  transform-origin: bottom;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.25s var(--smooth);
-}
-.mentions-box.open {
-  opacity: 1;
-  transform: scaleY(1);
-  overflow-y: auto;
-}
-.mentions-box:not(.open) { pointer-events: none; }
-.chat-card, .settings-row, .inbox-tab, .toggle-switch,
-.search-container, .composer-inner, .auth-field, .profile-input {
-  transition-property: none;
-}
-.chat-card:active { transform: none; }
-.fab-new-chat:active, .auth-btn-primary:active { filter: none; }
-.profile-pill-btn { transition: transform 0.2s var(--smooth); }
-.toggle-switch:after { transition: transform 0.25s var(--smooth); }
-.no-theme-anim .toggle-switch:after { transition: transform 0.25s var(--smooth) !important; }
-
-/* Some states intentionally retain color/background changes to preserve their exact appearance:
-   focus rings, toggle tracks, selected cards, and the send-button enabled state. */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -2143,33 +2065,32 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 
 <script>
 (function(){
-  /* Viewport height -> --app-h. When the keyboard opens/closes the height glides (ease-out ~280ms)
-     instead of jumping, so the composer and the messages move together, smoothly. */
-  var root = document.documentElement, target = 0, shown = 0, from = 0, t0 = 0, raf = 0, lastW = 0;
-  var DUR = 280;
-  function put(v){ shown = v; root.style.setProperty('--app-h', v + 'px'); }
-  function tick(now){
-    var p = Math.min(1, (now - t0) / DUR), e = 1 - Math.pow(1 - p, 3);
-    put(from + (target - from) * e);
-    raf = p < 1 ? requestAnimationFrame(tick) : 0;
-  }
+  /* Track the real visual viewport directly. The browser already animates the
+     keyboard viewport; a second JS height tween makes the composer lag behind
+     it and can cause a visible jump when the keyboard finishes opening. */
+  var root = document.documentElement;
+  var raf = 0, lastW = 0, lastH = 0;
   function fit(){
-    var vv = window.visualViewport;
-    var h = Math.round(vv ? vv.height * vv.scale : window.innerHeight);
-    var w = Math.round(vv ? vv.width : window.innerWidth);
-    if (!(h > 0) || h === target) return;
-    var widthChanged = lastW && Math.abs(w - lastW) > 1;
-    lastW = w;
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    target = h;
-    if (!shown || widthChanged || reduce) { cancelAnimationFrame(raf); raf = 0; put(h); return; }
-    from = shown; t0 = performance.now();
-    if (!raf) raf = requestAnimationFrame(tick);
+    if (raf) return;
+    raf = requestAnimationFrame(function(){
+      raf = 0;
+      var vv = window.visualViewport;
+      var h = Math.round(vv ? vv.height : window.innerHeight);
+      var w = Math.round(vv ? vv.width : window.innerWidth);
+      if (!(h > 0)) return;
+      /* Ignore duplicate resize notifications to avoid unnecessary layout. */
+      if (h === lastH && w === lastW) return;
+      lastH = h; lastW = w;
+      root.style.setProperty('--app-h', h + 'px');
+    });
   }
   fit();
-  window.addEventListener('resize', fit);
-  window.addEventListener('orientationchange', fit);
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+  window.addEventListener('resize', fit, { passive: true });
+  window.addEventListener('orientationchange', fit, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fit, { passive: true });
+    window.visualViewport.addEventListener('scroll', fit, { passive: true });
+  }
 })();
 </script>
 
