@@ -2031,6 +2031,16 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
   }
 }
 
+/* ==========================================================================
+   DESKTOP: hidden drawer / sheets must not leak their shadow into the view
+   ========================================================================== */
+@media (min-width: 900px) {
+  .settings-drawer:not(.active),
+  .user-sheet-modal:not(.active) {
+    box-shadow: none;
+  }
+}
+
 /* Restore the thin separators between settings/menu rows. */
 .settings-drawer .settings-card > .settings-row:not(:last-child),
 .settings-drawer.menu-context .settings-row:not(:last-child),
