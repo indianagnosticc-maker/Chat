@@ -2114,6 +2114,7 @@ let unsubscribeUser = null;
 let unsubscribeRoster = null;
 let rosterRetryTimer = null;
 let rosterRetryCount = 0;
+let rosterSeq = 0;
 let isSignUpMode = false;
 let searchDebounce = null;
 let typingTimeout = null;
@@ -2418,6 +2419,7 @@ function initRosterListener() {
   if (rosterRetryTimer) { clearTimeout(rosterRetryTimer); rosterRetryTimer = null; }
 
   const processRoster = async snap => {
+    const mySeq = ++rosterSeq;
     const list = [];
     const delList = getDeletedList(currentUser.uid);
 
@@ -2440,12 +2442,19 @@ function initRosterListener() {
       }
     }));
 
+    if (mySeq !== rosterSeq) return;
     try { list.forEach(it => watchProfile(it.otherUid)); } catch(e) { console.error(e); }
     const getTimeMillis = it => {
       const t = it.data.lastMsgAt || it.data.touchAt;
       return t && t.toMillis ? t.toMillis() : 0;
     };
     list.sort((a, b) => getTimeMillis(b) - getTimeMillis(a));
+    list.forEach(it => {
+      if (currentUser && activeChatId && it.chatId === activeChatId && it.data.unread && it.data.unread[currentUser.uid] > 0) {
+        it.data = { ...it.data, unread: { ...it.data.unread, [currentUser.uid]: 0 } };
+        updateDoc(doc(db, 'chats', it.chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
+      }
+    });
     conversationList = list;
     rosterRetryCount = 0;
     renderDirectsList();
@@ -2606,8 +2615,17 @@ function stopAllListeners() {
   rosterRetryCount = 0;
 }
 
+function stopChatListeners() {
+  unsubscribeMessages && unsubscribeMessages();
+  unsubscribeChatMeta && unsubscribeChatMeta();
+  unsubscribeUser && unsubscribeUser();
+  unsubscribeMessages = null;
+  unsubscribeChatMeta = null;
+  unsubscribeUser = null;
+}
+
 function openChatView(peerUid, profile = null) {
-  stopAllListeners();
+  stopChatListeners();
   chatSettleAt = appShell.classList.contains('in-chat') ? 0 : Date.now() + 300;
   appShell.classList.add('in-chat');
 
@@ -2662,6 +2680,10 @@ function openChatView(peerUid, profile = null) {
 
   // Mark unread as seen
   if (currentUser && !activePeer.isYuki) {
+    const _ex = conversationList.find(c => c.otherUid === peerUid);
+    if (_ex && _ex.data && _ex.data.unread && _ex.data.unread[currentUser.uid] > 0) {
+      _ex.data = { ..._ex.data, unread: { ..._ex.data.unread, [currentUser.uid]: 0 } };
+    }
     updateDoc(doc(db, 'chats', activeChatId), {
       [`unread.${currentUser.uid}`]: 0
     }).catch(()=>{});
@@ -2670,6 +2692,7 @@ function openChatView(peerUid, profile = null) {
       users: [currentUser.uid, peerUid],
       [`participants.${currentUser.uid}`]: true,
       [`participants.${peerUid}`]: true,
+      unread: { [currentUser.uid]: 0 },
       touchAt: serverTimestamp()
     }, { merge: true }).catch(()=>{});
   }
@@ -2776,6 +2799,7 @@ function buildMessageRow(id, msg, animate) {
     <div class="msg-bubble-wrap">
       <div class="msg-bubble">${esc(msg.text)}<span class="msg-time">${esc(timeStr)}</span></div>
     </div>`;
+  row.addEventListener('animationend', () => row.classList.add('no-anim'), { once: true });
   return row;
 }
 
@@ -2806,7 +2830,8 @@ function renderMessages(chatId, items) {
   const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
   const ids = new Set(items.map(i => i.id));
   renderedRows.forEach((el, id) => { if (!ids.has(id)) { el.remove(); renderedRows.delete(id); } });
-  box.querySelectorAll('.message-date-divider').forEach(d => d.remove());
+  const oldDividers = new Map();
+  box.querySelectorAll('.message-date-divider').forEach(d => oldDividers.set(d.dataset.day, d));
 
   const frag = initial ? document.createDocumentFragment() : null;
   let anchor = null;
@@ -2817,8 +2842,21 @@ function renderMessages(chatId, items) {
   items.forEach(({ id, msg }) => {
     const day = messageDayKey(msg.at);
     if (day !== lastDay) {
-      const divider = makeDateDivider(msg.at);
-      if (initial) frag.appendChild(divider); else (anchor ? anchor.after(divider) : typing.before(divider));
+      let divider = oldDividers.get(day);
+      if (divider) {
+        oldDividers.delete(day);
+        const pill = divider.querySelector('.date-pill');
+        const label = formatMessageDate(msg.at);
+        if (pill && pill.textContent !== label) pill.textContent = label;
+        if (initial) frag.appendChild(divider);
+        else {
+          const expected = anchor ? anchor.nextElementSibling : box.firstElementChild;
+          if (expected !== divider) { anchor ? anchor.after(divider) : box.insertBefore(divider, box.firstElementChild); }
+        }
+      } else {
+        divider = makeDateDivider(msg.at);
+        if (initial) frag.appendChild(divider); else (anchor ? anchor.after(divider) : box.insertBefore(divider, box.firstElementChild));
+      }
       anchor = divider;
       lastDay = day;
     }
@@ -2848,6 +2886,7 @@ function renderMessages(chatId, items) {
     lastMine = row.classList.contains('is-mine');
   });
   if (initial) typing.before(frag);
+  oldDividers.forEach(d => d.remove());
 
   if (initial) {
     box.scrollTop = box.scrollHeight;
@@ -2893,6 +2932,8 @@ function subscribeToMessages(chatId) {
     if (last && currentUser && !activePeer?.isYuki && !activePeer?.isDemo && last.data().by !== currentUser.uid) {
       const it = conversationList.find(c => c.chatId === chatId);
       if (it && it.data.unread && it.data.unread[currentUser.uid] > 0) {
+        it.data = { ...it.data, unread: { ...it.data.unread, [currentUser.uid]: 0 } };
+        renderDirectsList();
         updateDoc(doc(db, 'chats', chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
       }
     }
@@ -3371,11 +3412,27 @@ $('btnChatBack')?.addEventListener('click', () => {
   appShell.classList.remove('in-chat');
   activePeer = null;
   activeChatId = null;
-  stopAllListeners();
+  stopChatListeners();
   renderDirectsList();
 });
 
 $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
+
+/* Keyboard open/close: keep the same messages visible instead of hiding them below the keyboard */
+(function(){
+  const box = $('messagesContainer');
+  if (!box || !window.ResizeObserver) return;
+  let prevH = box.clientHeight;
+  new ResizeObserver(() => {
+    const h = box.clientHeight;
+    const shrunk = prevH - h;
+    prevH = h;
+    if (shrunk > 0) box.scrollTop += shrunk;
+  }).observe(box);
+})();
+
+/* Keep relative times (now / 5m / 2h) live without refresh */
+setInterval(() => { if (currentUser) scheduleRenderDirects(); }, 30000);
 
 
 /* Contact details bottom sheet modal */
@@ -3488,6 +3545,11 @@ $('btnContextClearChat')?.addEventListener('click', async () => {
     if (!peer.isYuki) meta.unread = { [currentUser.uid]: 0, [peer.uid]: 0 };
     await setDoc(doc(db, 'chats', cId), meta, { merge: true });
     if (peer.isYuki) yukiHistory = [];
+    const _le = conversationList.find(c => c.chatId === cId);
+    if (_le) {
+      _le.data = { ..._le.data, lastMsg: '', unread: { ...(_le.data.unread || {}), [currentUser.uid]: 0 } };
+      renderDirectsList();
+    }
     showToast('Chat cleared');
   } catch(e) {
     console.error('Clear chat error:', e);
