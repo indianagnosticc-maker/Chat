@@ -113,12 +113,11 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
   display: flex;
   flex-direction: column;
   background: var(--app-bg);
-  transition: transform var(--anim-speed) cubic-bezier(0.22, 1, 0.36, 1), opacity var(--anim-speed) ease;
+  transition: transform var(--anim-speed) cubic-bezier(0.25, 1, 0.3, 1), opacity var(--anim-speed) ease;
   z-index: 10;
   overflow: hidden;
   will-change: transform, opacity;
   backface-visibility: hidden;
-  transform: translate3d(0, 0, 0);
 }
 #screenChat {
   transform: translateX(100%);
@@ -1484,8 +1483,8 @@ h1, h2, h3 { font-weight: 600; }
 .settings-drawer.chat-context .settings-row { min-height: 54px; box-sizing: border-box; }
 .user-sheet-modal { transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
 .backdrop-scrim { transition: opacity 0.3s ease; }
-.panes-track { transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1); transform: translate3d(0, 0, 0); }
-.inbox-tab-indicator { transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
+.panes-track { transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
+.inbox-tab-indicator { transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); will-change: transform; }
 .inbox-tab { transition: color 0.25s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1); }
 .inbox-tab:active { transform: scale(0.96); }
 .pane-col { opacity: 1; transition: opacity 0.3s ease; }
@@ -1634,6 +1633,18 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(8) { animation-delay: 0.26s; }
 .settings-drawer.active #drawerMainView:not(.hidden) > *:nth-child(9) { animation-delay: 0.29s; }
 .settings-drawer.chat-context.active #drawerMainView:not(.hidden) > #chatContextActions { animation-delay: 0.05s; }
+
+/* Restore the thin separators between settings/menu rows. */
+.settings-drawer .settings-card > .settings-row:not(:last-child),
+.settings-drawer.menu-context .settings-row:not(:last-child),
+.settings-drawer.chat-context .settings-row:not(:last-child) {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.settings-drawer .settings-card > .settings-row:last-child,
+.settings-drawer.menu-context .settings-row:last-child,
+.settings-drawer.chat-context .settings-row:last-child {
+  border-bottom: 0;
+}
 </style>
 </head>
 <body>
@@ -2065,31 +2076,36 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 
 <script>
 (function(){
-  /* Track the real visual viewport directly. The browser already animates the
-     keyboard viewport; a second JS height tween makes the composer lag behind
-     it and can cause a visible jump when the keyboard finishes opening. */
+  /* Keep --app-h synced to the browser's native keyboard animation.
+     Do not run a second eased height animation on top of visualViewport: it can
+     lag behind the keyboard and repeatedly resize/reflow the message list. */
   var root = document.documentElement;
-  var raf = 0, lastW = 0, lastH = 0;
-  function fit(){
-    if (raf) return;
-    raf = requestAnimationFrame(function(){
-      raf = 0;
-      var vv = window.visualViewport;
-      var h = Math.round(vv ? vv.height : window.innerHeight);
-      var w = Math.round(vv ? vv.width : window.innerWidth);
-      if (!(h > 0)) return;
-      /* Ignore duplicate resize notifications to avoid unnecessary layout. */
-      if (h === lastH && w === lastW) return;
-      lastH = h; lastW = w;
+  var queued = false;
+  var lastH = 0;
+  var lastW = 0;
+  var vv = window.visualViewport;
+  function syncViewport(){
+    queued = false;
+    var h = Math.round(vv ? vv.height : window.innerHeight);
+    var w = Math.round(vv ? vv.width : window.innerWidth);
+    if (!(h > 0)) return;
+    if (h !== lastH) {
+      lastH = h;
       root.style.setProperty('--app-h', h + 'px');
-    });
+    }
+    lastW = w;
   }
-  fit();
-  window.addEventListener('resize', fit, { passive: true });
-  window.addEventListener('orientationchange', fit, { passive: true });
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', fit, { passive: true });
-    window.visualViewport.addEventListener('scroll', fit, { passive: true });
+  function scheduleSync(){
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(syncViewport);
+  }
+  syncViewport();
+  window.addEventListener('resize', scheduleSync, { passive: true });
+  window.addEventListener('orientationchange', scheduleSync, { passive: true });
+  if (vv) {
+    vv.addEventListener('resize', scheduleSync, { passive: true });
+    vv.addEventListener('scroll', scheduleSync, { passive: true });
   }
 })();
 </script>
