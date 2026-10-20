@@ -2,6 +2,8 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="only light">
+<meta name="darkreader-lock">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Yuki</title>
 <link rel="icon" href="https://lh3.googleusercontent.com/aida-public/AB6AXuB4sBVUR8Nz47PlRnmU7Mn9yBzGxjtHQbmswmVJ8g5JBLmgwhevUrlEWaiPvzu5NGe_l3mKI1oWJzedHAZUWp_1iqSxEfaynl9A6aduhVIbZY_4KOtC4c22tAzKQJYC1E7gQtuq_k0JbQTLEPWTB2buOrT_ts7cIa-kfTMx_dbvLkbqkM7D00p3E_VLcpHPW49Vuv8tc_TAMxQCZGc2hpKdGpIkXY9j6A6mDYHzquEG8yWXaVh_tMpOUw">
@@ -1556,6 +1558,7 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 
 /* Smoothness-only rendering hints; visual design is unchanged. */
 .settings-drawer, .backdrop-scrim, .panes-track, .app-shell { will-change: transform; backface-visibility: hidden; }
+body, .device-wrapper { height: var(--app-h, 100dvh); }
 </style>
 </head>
 <body>
@@ -1982,6 +1985,21 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
     if(!scrim.dataset.yukiSettingsBound){ scrim.dataset.yukiSettingsBound='1'; scrim.addEventListener('click',hide); }
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
+})();
+</script>
+
+<script>
+(function(){
+  var root = document.documentElement, last = 0;
+  function fit(){
+    var vv = window.visualViewport;
+    var h = Math.round(vv ? vv.height * vv.scale : window.innerHeight);
+    if (h > 0 && h !== last) { last = h; root.style.setProperty('--app-h', h + 'px'); }
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
 })();
 </script>
 
@@ -3423,11 +3441,16 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
   const box = $('messagesContainer');
   if (!box || !window.ResizeObserver) return;
   let prevH = box.clientHeight;
+  let lastTop = box.scrollTop;
+  box.addEventListener('scroll', () => { lastTop = box.scrollTop; }, { passive: true });
   new ResizeObserver(() => {
     const h = box.clientHeight;
-    const shrunk = prevH - h;
+    const d = prevH - h;          // + when keyboard opens, - when it closes
     prevH = h;
-    if (shrunk > 0) box.scrollTop += shrunk;
+    if (d !== 0) {
+      box.scrollTop = lastTop + d;
+      lastTop = box.scrollTop;
+    }
   }).observe(box);
 })();
 
