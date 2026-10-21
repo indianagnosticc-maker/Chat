@@ -3641,13 +3641,9 @@ async function handleSendMessage() {
   const peer = activePeer;
 
   try {
-    await addDoc(collection(db, 'chats', cId, 'messages'), {
-      text,
-      by: currentUser.uid,
-      at: serverTimestamp(),
-      seen: false
-    });
-
+    // Create/update the chat document FIRST. This is important for Yuki:
+    // Firestore rules can require the parent chat document to exist before
+    // allowing a message to be written into its subcollection.
     await setDoc(doc(db, 'chats', cId), {
       users: [currentUser.uid, peer.uid],
       [`participants.${currentUser.uid}`]: true,
@@ -3659,6 +3655,14 @@ async function handleSendMessage() {
       unread: peer.isYuki ? {} : { [peer.uid]: increment(1), [currentUser.uid]: 0 },
       typing: { [currentUser.uid]: false }
     }, { merge: true });
+
+    // Then write the actual message.
+    await addDoc(collection(db, 'chats', cId, 'messages'), {
+      text,
+      by: currentUser.uid,
+      at: serverTimestamp(),
+      seen: false
+    });
 
     // Immediate local roster update; Firestore realtime will reconcile it with the server snapshot.
     const localEntry = conversationList.find(c => c.otherUid === peer.uid);
@@ -3693,19 +3697,24 @@ async function handleSendMessage() {
         yukiHistory.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
         yukiHistory = yukiHistory.slice(-20);
 
+        // Keep the chat metadata valid before writing Yuki's reply.
+        await setDoc(doc(db, 'chats', cId), {
+          users: [currentUser.uid, YUKI_BOT_UID],
+          [`participants.${currentUser.uid}`]: true,
+          [`participants.${YUKI_BOT_UID}`]: true,
+          lastMsg: reply.slice(0, 80),
+          lastMsgAt: serverTimestamp(),
+          lastMsgBy: YUKI_BOT_UID,
+          touchAt: serverTimestamp(),
+          unread: {}
+        }, { merge: true });
+
         await addDoc(collection(db, 'chats', cId, 'messages'), {
           text: reply,
           by: YUKI_BOT_UID,
           at: serverTimestamp(),
           seen: true
         });
-
-        await setDoc(doc(db, 'chats', cId), {
-          lastMsg: reply.slice(0, 80),
-          lastMsgAt: serverTimestamp(),
-          lastMsgBy: YUKI_BOT_UID,
-          touchAt: serverTimestamp()
-        }, { merge: true });
       }, 650);
     }
   } catch(err) {
