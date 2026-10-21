@@ -4149,19 +4149,66 @@ $('btnChatBack')?.addEventListener('click', () => {
 
 $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
 
-/* Keyboard open/close: stay at bottom if you were at bottom, else keep the same messages visible */
+/* Keyboard open/close: the layout jumps to its final size at once (composer stays glued to the keyboard),
+   the message list glides with one smooth spring. Same messages stay visible; if you were at the
+   bottom you stay at the bottom. */
 (function(){
   const box = $('messagesContainer');
   if (!box || !window.ResizeObserver) return;
-  let prevH = box.clientHeight;
+  const OMEGA = 24;
+  let prevH = box.clientHeight, lastTop = box.scrollTop, stuck = true;
+  let anim = false, raf = 0, last = 0, cur = 0, tgt = 0, vel = 0, basePad = 0, extra = 0;
+  const isStuck = () => (box.scrollHeight - extra - box.scrollTop - box.clientHeight) < 90;
+
+  function endAnim(toTarget){
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0; last = 0; vel = 0;
+    const keep = toTarget ? tgt : box.scrollTop;
+    anim = false; extra = 0;
+    box.style.paddingBottom = '';
+    box.scrollTop = keep;
+    lastTop = box.scrollTop;
+    stuck = isStuck();
+  }
+  function step(now){
+    raf = 0;
+    let dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+    if (!(dt > 0)) dt = 0.016;
+    last = now;
+    const x = cur - tgt, B = vel + OMEGA * x, e = Math.exp(-OMEGA * dt);
+    const nx = (x + B * dt) * e;
+    vel = (vel - OMEGA * B * dt) * e;
+    cur = tgt + nx;
+    if (Math.abs(nx) < 0.4 && Math.abs(vel) < 10) { endAnim(true); return; }
+    box.scrollTop = cur;
+    raf = requestAnimationFrame(step);
+  }
+
+  box.addEventListener('scroll', () => {
+    if (anim) return;
+    lastTop = box.scrollTop;
+    stuck = isStuck();
+  }, { passive: true });
+  box.addEventListener('touchstart', () => { if (anim) endAnim(false); }, { passive: true });
+  box.addEventListener('wheel', () => { if (anim) endAnim(false); }, { passive: true });
+
   new ResizeObserver(() => {
     const h = box.clientHeight;
-    const d = prevH - h;          // + when keyboard opens, - when it closes
-    const wasBottom = (box.scrollHeight - box.scrollTop - prevH) < 90;
+    const old = prevH;
     prevH = h;
-    if (d === 0 || h === 0) return;
-    const max = Math.max(0, box.scrollHeight - h);
-    box.scrollTop = wasBottom ? max : Math.max(0, Math.min(max, box.scrollTop + d));
+    if (!old || !h || old === h) return;
+    const d = old - h;                       // + keyboard opening, - closing
+    const start = anim ? cur : lastTop;
+    const max = Math.max(0, box.scrollHeight - extra - h);
+    tgt = stuck ? max : Math.max(0, Math.min(max, start + d));
+    if (!anim) basePad = parseFloat(getComputedStyle(box).paddingBottom) || 0;
+    extra = Math.max(0, start - max);        // keeps the old scroll position valid while the list grows
+    box.style.paddingBottom = (basePad + extra) + 'px';
+    box.scrollTop = start;
+    cur = box.scrollTop;
+    if (Math.abs(cur - tgt) < 1) { anim = true; endAnim(true); return; }
+    anim = true;
+    if (!raf) { last = 0; raf = requestAnimationFrame(step); }
   }).observe(box);
 })();
 
