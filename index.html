@@ -2106,6 +2106,22 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .chat-header-meta b { font-weight: 500; letter-spacing: 0; }
 #modalContactName { font-weight: 500 !important; }
 #blockedUsersContainer b { font-weight: 500 !important; }
+
+/* Settings boxes: every row/box exactly the same size (menu + chat settings) */
+.settings-drawer.menu-context #drawerMainView .settings-row,
+.settings-drawer.chat-context #chatContextActions .settings-row,
+.settings-drawer.chat-context #chatContextActions .settings-card > .settings-row:not(:last-child) {
+  height: 64px; min-height: 64px; max-height: 64px;
+  box-sizing: border-box; padding-top: 0; padding-bottom: 0;
+}
+.settings-drawer.menu-context #drawerMainView .settings-info,
+.settings-drawer.chat-context #chatContextActions .settings-info { overflow: hidden; }
+.settings-drawer.menu-context #drawerMainView .settings-sub-title,
+.settings-drawer.chat-context #chatContextActions .settings-sub-title,
+.settings-drawer.menu-context #drawerMainView .settings-main-title,
+.settings-drawer.chat-context #chatContextActions .settings-main-title {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 </style>
 </head>
 <body>
@@ -4192,7 +4208,7 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
   box.addEventListener('touchstart', () => { if (anim) endAnim(false); }, { passive: true });
   box.addEventListener('wheel', () => { if (anim) endAnim(false); }, { passive: true });
 
-  new ResizeObserver(() => { requestAnimationFrame(() => {
+  new ResizeObserver(() => {
     const h = box.clientHeight;
     const old = prevH;
     prevH = h;
@@ -4209,7 +4225,7 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
     if (Math.abs(cur - tgt) < 1) { anim = true; endAnim(true); return; }
     anim = true;
     if (!raf) { last = 0; raf = requestAnimationFrame(step); }
-  }); }).observe(box);
+  }).observe(box);
 })();
 
 /* Keep relative times (now / 5m / 2h) live without refresh */
