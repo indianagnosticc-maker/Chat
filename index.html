@@ -2369,7 +2369,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
         <div class="settings-sec-label">Danger Zone</div>
         <div class="settings-card">
           <div class="settings-row" id="rowDeleteAccount">
-            <span class="settings-icon danger"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v13a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V6"/><path d="M8 6V5a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v1"/></svg></span>
+            <span class="settings-icon danger"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
             <div class="settings-info">
               <span class="settings-main-title" style="color:#ef4444">Delete Account</span>
               <span class="settings-sub-title">Permanently remove your account</span>
@@ -2394,7 +2394,6 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
               <span class="settings-icon danger"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></svg></span>
               <div class="settings-info">
                 <span class="settings-main-title" style="color:#ef4444" id="labelBlockChatUser">Block User</span>
-              <span class="settings-sub-title">Tap here to block this user. They will be removed from your chats.</span>
               </div>
             </div>
             <div class="settings-row" id="btnContextClearChat">
@@ -3177,14 +3176,6 @@ function initRosterListener() {
     conversationList = list;
     rosterRetryCount = 0;
     renderDirectsList();
-    try {
-      list.slice(0, 6).forEach(it => {
-        if (msgCache.has(it.chatId)) return;
-        getDocs(query(collection(db, 'chats', it.chatId, 'messages'), orderBy('at', 'asc'), limit(200))).then(sn => {
-          if (!msgCache.has(it.chatId)) msgCache.set(it.chatId, sn.docs.map(d => ({ id: d.id, msg: d.data({ serverTimestamps: 'estimate' }) })));
-        }).catch(() => {});
-      });
-    } catch(e) {}
   };
 
   const retry = err => {
@@ -3353,7 +3344,7 @@ function stopChatListeners() {
 
 function openChatView(peerUid, profile = null) {
   stopChatListeners();
-  chatSettleAt = 0;
+  chatSettleAt = appShell.classList.contains('in-chat') ? 0 : Date.now() + 300;
   appShell.classList.add('in-chat');
 
   if (peerUid === 'demo_leslie' || peerUid === 'demo_marvin' || peerUid === 'demo_jacob') {
@@ -3412,8 +3403,9 @@ function openChatView(peerUid, profile = null) {
       [`participants.${currentUser.uid}`]: true,
       [`participants.${peerUid}`]: true,
       touchAt: serverTimestamp()
-    }, { merge: true }).catch(e => console.warn('Yuki chat init:', e));
-    subscribeToMessages(_yid);
+    }, { merge: true }).catch(e => console.warn('Yuki chat init:', e)).then(() => {
+      if (activeChatId === _yid && !unsubscribeMessages) subscribeToMessages(_yid);
+    });
   } else {
     subscribeToMessages(activeChatId);
   }
@@ -3636,7 +3628,7 @@ function renderMessages(chatId, items) {
     requestAnimationFrame(() => box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' }));
   }
 }
-function subscribeToMessages(chatId, attempt = 0) {
+function subscribeToMessages(chatId) {
   if (!chatId) return;
   const box = $('messagesContainer');
 
@@ -3646,7 +3638,7 @@ function subscribeToMessages(chatId, attempt = 0) {
   if (cached) renderMessages(chatId, cached);
   else if (!fresh) box.scrollTop = box.scrollHeight;
 
-  const _thisUnsub = unsubscribeMessages = onSnapshot(query(
+  unsubscribeMessages = onSnapshot(query(
     collection(db, 'chats', chatId, 'messages'),
     orderBy('at', 'asc'),
     limit(200)
@@ -3678,18 +3670,7 @@ function subscribeToMessages(chatId, attempt = 0) {
         updateDoc(doc(db, 'chats', chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
       }
     }
-  }, err => {
-    console.error('Messages sync error:', err);
-    if (attempt < 3 && activeChatId === chatId) {
-      setTimeout(() => {
-        if (activeChatId === chatId && unsubscribeMessages === _thisUnsub) {
-          try { unsubscribeMessages(); } catch(e) {}
-          unsubscribeMessages = null;
-          subscribeToMessages(chatId, attempt + 1);
-        }
-      }, 500 * (attempt + 1));
-    }
-  });
+  }, err => console.error('Messages sync error:', err));
 }
 
 /* ==========================================================================
@@ -3750,12 +3731,12 @@ async function handleSendMessage() {
 
   try {
     if (peer.isYuki) {
-      setDoc(doc(db, 'chats', cId), {
+      await setDoc(doc(db, 'chats', cId), {
         users: [currentUser.uid, peer.uid],
         [`participants.${currentUser.uid}`]: true,
         [`participants.${peer.uid}`]: true,
         touchAt: serverTimestamp()
-      }, { merge: true }).catch(e => console.warn('Yuki chat init:', e));
+      }, { merge: true });
       if (activeChatId === cId && !unsubscribeMessages) subscribeToMessages(cId);
     }
     await addDoc(collection(db, 'chats', cId, 'messages'), {
@@ -4440,15 +4421,8 @@ $('btnDeleteConfirm')?.addEventListener('click', async () => {
 $('btnContextBlock')?.addEventListener('click', () => {
   if (activePeer && !activePeer.isYuki) {
     const isBlocked = (currentProfile?.blockedUids || []).includes(activePeer.uid);
-    const _bUid = activePeer.uid;
+    toggleBlockUser(activePeer.uid, !isBlocked);
     toggleDrawer(false);
-    if (!isBlocked) {
-      appShell.classList.remove('in-chat');
-      activePeer = null;
-      activeChatId = null;
-      stopChatListeners();
-    }
-    toggleBlockUser(_bUid, !isBlocked);
   }
 });
 
@@ -4484,14 +4458,6 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
 <style id="kbAnimSupport">
 /* Behaviour-only (no visual change): stop the browser's scroll anchoring from fighting the keyboard scroll sync */
 .messages-container { overflow-anchor: none; }
-
-/* Soft corners: Block List, Delete Account, Block User icons */
-#rowOpenBlockList .settings-icon,
-#rowDeleteAccount .settings-icon,
-#btnContextBlock .settings-icon { border-radius: 14px; overflow: hidden; }
-#rowOpenBlockList .settings-icon svg,
-#rowDeleteAccount .settings-icon svg,
-#btnContextBlock .settings-icon svg { stroke-linecap: round; stroke-linejoin: round; }
 </style>
 <script>
 /* Keyboard: follow the real visual viewport directly (no extra animation layer),
