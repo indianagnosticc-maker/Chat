@@ -3689,6 +3689,8 @@ async function handleSendMessage() {
       setTimeout(async () => {
         let reply = '...';
         try {
+          // Yuki requests always go through the backend JS endpoint.
+          // The API key must remain server-side in /api/yuki, never in this HTML.
           const res = await fetch('/api/yuki', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3750,6 +3752,76 @@ $('chatInputText')?.addEventListener('keydown', e => {
     handleSendMessage();
   }
 });
+
+/* Keyboard viewport handling: chat-only, smooth, no UI/layout changes */
+(() => {
+  const chatInput = $('chatInputText');
+  const chatScreen = $('screenChat');
+  if (!chatInput || !chatScreen) return;
+
+  let keyboardOpen = false;
+  let keyboardScrollY = 0;
+  let keyboardTimer = null;
+
+  const getScroller = () =>
+    $('messagesContainer') ||
+    document.scrollingElement ||
+    document.documentElement;
+
+  const scrollChatForKeyboard = (open) => {
+    if (!document.body.contains(chatInput)) return;
+    const scroller = getScroller();
+    if (!scroller) return;
+
+    if (open) {
+      keyboardOpen = true;
+      keyboardScrollY = scroller.scrollTop || 0;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // Keep the composer/input visible above the keyboard without changing
+          // any page dimensions or UI styles.
+          chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
+    } else if (keyboardOpen) {
+      keyboardOpen = false;
+      requestAnimationFrame(() => {
+        scroller.scrollTo({ top: keyboardScrollY, behavior: 'smooth' });
+      });
+    }
+  };
+
+  chatInput.addEventListener('focus', () => {
+    clearTimeout(keyboardTimer);
+    keyboardTimer = setTimeout(() => scrollChatForKeyboard(true), 80);
+  });
+
+  chatInput.addEventListener('blur', () => {
+    clearTimeout(keyboardTimer);
+    keyboardTimer = setTimeout(() => scrollChatForKeyboard(false), 120);
+  });
+
+  if (window.visualViewport) {
+    let lastHeight = window.visualViewport.height;
+
+    const onViewportResize = () => {
+      const height = window.visualViewport.height;
+      const delta = lastHeight - height;
+      lastHeight = height;
+
+      // A significant visual viewport reduction while the composer is focused
+      // means the software keyboard opened.
+      if (chatInput === document.activeElement && delta > 80) {
+        scrollChatForKeyboard(true);
+      } else if (delta < -80 && document.activeElement !== chatInput) {
+        scrollChatForKeyboard(false);
+      }
+    };
+
+    window.visualViewport.addEventListener('resize', onViewportResize);
+  }
+})();
 
 /* Input auto-growth & send button activation */
 $('chatInputText')?.addEventListener('input', () => {
