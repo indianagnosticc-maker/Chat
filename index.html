@@ -4174,11 +4174,14 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
   const OMEGA = 24;
   let prevH = box.clientHeight, lastTop = box.scrollTop, stuck = true;
   let anim = false, raf = 0, last = 0, cur = 0, tgt = 0, vel = 0, basePad = 0, extra = 0;
+  const dock = document.querySelector('.composer-dock');
+  let cx = 0, cvel = 0;                       // composer offset (px) + velocity, glides to 0 with the same spring
   const isStuck = () => (box.scrollHeight - extra - box.scrollTop - box.clientHeight) < 90;
 
   function endAnim(toTarget){
     if (raf) cancelAnimationFrame(raf);
-    raf = 0; last = 0; vel = 0;
+    raf = 0; last = 0; vel = 0; cx = 0; cvel = 0;
+    if (dock) dock.style.transform = '';
     const keep = toTarget ? tgt : box.scrollTop;
     anim = false; extra = 0;
     box.style.paddingBottom = '';
@@ -4195,8 +4198,12 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
     const nx = (x + B * dt) * e;
     vel = (vel - OMEGA * B * dt) * e;
     cur = tgt + nx;
-    if (Math.abs(nx) < 0.4 && Math.abs(vel) < 10) { endAnim(true); return; }
+    const cB = cvel + OMEGA * cx;
+    cx = (cx + cB * dt) * e;
+    cvel = (cvel - OMEGA * cB * dt) * e;
+    if (Math.abs(nx) < 0.4 && Math.abs(vel) < 10 && Math.abs(cx) < 0.4 && Math.abs(cvel) < 10) { endAnim(true); return; }
     box.scrollTop = cur;
+    if (dock) dock.style.transform = 'translate3d(0,' + cx.toFixed(2) + 'px,0)';
     raf = requestAnimationFrame(step);
   }
 
@@ -4222,7 +4229,9 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
     box.style.paddingBottom = (basePad + extra) + 'px';
     box.scrollTop = start;
     cur = box.scrollTop;
-    if (Math.abs(cur - tgt) < 1) { anim = true; endAnim(true); return; }
+    cx += d;                                  // composer starts at its old spot, then rises/falls with the list
+    if (dock) dock.style.transform = 'translate3d(0,' + cx.toFixed(2) + 'px,0)';
+    if (Math.abs(cur - tgt) < 1) { cur = tgt; vel = 0; }
     anim = true;
     if (!raf) { last = 0; raf = requestAnimationFrame(step); }
   }).observe(box);
