@@ -1565,7 +1565,7 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 
 /* Smoothness-only rendering hints; visual design is unchanged. */
 .settings-drawer, .backdrop-scrim, .panes-track, .app-shell { will-change: transform; backface-visibility: hidden; }
-body, .device-wrapper { height: 100dvh }
+body, .device-wrapper { height: var(--app-h, 100dvh); }
 
 /* ==========================================================================
    REFINEMENTS: calm, premium motion (transform + opacity only), sheet intro,
@@ -1804,7 +1804,7 @@ body, .device-wrapper { height: 100dvh }
     box-shadow: none;
   }
   @media (max-height: 640px) {
-    .device-wrapper { width: 100%; max-width: none; height: 100dvh border-radius: 0; border: 0; }
+    .device-wrapper { width: 100%; max-width: none; height: var(--app-h, 100dvh); border-radius: 0; border: 0; }
   }
 
   .screen { transition: none; }
@@ -2052,16 +2052,6 @@ body, .device-wrapper { height: 100dvh }
 .settings-drawer.chat-context .settings-row:last-child {
   border-bottom: 0;
 }
-
-.user-sheet-modal:not(.active),
-.settings-drawer:not(.active) {
-  visibility: hidden;
-  box-shadow: none;
-  pointer-events: none;
-  transition: transform .38s var(--smooth), visibility 0s linear .45s;
-}
-.user-sheet-modal { transform: translateY(120%); }
-.user-sheet-modal.active { transform: translateY(0); }
 </style>
 </head>
 <body>
@@ -2490,7 +2480,41 @@ body, .device-wrapper { height: 100dvh }
 })();
 </script>
 
-
+<script>
+(function(){
+  /* Keep --app-h synced to the browser's native keyboard animation.
+     Do not run a second eased height animation on top of visualViewport: it can
+     lag behind the keyboard and repeatedly resize/reflow the message list. */
+  var root = document.documentElement;
+  var queued = false;
+  var lastH = 0;
+  var lastW = 0;
+  var vv = window.visualViewport;
+  function syncViewport(){
+    queued = false;
+    var h = Math.round(vv ? vv.height : window.innerHeight);
+    var w = Math.round(vv ? vv.width : window.innerWidth);
+    if (!(h > 0)) return;
+    if (h !== lastH) {
+      lastH = h;
+      root.style.setProperty('--app-h', h + 'px');
+    }
+    lastW = w;
+  }
+  function scheduleSync(){
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(syncViewport);
+  }
+  syncViewport();
+  window.addEventListener('resize', scheduleSync, { passive: true });
+  window.addEventListener('orientationchange', scheduleSync, { passive: true });
+  if (vv) {
+    vv.addEventListener('resize', scheduleSync, { passive: true });
+    vv.addEventListener('scroll', scheduleSync, { passive: true });
+  }
+})();
+</script>
 
 <!-- Google Identity Services: in-page Google account prompt -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3617,8 +3641,13 @@ async function handleSendMessage() {
   const peer = activePeer;
 
   try {
-    // Establish/merge the parent chat document BEFORE writing the message.
-    // This keeps Firestore rules and the realtime message listener in sync.
+    await addDoc(collection(db, 'chats', cId, 'messages'), {
+      text,
+      by: currentUser.uid,
+      at: serverTimestamp(),
+      seen: false
+    });
+
     await setDoc(doc(db, 'chats', cId), {
       users: [currentUser.uid, peer.uid],
       [`participants.${currentUser.uid}`]: true,
@@ -3630,25 +3659,6 @@ async function handleSendMessage() {
       unread: peer.isYuki ? {} : { [peer.uid]: increment(1), [currentUser.uid]: 0 },
       typing: { [currentUser.uid]: false }
     }, { merge: true });
-
-    const sentRef = await addDoc(collection(db, 'chats', cId, 'messages'), {
-      text,
-      by: currentUser.uid,
-      at: serverTimestamp(),
-      seen: false
-    });
-
-    // Optimistic render so the sender sees the message immediately,
-    // while Firestore realtime remains the source of truth.
-    const optimistic = msgCache.get(cId) || [];
-    if (!optimistic.some(x => x.id === sentRef.id)) {
-      optimistic.push({
-        id: sentRef.id,
-        msg: { text, by: currentUser.uid, at: new Date(), seen: false }
-      });
-      msgCache.set(cId, optimistic);
-      renderMessages(cId, optimistic);
-    }
 
     // Immediate local roster update; Firestore realtime will reconcile it with the server snapshot.
     const localEntry = conversationList.find(c => c.otherUid === peer.uid);
@@ -3665,8 +3675,6 @@ async function handleSendMessage() {
       setTimeout(async () => {
         let reply = '...';
         try {
-          // Yuki requests always go through the backend JS endpoint.
-          // The API key must remain server-side in /api/yuki, never in this HTML.
           const res = await fetch('/api/yuki', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3685,34 +3693,19 @@ async function handleSendMessage() {
         yukiHistory.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
         yukiHistory = yukiHistory.slice(-20);
 
-        // Keep the parent chat document valid before the bot message write.
-        await setDoc(doc(db, 'chats', cId), {
-          users: [currentUser.uid, YUKI_BOT_UID],
-          [`participants.${currentUser.uid}`]: true,
-          [`participants.${YUKI_BOT_UID}`]: true,
-          lastMsg: reply.slice(0, 80),
-          lastMsgAt: serverTimestamp(),
-          lastMsgBy: YUKI_BOT_UID,
-          touchAt: serverTimestamp()
-        }, { merge: true });
-
-        const replyRef = await addDoc(collection(db, 'chats', cId, 'messages'), {
+        await addDoc(collection(db, 'chats', cId, 'messages'), {
           text: reply,
           by: YUKI_BOT_UID,
           at: serverTimestamp(),
           seen: true
         });
 
-        // Optimistic Yuki render; realtime snapshot will reconcile it.
-        const yukiMsgs = msgCache.get(cId) || [];
-        if (!yukiMsgs.some(x => x.id === replyRef.id)) {
-          yukiMsgs.push({
-            id: replyRef.id,
-            msg: { text: reply, by: YUKI_BOT_UID, at: new Date(), seen: true }
-          });
-          msgCache.set(cId, yukiMsgs);
-          renderMessages(cId, yukiMsgs);
-        }
+        await setDoc(doc(db, 'chats', cId), {
+          lastMsg: reply.slice(0, 80),
+          lastMsgAt: serverTimestamp(),
+          lastMsgBy: YUKI_BOT_UID,
+          touchAt: serverTimestamp()
+        }, { merge: true });
       }, 650);
     }
   } catch(err) {
@@ -3728,8 +3721,6 @@ $('chatInputText')?.addEventListener('keydown', e => {
     handleSendMessage();
   }
 });
-
-
 
 /* Input auto-growth & send button activation */
 $('chatInputText')?.addEventListener('input', () => {
@@ -4076,15 +4067,18 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
   const box = $('messagesContainer');
   if (!box || !window.ResizeObserver) return;
   let prevH = box.clientHeight;
+  let lastTop = box.scrollTop;
+  box.addEventListener('scroll', () => { lastTop = box.scrollTop; }, { passive: true });
   new ResizeObserver(() => {
-    const h = box.clientHeight, d = prevH - h;
+    const h = box.clientHeight;
+    const d = prevH - h;          // + when keyboard opens, - when it closes
     prevH = h;
-    if (d !== 0) box.scrollTop += d;
+    if (d !== 0) {
+      box.scrollTop = lastTop + d;
+      lastTop = box.scrollTop;
+    }
   }).observe(box);
 })();
-
-// send tap pe keyboard band na ho
-$('btnSendMessage')?.addEventListener('pointerdown', e => e.preventDefault());
 
 /* Keep relative times (now / 5m / 2h) live without refresh */
 setInterval(() => { if (currentUser) scheduleRenderDirects(); }, 30000);
@@ -4302,6 +4296,62 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
   window.addEventListener('unhandledrejection',function(e){ errs.push('promise: '+((e.reason&&e.reason.message)||e.reason)); setTimeout(function(){show(true)},300); });
   window.addEventListener('fbloadfail',function(){ errs.push('Firebase failed to load: '+window.__fbLoadError+'\nCheck internet / VPN / ad-blocker blocking gstatic.com'); show(true); });
   setTimeout(function(){ if(!window.__chatBooted){ if(!errs.length) errs.push('no error captured - Firebase still loading (slow/blocked network?)'); show(); } },7000);
+})();
+</script>
+<script>
+/* ==========================================================================
+   KEYBOARD ON/OFF -> CHAT SCROLL UP / SCROLL DOWN ANIMATION
+   (ported from the single-chat demo)
+   The visible height follows the live keyboard height with an eased
+   animation (same 0.34 ease as the demo). On every animated frame the
+   messages box resizes, and the existing message-list anchor logic in this
+   file scrolls the chat up (keyboard opens) / down (keyboard closes) in sync.
+   Nothing else is touched.
+   ========================================================================== */
+(function chatKeyboardScrollAnimation(){
+  var root = document.documentElement;
+  var vv = window.visualViewport;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var raf = 0;
+
+  function readH(){ return vv && vv.height > 0 ? vv.height : window.innerHeight; }
+  function readTop(){ return vv && isFinite(vv.offsetTop) ? vv.offsetTop : 0; }
+
+  var targetH = readH(), targetTop = readTop();
+  var currentH = targetH, currentTop = targetTop;
+
+  function animate(){
+    raf = 0;
+    var ease = 0.34;
+    currentH += (targetH - currentH) * ease;
+    currentTop += (targetTop - currentTop) * ease;
+    if (Math.abs(targetH - currentH) < 0.65) currentH = targetH;
+    if (Math.abs(targetTop - currentTop) < 0.65) currentTop = targetTop;
+
+    root.style.setProperty('--app-h', Math.round(currentH) + 'px');
+    if (currentTop || document.body.style.top) document.body.style.top = Math.round(currentTop) + 'px';
+
+    if (Math.abs(targetH - currentH) > 0.65 || Math.abs(targetTop - currentTop) > 0.65) {
+      raf = requestAnimationFrame(animate);
+    }
+  }
+
+  function schedule(){
+    targetH = readH();
+    targetTop = readTop();
+    if (!(targetH > 0)) return;
+    if (reduce) { currentH = targetH; currentTop = targetTop; }
+    if (!raf) raf = requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', schedule, { passive: true });
+  window.addEventListener('orientationchange', function(){ requestAnimationFrame(schedule); }, { passive: true });
+  if (vv) {
+    vv.addEventListener('resize', schedule, { passive: true });
+    vv.addEventListener('scroll', schedule, { passive: true });
+  }
+  document.addEventListener('focusin', schedule);
+  document.addEventListener('focusout', schedule);
 })();
 </script>
 </body>
