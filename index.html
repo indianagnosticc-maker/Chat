@@ -4192,7 +4192,7 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
   box.addEventListener('touchstart', () => { if (anim) endAnim(false); }, { passive: true });
   box.addEventListener('wheel', () => { if (anim) endAnim(false); }, { passive: true });
 
-  new ResizeObserver(() => {
+  new ResizeObserver(() => { requestAnimationFrame(() => {
     const h = box.clientHeight;
     const old = prevH;
     prevH = h;
@@ -4209,7 +4209,7 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
     if (Math.abs(cur - tgt) < 1) { anim = true; endAnim(true); return; }
     anim = true;
     if (!raf) { last = 0; raf = requestAnimationFrame(step); }
-  }).observe(box);
+  }); }).observe(box);
 })();
 
 /* Keep relative times (now / 5m / 2h) live without refresh */
@@ -4424,7 +4424,7 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
       document.body.appendChild(b); }
     b.textContent=(window.__chatBooted?'App error:\n':'App did not start:\n')+errs.join('\n')+'\n\n(Screenshot this box and send it)';
   }
-  window.addEventListener('error',function(e){ if(!e.message) return; errs.push(e.message+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'')); setTimeout(function(){show(true)},300); },true);
+  window.addEventListener('error',function(e){ if(!e.message) return; if(/ResizeObserver loop/i.test(e.message)){ e.stopImmediatePropagation(); e.preventDefault(); return; } errs.push(e.message+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'')); setTimeout(function(){show(true)},300); },true);
   window.addEventListener('unhandledrejection',function(e){ errs.push('promise: '+((e.reason&&e.reason.message)||e.reason)); setTimeout(function(){show(true)},300); });
   window.addEventListener('fbloadfail',function(){ errs.push('Firebase failed to load: '+window.__fbLoadError+'\nCheck internet / VPN / ad-blocker blocking gstatic.com'); show(true); });
   setTimeout(function(){ if(!window.__chatBooted){ if(!errs.length) errs.push('no error captured - Firebase still loading (slow/blocked network?)'); show(); } },7000);
