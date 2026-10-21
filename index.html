@@ -4303,97 +4303,165 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
   setTimeout(function(){ if(!window.__chatBooted){ if(!errs.length) errs.push('no error captured - Firebase still loading (slow/blocked network?)'); show(); } },7000);
 })();
 </script>
+<style id="kbAnimSupport">
+/* Behaviour-only (no visual change): stop the browser's scroll anchoring from fighting the keyboard scroll sync */
+.messages-container { overflow-anchor: none; }
+</style>
 <script>
 /* ==========================================================================
-   KEYBOARD ON/OFF -> CHAT SCROLL UP / SCROLL DOWN ANIMATION
-   - Fixed duration + same easing for keyboard open AND close (equal time).
-   - Height and chat scroll are updated together in the same frame, so the
-     chat glides up/down with the keyboard without stutter.
+   KEYBOARD ON/OFF -> CHAT SCROLL UP / SCROLL DOWN ANIMATION  (smooth version)
+   - One critically-damped spring follows the keyboard: no restart/jerk when the
+     browser fires several resize events, and open/close feel identical.
+   - While the chat is open, only the message list changes height per frame (the
+     composer simply follows it in normal flow). The big wrapper / screen layers
+     are NOT resized every frame and no custom property is changed on <html>
+     per frame (that forced a full-document style recalc = the shutter).
+   - Chat scroll is synced in the same frame as the height change.
    Nothing else in the page is touched.
    ========================================================================== */
 (function chatKeyboardScrollAnimation(){
   window.__chatKeyboardAnimationOwnsHeight = true;
-  var DURATION = 280;                       /* ms - same for open and close */
-  function ease(t){ var u = 1 - t; return 1 - u * u * u; }  /* smooth ease-out */
 
+  var OMEGA = 24;                 /* spring speed (rad/s) ~ visible settle in ~250ms, same for open and close */
   var root = document.documentElement;
+  var body = document.body;
   var vv = window.visualViewport;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var raf = 0;
+  var mqMobile = window.matchMedia ? window.matchMedia('(max-width: 899.98px)') : { matches: true };
+  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var dpr = window.devicePixelRatio || 1;
 
   function readH(){ return vv && vv.height > 0 ? vv.height : window.innerHeight; }
   function readTop(){ return vv && isFinite(vv.offsetTop) ? vv.offsetTop : 0; }
+  function px(v){ return (Math.round(v * dpr) / dpr) + 'px'; }
 
-  var curH = readH(), curTop = readTop();
-  var fromH = curH, fromTop = curTop, toH = curH, toTop = curTop, t0 = 0;
+  var settledH = Math.round(readH());          /* height currently baked into --app-h */
+  var curH = settledH, targetH = settledH, velH = 0;
+  var curTop = readTop(), targetTop = curTop, velTop = 0;
+  var raf = 0, last = 0, running = false;
 
-  /* chat scroll sync (runs only while animating) */
-  var box = null, ro = null, active = false, endTimer = 0;
-  var followBottom = true, keepTop = 0, keepH = 0;
+  var mode = 'generic';                         /* 'chat' | 'generic' | 'desktop' */
+  var wrap = null, box = null;
+  var baseH = 0, baseBoxH = 0, holdH = 0;
+  var followBottom = true, keepTop = 0, prevBoxH = 0;
+  var lastChatFocus = 0;
 
-  function getBox(){ return box || (box = document.getElementById('messagesContainer')); }
+  function inChatScreen(el){ return !!(el && el.closest && el.closest('#screenChat')); }
+  function noteFocus(e){ if (inChatScreen(e.target)) lastChatFocus = performance.now(); schedule(); }
+  function chatFocusRecent(){ return inChatScreen(document.activeElement) || (performance.now() - lastChatFocus < 900); }
 
-  function beginScrollSync(){
-    var b = getBox();
-    if (!b) return;
-    keepH = b.clientHeight;
-    keepTop = b.scrollTop;
-    if (!active) followBottom = (b.scrollHeight - b.scrollTop - b.clientHeight) < 90;
-    active = true;
-    clearTimeout(endTimer);
-    if (!ro && window.ResizeObserver) {
-      /* created lazily so it is notified after the page's own observer and has the final say */
-      ro = new ResizeObserver(function(){
-        if (!active) return;
-        var h = b.clientHeight;
-        var d = keepH - h;                    /* + keyboard opening, - closing */
-        keepH = h;
-        var max = Math.max(0, b.scrollHeight - h);
-        var top = followBottom ? max : Math.max(0, Math.min(max, keepTop + d));
-        b.scrollTop = top;
-        keepTop = top;
-      });
-      ro.observe(b);
-      b.addEventListener('scroll', function(){ if (active) keepTop = b.scrollTop; }, { passive: true });
+  function begin(){
+    wrap = document.querySelector('.device-wrapper');
+    box = document.getElementById('messagesContainer');
+    if (!mqMobile.matches) mode = 'desktop';
+    else if (!reduce && wrap && box && wrap.classList.contains('in-chat') && chatFocusRecent() && box.offsetHeight > 0) mode = 'chat';
+    else mode = 'generic';
+
+    if (box) {
+      followBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 90;
+      keepTop = box.scrollTop;
+      prevBoxH = box.clientHeight;
+    }
+    if (mode === 'chat') {
+      baseH = settledH;
+      baseBoxH = box.offsetHeight;
+      holdH = Math.max(baseH, targetH);
+      wrap.style.height = holdH + 'px';              /* wrapper keeps its size -> no big layer resize per frame */
+      body.style.height = Math.round(targetH) + 'px';
+      box.style.flex = 'none';
+      box.style.height = baseBoxH + 'px';
     }
   }
-  function endScrollSync(){
-    clearTimeout(endTimer);
-    endTimer = setTimeout(function(){ active = false; }, 120);
+
+  function retarget(){
+    if (mode !== 'chat') return;
+    if (targetH > holdH) { holdH = targetH; wrap.style.height = holdH + 'px'; }
+    body.style.height = Math.round(targetH) + 'px';
   }
 
-  function apply(h, top){
-    root.style.setProperty('--app-h', Math.round(h) + 'px');
-    if (top || document.body.style.top) document.body.style.top = Math.round(top) + 'px';
+  function syncScroll(){
+    if (!box) return;
+    var h = box.clientHeight;
+    if (h === prevBoxH) return;
+    var d = prevBoxH - h;                          /* + keyboard opening, - closing */
+    var max = Math.max(0, box.scrollHeight - h);
+    var top = followBottom ? max : Math.max(0, Math.min(max, keepTop + d));
+    box.scrollTop = top;
+    keepTop = top;
+    prevBoxH = h;
   }
 
-  function animate(){
+  function applyFrame(){
+    if (mode === 'chat') {
+      box.style.height = px(Math.max(0, baseBoxH + (curH - baseH)));
+    } else {
+      root.style.setProperty('--app-h', Math.round(curH) + 'px');
+    }
+    if (curTop || body.style.top) body.style.top = Math.round(curTop) + 'px';
+    syncScroll();
+  }
+
+  function settle(){
+    running = false; last = 0;
+    settledH = Math.round(targetH);
+    if (mode === 'chat') {
+      root.style.setProperty('--app-h', settledH + 'px');
+      wrap.style.height = '';
+      body.style.height = '';
+      box.style.flex = '';
+      box.style.height = '';
+      if (followBottom) box.scrollTop = box.scrollHeight;
+      prevBoxH = box.clientHeight;
+    }
+  }
+
+  function spring(x, v, dt){
+    var e = Math.exp(-OMEGA * dt);
+    var B = v + OMEGA * x;
+    return [(x + B * dt) * e, (v - OMEGA * B * dt) * e];
+  }
+
+  function step(now){
     raf = 0;
-    var p = Math.min(1, (performance.now() - t0) / DURATION);
-    var e = ease(p);
-    curH = fromH + (toH - fromH) * e;
-    curTop = fromTop + (toTop - fromTop) * e;
-    apply(curH, curTop);
-    if (p < 1) { raf = requestAnimationFrame(animate); }
-    else { curH = toH; curTop = toTop; endScrollSync(); }
+    var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+    if (!(dt > 0)) dt = 0.016;
+    last = now;
+    var a = spring(curH - targetH, velH, dt);   curH = targetH + a[0];   velH = a[1];
+    var b = spring(curTop - targetTop, velTop, dt); curTop = targetTop + b[0]; velTop = b[1];
+    var done = Math.abs(curH - targetH) < 0.4 && Math.abs(velH) < 10 &&
+               Math.abs(curTop - targetTop) < 0.4 && Math.abs(velTop) < 10;
+    if (done) {
+      curH = targetH; curTop = targetTop; velH = velTop = 0;
+      applyFrame();
+      settle();
+      return;
+    }
+    applyFrame();
+    raf = requestAnimationFrame(step);
   }
 
   function schedule(){
     var h = readH(), top = readTop();
     if (!(h > 0)) return;
-    var changed = Math.abs(h - toH) > 0.5 || Math.abs(top - toTop) > 0.5;
-    if (changed) {
-      fromH = curH; fromTop = curTop;
-      toH = h; toTop = top;
-      t0 = performance.now();
-      if (reduce) { curH = toH; curTop = toTop; fromH = toH; fromTop = toTop; }
-      beginScrollSync();
+    targetH = h; targetTop = top;
+    if (running) { retarget(); return; }
+    if (Math.abs(h - curH) <= 0.5 && Math.abs(top - curTop) <= 0.5) return;
+    begin();
+    if (mode === 'desktop' || reduce) {
+      curH = targetH; curTop = targetTop; velH = velTop = 0;
+      applyFrame();
+      settledH = Math.round(targetH);
+      return;
     }
-    if (!changed && !raf) return;
-    /* always re-queue so this frame runs after the page's own viewport sync */
-    if (raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(animate);
+    running = true; last = 0;
+    raf = requestAnimationFrame(step);
   }
+
+  var boxEl = document.getElementById('messagesContainer');
+  if (boxEl) boxEl.addEventListener('scroll', function(){
+    if (!running) return;
+    keepTop = boxEl.scrollTop;
+    followBottom = (boxEl.scrollHeight - boxEl.scrollTop - boxEl.clientHeight) < 90;
+  }, { passive: true });
 
   window.addEventListener('resize', schedule, { passive: true });
   window.addEventListener('orientationchange', function(){ requestAnimationFrame(schedule); }, { passive: true });
@@ -4401,8 +4469,8 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
     vv.addEventListener('resize', schedule, { passive: true });
     vv.addEventListener('scroll', schedule, { passive: true });
   }
-  document.addEventListener('focusin', schedule);
-  document.addEventListener('focusout', schedule);
+  document.addEventListener('focusin', noteFocus);
+  document.addEventListener('focusout', noteFocus);
 })();
 </script>
 </body>
