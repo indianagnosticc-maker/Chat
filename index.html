@@ -4301,14 +4301,15 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
 <script>
 /* ==========================================================================
    KEYBOARD ON/OFF -> CHAT SCROLL UP / SCROLL DOWN ANIMATION
-   (ported from the single-chat demo)
-   The visible height follows the live keyboard height with an eased
-   animation (same 0.34 ease as the demo). On every animated frame the
-   messages box resizes, and the existing message-list anchor logic in this
-   file scrolls the chat up (keyboard opens) / down (keyboard closes) in sync.
-   Nothing else is touched.
+   - Fixed duration + same easing for keyboard open AND close (equal time).
+   - Height and chat scroll are updated together in the same frame, so the
+     chat glides up/down with the keyboard without stutter.
+   Nothing else in the page is touched.
    ========================================================================== */
 (function chatKeyboardScrollAnimation(){
+  var DURATION = 280;                       /* ms - same for open and close */
+  function ease(t){ var u = 1 - t; return 1 - u * u * u; }  /* smooth ease-out */
+
   var root = document.documentElement;
   var vv = window.visualViewport;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -4317,31 +4318,75 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
   function readH(){ return vv && vv.height > 0 ? vv.height : window.innerHeight; }
   function readTop(){ return vv && isFinite(vv.offsetTop) ? vv.offsetTop : 0; }
 
-  var targetH = readH(), targetTop = readTop();
-  var currentH = targetH, currentTop = targetTop;
+  var curH = readH(), curTop = readTop();
+  var fromH = curH, fromTop = curTop, toH = curH, toTop = curTop, t0 = 0;
+
+  /* chat scroll sync (runs only while animating) */
+  var box = null, ro = null, active = false, endTimer = 0;
+  var followBottom = true, keepTop = 0, keepH = 0;
+
+  function getBox(){ return box || (box = document.getElementById('messagesContainer')); }
+
+  function beginScrollSync(){
+    var b = getBox();
+    if (!b) return;
+    keepH = b.clientHeight;
+    keepTop = b.scrollTop;
+    if (!active) followBottom = (b.scrollHeight - b.scrollTop - b.clientHeight) < 90;
+    active = true;
+    clearTimeout(endTimer);
+    if (!ro && window.ResizeObserver) {
+      /* created lazily so it is notified after the page's own observer and has the final say */
+      ro = new ResizeObserver(function(){
+        if (!active) return;
+        var h = b.clientHeight;
+        var d = keepH - h;                    /* + keyboard opening, - closing */
+        keepH = h;
+        var max = Math.max(0, b.scrollHeight - h);
+        var top = followBottom ? max : Math.max(0, Math.min(max, keepTop + d));
+        b.scrollTop = top;
+        keepTop = top;
+      });
+      ro.observe(b);
+      b.addEventListener('scroll', function(){ if (active) keepTop = b.scrollTop; }, { passive: true });
+    }
+  }
+  function endScrollSync(){
+    clearTimeout(endTimer);
+    endTimer = setTimeout(function(){ active = false; }, 120);
+  }
+
+  function apply(h, top){
+    root.style.setProperty('--app-h', Math.round(h) + 'px');
+    if (top || document.body.style.top) document.body.style.top = Math.round(top) + 'px';
+  }
 
   function animate(){
     raf = 0;
-    var ease = 0.34;
-    currentH += (targetH - currentH) * ease;
-    currentTop += (targetTop - currentTop) * ease;
-    if (Math.abs(targetH - currentH) < 0.65) currentH = targetH;
-    if (Math.abs(targetTop - currentTop) < 0.65) currentTop = targetTop;
-
-    root.style.setProperty('--app-h', Math.round(currentH) + 'px');
-    if (currentTop || document.body.style.top) document.body.style.top = Math.round(currentTop) + 'px';
-
-    if (Math.abs(targetH - currentH) > 0.65 || Math.abs(targetTop - currentTop) > 0.65) {
-      raf = requestAnimationFrame(animate);
-    }
+    var p = Math.min(1, (performance.now() - t0) / DURATION);
+    var e = ease(p);
+    curH = fromH + (toH - fromH) * e;
+    curTop = fromTop + (toTop - fromTop) * e;
+    apply(curH, curTop);
+    if (p < 1) { raf = requestAnimationFrame(animate); }
+    else { curH = toH; curTop = toTop; endScrollSync(); }
   }
 
   function schedule(){
-    targetH = readH();
-    targetTop = readTop();
-    if (!(targetH > 0)) return;
-    if (reduce) { currentH = targetH; currentTop = targetTop; }
-    if (!raf) raf = requestAnimationFrame(animate);
+    var h = readH(), top = readTop();
+    if (!(h > 0)) return;
+    var changed = Math.abs(h - toH) > 0.5 || Math.abs(top - toTop) > 0.5;
+    if (changed) {
+      fromH = curH; fromTop = curTop;
+      toH = h; toTop = top;
+      t0 = performance.now();
+      if (reduce) { curH = toH; curTop = toTop; fromH = toH; fromTop = toTop; }
+      beginScrollSync();
+    }
+    if (!changed && !raf) return;
+    /* always re-queue so this frame runs after the page's own viewport sync */
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(animate);
   }
 
   window.addEventListener('resize', schedule, { passive: true });
