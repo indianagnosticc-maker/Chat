@@ -2052,6 +2052,60 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .settings-drawer.chat-context .settings-row:last-child {
   border-bottom: 0;
 }
+
+/* ==========================================================================
+   BUG-FIX OVERRIDES: boxed settings, tighter gaps, lighter names
+   ========================================================================== */
+/* Menu settings: boxed, small gap between boxes */
+.settings-drawer.menu-context #drawerMainView > .settings-sec-label { margin: 12px 0 5px 4px; }
+.settings-drawer.menu-context #drawerMainView > .settings-sec-label:first-child { margin-top: 4px; }
+.settings-drawer.menu-context #drawerMainView > .settings-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 0;
+}
+.settings-drawer.menu-context #drawerMainView .settings-row { padding: 10px 14px; min-height: 54px; }
+.settings-drawer.menu-context #drawerMainView .settings-icon {
+  background: var(--primary-blue-light);
+  color: var(--primary-blue);
+  width: 34px; height: 34px; border-radius: 10px;
+}
+.settings-drawer.menu-context #drawerMainView .settings-icon.danger { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.settings-drawer.menu-context #drawerMainView .settings-icon svg { width: 18px; height: 18px; }
+
+/* Chat settings: each action is its own box with a slight gap */
+.settings-drawer.chat-context #chatContextActions > .settings-sec-label { margin: 4px 0 8px 4px; }
+.settings-drawer.chat-context #chatContextActions .settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+.settings-drawer.chat-context #chatContextActions .settings-row,
+.settings-drawer.chat-context #chatContextActions .settings-card > .settings-row:not(:last-child) {
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 10px 14px;
+  min-height: 54px;
+}
+.settings-drawer.chat-context #chatContextActions .settings-icon {
+  background: var(--primary-blue-light);
+  color: var(--primary-blue);
+  width: 34px; height: 34px; border-radius: 10px;
+}
+.settings-drawer.chat-context #chatContextActions .settings-icon.danger { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.settings-drawer.chat-context #chatContextActions .settings-icon svg { width: 18px; height: 18px; }
+
+/* Names: lighter, more natural weight */
+.chat-card-name { font-weight: 500; letter-spacing: 0; }
+.chat-header-meta b { font-weight: 500; letter-spacing: 0; }
+#modalContactName { font-weight: 500 !important; }
+#blockedUsersContainer b { font-weight: 500 !important; }
 </style>
 </head>
 <body>
@@ -3323,7 +3377,22 @@ function openChatView(peerUid, profile = null) {
   $('searchBoxWrap')?.classList.remove('has-value');
   $('searchResultsView').classList.remove('active');
 
-  subscribeToMessages(activeChatId);
+  if (activePeer.isYuki && currentUser) {
+    const _yid = activeChatId;
+    scaffoldMessages(_yid);
+    const _yc = msgCache.get(_yid);
+    if (_yc) renderMessages(_yid, _yc);
+    setDoc(doc(db, 'chats', _yid), {
+      users: [currentUser.uid, peerUid],
+      [`participants.${currentUser.uid}`]: true,
+      [`participants.${peerUid}`]: true,
+      touchAt: serverTimestamp()
+    }, { merge: true }).catch(e => console.warn('Yuki chat init:', e)).then(() => {
+      if (activeChatId === _yid && !unsubscribeMessages) subscribeToMessages(_yid);
+    });
+  } else {
+    subscribeToMessages(activeChatId);
+  }
   if (!activePeer.isYuki) watchProfile(peerUid);
 
   // Mark unread as seen
@@ -3645,6 +3714,15 @@ async function handleSendMessage() {
   const peer = activePeer;
 
   try {
+    if (peer.isYuki) {
+      await setDoc(doc(db, 'chats', cId), {
+        users: [currentUser.uid, peer.uid],
+        [`participants.${currentUser.uid}`]: true,
+        [`participants.${peer.uid}`]: true,
+        touchAt: serverTimestamp()
+      }, { merge: true });
+      if (activeChatId === cId && !unsubscribeMessages) subscribeToMessages(cId);
+    }
     await addDoc(collection(db, 'chats', cId, 'messages'), {
       text,
       by: currentUser.uid,
@@ -3697,24 +3775,29 @@ async function handleSendMessage() {
         yukiHistory.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
         yukiHistory = yukiHistory.slice(-20);
 
-        await addDoc(collection(db, 'chats', cId, 'messages'), {
-          text: reply,
-          by: YUKI_BOT_UID,
-          at: serverTimestamp(),
-          seen: true
-        });
+        try {
+          await addDoc(collection(db, 'chats', cId, 'messages'), {
+            text: reply,
+            by: YUKI_BOT_UID,
+            at: serverTimestamp(),
+            seen: true
+          });
 
-        await setDoc(doc(db, 'chats', cId), {
-          lastMsg: reply.slice(0, 80),
-          lastMsgAt: serverTimestamp(),
-          lastMsgBy: YUKI_BOT_UID,
-          touchAt: serverTimestamp()
-        }, { merge: true });
+          await setDoc(doc(db, 'chats', cId), {
+            lastMsg: reply.slice(0, 80),
+            lastMsgAt: serverTimestamp(),
+            lastMsgBy: YUKI_BOT_UID,
+            touchAt: serverTimestamp()
+          }, { merge: true });
+        } catch(e) {
+          console.error('Yuki reply save error:', e);
+          showToast('Yuki reply could not be saved' + (e && e.code ? ' (' + e.code + ')' : ''));
+        }
       }, 650);
     }
   } catch(err) {
     console.error('Send error:', err);
-    showToast('Failed to send message');
+    showToast('Failed to send message' + (err && err.code ? ' (' + err.code + ')' : ''));
   }
 }
 
@@ -4066,22 +4149,19 @@ $('btnChatBack')?.addEventListener('click', () => {
 
 $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
 
-/* Keyboard open/close: keep the same messages visible instead of hiding them below the keyboard */
+/* Keyboard open/close: stay at bottom if you were at bottom, else keep the same messages visible */
 (function(){
   const box = $('messagesContainer');
   if (!box || !window.ResizeObserver) return;
   let prevH = box.clientHeight;
-  let lastTop = box.scrollTop;
-  box.addEventListener('scroll', () => { lastTop = box.scrollTop; }, { passive: true });
   new ResizeObserver(() => {
     const h = box.clientHeight;
     const d = prevH - h;          // + when keyboard opens, - when it closes
+    const wasBottom = (box.scrollHeight - box.scrollTop - prevH) < 90;
     prevH = h;
-    if (d !== 0) {
-      /* Scroll position is synchronized by chatKeyboardScrollAnimation().
-         Avoid a second scrollTop write in the same resize frame. */
-      lastTop = box.scrollTop;
-    }
+    if (d === 0 || h === 0) return;
+    const max = Math.max(0, box.scrollHeight - h);
+    box.scrollTop = wasBottom ? max : Math.max(0, Math.min(max, box.scrollTop + d));
   }).observe(box);
 })();
 
@@ -4308,169 +4388,21 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
 .messages-container { overflow-anchor: none; }
 </style>
 <script>
-/* ==========================================================================
-   KEYBOARD ON/OFF -> CHAT SCROLL UP / SCROLL DOWN ANIMATION  (smooth version)
-   - One critically-damped spring follows the keyboard: no restart/jerk when the
-     browser fires several resize events, and open/close feel identical.
-   - While the chat is open, only the message list changes height per frame (the
-     composer simply follows it in normal flow). The big wrapper / screen layers
-     are NOT resized every frame and no custom property is changed on <html>
-     per frame (that forced a full-document style recalc = the shutter).
-   - Chat scroll is synced in the same frame as the height change.
-   Nothing else in the page is touched.
-   ========================================================================== */
-(function chatKeyboardScrollAnimation(){
-  window.__chatKeyboardAnimationOwnsHeight = true;
-
-  var OMEGA = 24;                 /* spring speed (rad/s) ~ visible settle in ~250ms, same for open and close */
-  var root = document.documentElement;
-  var body = document.body;
+/* Keyboard: follow the real visual viewport directly (no extra animation layer),
+   so the composer always stays attached to the top of the keyboard. */
+(function(){
   var vv = window.visualViewport;
-  var mqMobile = window.matchMedia ? window.matchMedia('(max-width: 899.98px)') : { matches: true };
-  var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  var dpr = window.devicePixelRatio || 1;
-
-  function readH(){ return vv && vv.height > 0 ? vv.height : window.innerHeight; }
-  function readTop(){ return vv && isFinite(vv.offsetTop) ? vv.offsetTop : 0; }
-  function px(v){ return (Math.round(v * dpr) / dpr) + 'px'; }
-
-  var settledH = Math.round(readH());          /* height currently baked into --app-h */
-  var curH = settledH, targetH = settledH, velH = 0;
-  var curTop = readTop(), targetTop = curTop, velTop = 0;
-  var raf = 0, last = 0, running = false;
-
-  var mode = 'generic';                         /* 'chat' | 'generic' | 'desktop' */
-  var wrap = null, box = null;
-  var baseH = 0, baseBoxH = 0, holdH = 0;
-  var followBottom = true, keepTop = 0, prevBoxH = 0;
-  var lastChatFocus = 0;
-
-  function inChatScreen(el){ return !!(el && el.closest && el.closest('#screenChat')); }
-  function noteFocus(e){ if (inChatScreen(e.target)) lastChatFocus = performance.now(); schedule(); }
-  function chatFocusRecent(){ return inChatScreen(document.activeElement) || (performance.now() - lastChatFocus < 900); }
-
-  function begin(){
-    wrap = document.querySelector('.device-wrapper');
-    box = document.getElementById('messagesContainer');
-    if (!mqMobile.matches) mode = 'desktop';
-    else if (!reduce && wrap && box && wrap.classList.contains('in-chat') && chatFocusRecent() && box.offsetHeight > 0) mode = 'chat';
-    else mode = 'generic';
-
-    if (box) {
-      followBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 90;
-      keepTop = box.scrollTop;
-      prevBoxH = box.clientHeight;
-    }
-    if (mode === 'chat') {
-      baseH = settledH;
-      baseBoxH = box.offsetHeight;
-      holdH = Math.max(baseH, targetH);
-      wrap.style.height = holdH + 'px';              /* wrapper keeps its size -> no big layer resize per frame */
-      body.style.height = Math.round(targetH) + 'px';
-      box.style.flex = 'none';
-      box.style.height = baseBoxH + 'px';
-    }
+  var root = document.documentElement;
+  if (!vv) return;
+  function sync(){
+    var h = Math.round(vv.height);
+    if (h > 0) root.style.setProperty('--app-h', h + 'px');
+    document.body.style.top = vv.offsetTop ? Math.round(vv.offsetTop) + 'px' : '';
   }
-
-  function retarget(){
-    if (mode !== 'chat') return;
-    if (targetH > holdH) { holdH = targetH; wrap.style.height = holdH + 'px'; }
-    body.style.height = Math.round(targetH) + 'px';
-  }
-
-  function syncScroll(){
-    if (!box) return;
-    var h = box.clientHeight;
-    if (h === prevBoxH) return;
-    var d = prevBoxH - h;                          /* + keyboard opening, - closing */
-    var max = Math.max(0, box.scrollHeight - h);
-    var top = followBottom ? max : Math.max(0, Math.min(max, keepTop + d));
-    box.scrollTop = top;
-    keepTop = top;
-    prevBoxH = h;
-  }
-
-  function applyFrame(){
-    if (mode === 'chat') {
-      box.style.height = px(Math.max(0, baseBoxH + (curH - baseH)));
-    } else {
-      root.style.setProperty('--app-h', Math.round(curH) + 'px');
-    }
-    if (curTop || body.style.top) body.style.top = Math.round(curTop) + 'px';
-    syncScroll();
-  }
-
-  function settle(){
-    running = false; last = 0;
-    settledH = Math.round(targetH);
-    if (mode === 'chat') {
-      root.style.setProperty('--app-h', settledH + 'px');
-      wrap.style.height = '';
-      body.style.height = '';
-      box.style.flex = '';
-      box.style.height = '';
-      if (followBottom) box.scrollTop = box.scrollHeight;
-      prevBoxH = box.clientHeight;
-    }
-  }
-
-  function spring(x, v, dt){
-    var e = Math.exp(-OMEGA * dt);
-    var B = v + OMEGA * x;
-    return [(x + B * dt) * e, (v - OMEGA * B * dt) * e];
-  }
-
-  function step(now){
-    raf = 0;
-    var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
-    if (!(dt > 0)) dt = 0.016;
-    last = now;
-    var a = spring(curH - targetH, velH, dt);   curH = targetH + a[0];   velH = a[1];
-    var b = spring(curTop - targetTop, velTop, dt); curTop = targetTop + b[0]; velTop = b[1];
-    var done = Math.abs(curH - targetH) < 0.4 && Math.abs(velH) < 10 &&
-               Math.abs(curTop - targetTop) < 0.4 && Math.abs(velTop) < 10;
-    if (done) {
-      curH = targetH; curTop = targetTop; velH = velTop = 0;
-      applyFrame();
-      settle();
-      return;
-    }
-    applyFrame();
-    raf = requestAnimationFrame(step);
-  }
-
-  function schedule(){
-    var h = readH(), top = readTop();
-    if (!(h > 0)) return;
-    targetH = h; targetTop = top;
-    if (running) { retarget(); return; }
-    if (Math.abs(h - curH) <= 0.5 && Math.abs(top - curTop) <= 0.5) return;
-    begin();
-    if (mode === 'desktop' || reduce) {
-      curH = targetH; curTop = targetTop; velH = velTop = 0;
-      applyFrame();
-      settledH = Math.round(targetH);
-      return;
-    }
-    running = true; last = 0;
-    raf = requestAnimationFrame(step);
-  }
-
-  var boxEl = document.getElementById('messagesContainer');
-  if (boxEl) boxEl.addEventListener('scroll', function(){
-    if (!running) return;
-    keepTop = boxEl.scrollTop;
-    followBottom = (boxEl.scrollHeight - boxEl.scrollTop - boxEl.clientHeight) < 90;
-  }, { passive: true });
-
-  window.addEventListener('resize', schedule, { passive: true });
-  window.addEventListener('orientationchange', function(){ requestAnimationFrame(schedule); }, { passive: true });
-  if (vv) {
-    vv.addEventListener('resize', schedule, { passive: true });
-    vv.addEventListener('scroll', schedule, { passive: true });
-  }
-  document.addEventListener('focusin', noteFocus);
-  document.addEventListener('focusout', noteFocus);
+  vv.addEventListener('resize', sync, { passive: true });
+  vv.addEventListener('scroll', sync, { passive: true });
+  window.addEventListener('orientationchange', function(){ setTimeout(sync, 150); }, { passive: true });
+  sync();
 })();
 </script>
 </body>
