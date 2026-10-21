@@ -2052,6 +2052,57 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .settings-drawer.chat-context .settings-row:last-child {
   border-bottom: 0;
 }
+
+/* Motion consistency and high-refresh rendering optimizations. Visual layout is unchanged. */
+:root { --anim-speed: 280ms; }
+.screen,
+.settings-drawer,
+.user-sheet-modal,
+.panes-track,
+.inbox-tab-indicator {
+  transition-duration: 280ms !important;
+  transition-timing-function: linear !important;
+}
+.backdrop-scrim,
+#authScreen,
+.app-toast,
+#searchResultsView.active {
+  transition-duration: 280ms !important;
+  transition-timing-function: linear !important;
+}
+.chat-message-row:not(.no-anim),
+.chat-card.card-enter,
+.date-divider,
+.auth-extra.show,
+#authScreen.active .auth-card {
+  animation-duration: 280ms !important;
+  animation-timing-function: linear !important;
+}
+.chat-message-row,
+.screen,
+.settings-drawer,
+.user-sheet-modal,
+.panes-track,
+.inbox-tab-indicator {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.messages-container,
+.inbox-scroll-body,
+.drawer-body {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen, .settings-drawer, .user-sheet-modal, .panes-track,
+  .inbox-tab-indicator, .backdrop-scrim, #authScreen, .app-toast,
+  .chat-message-row, .chat-card.card-enter, .date-divider {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2497,7 +2548,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
     if (!(h > 0)) return;
     if (h !== lastH) {
       lastH = h;
-      root.style.setProperty('--app-h', h + 'px');
+      /* The unified keyboard animation below owns --app-h to avoid competing writes. */
     }
     lastW = w;
   }
@@ -4308,7 +4359,7 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
    ========================================================================== */
 (function chatKeyboardScrollAnimation(){
   var DURATION = 280;                       /* ms - same for open and close */
-  function ease(t){ var u = 1 - t; return 1 - u * u * u; }  /* smooth ease-out */
+  function ease(t){ return t; }  /* linear: identical duration and constant speed both directions */
 
   var root = document.documentElement;
   var vv = window.visualViewport;
