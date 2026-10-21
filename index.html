@@ -3641,9 +3641,8 @@ async function handleSendMessage() {
   const peer = activePeer;
 
   try {
-    // Create/update the chat document FIRST. This is important for Yuki:
-    // Firestore rules can require the parent chat document to exist before
-    // allowing a message to be written into its subcollection.
+    // Establish/merge the parent chat document BEFORE writing the message.
+    // This keeps Firestore rules and the realtime message listener in sync.
     await setDoc(doc(db, 'chats', cId), {
       users: [currentUser.uid, peer.uid],
       [`participants.${currentUser.uid}`]: true,
@@ -3656,13 +3655,24 @@ async function handleSendMessage() {
       typing: { [currentUser.uid]: false }
     }, { merge: true });
 
-    // Then write the actual message.
-    await addDoc(collection(db, 'chats', cId, 'messages'), {
+    const sentRef = await addDoc(collection(db, 'chats', cId, 'messages'), {
       text,
       by: currentUser.uid,
       at: serverTimestamp(),
       seen: false
     });
+
+    // Optimistic render so the sender sees the message immediately,
+    // while Firestore realtime remains the source of truth.
+    const optimistic = msgCache.get(cId) || [];
+    if (!optimistic.some(x => x.id === sentRef.id)) {
+      optimistic.push({
+        id: sentRef.id,
+        msg: { text, by: currentUser.uid, at: new Date(), seen: false }
+      });
+      msgCache.set(cId, optimistic);
+      renderMessages(cId, optimistic);
+    }
 
     // Immediate local roster update; Firestore realtime will reconcile it with the server snapshot.
     const localEntry = conversationList.find(c => c.otherUid === peer.uid);
@@ -3697,7 +3707,7 @@ async function handleSendMessage() {
         yukiHistory.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
         yukiHistory = yukiHistory.slice(-20);
 
-        // Keep the chat metadata valid before writing Yuki's reply.
+        // Keep the parent chat document valid before the bot message write.
         await setDoc(doc(db, 'chats', cId), {
           users: [currentUser.uid, YUKI_BOT_UID],
           [`participants.${currentUser.uid}`]: true,
@@ -3705,16 +3715,26 @@ async function handleSendMessage() {
           lastMsg: reply.slice(0, 80),
           lastMsgAt: serverTimestamp(),
           lastMsgBy: YUKI_BOT_UID,
-          touchAt: serverTimestamp(),
-          unread: {}
+          touchAt: serverTimestamp()
         }, { merge: true });
 
-        await addDoc(collection(db, 'chats', cId, 'messages'), {
+        const replyRef = await addDoc(collection(db, 'chats', cId, 'messages'), {
           text: reply,
           by: YUKI_BOT_UID,
           at: serverTimestamp(),
           seen: true
         });
+
+        // Optimistic Yuki render; realtime snapshot will reconcile it.
+        const yukiMsgs = msgCache.get(cId) || [];
+        if (!yukiMsgs.some(x => x.id === replyRef.id)) {
+          yukiMsgs.push({
+            id: replyRef.id,
+            msg: { text: reply, by: YUKI_BOT_UID, at: new Date(), seen: true }
+          });
+          msgCache.set(cId, yukiMsgs);
+          renderMessages(cId, yukiMsgs);
+        }
       }, 650);
     }
   } catch(err) {
