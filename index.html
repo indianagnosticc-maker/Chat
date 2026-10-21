@@ -2052,24 +2052,6 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .settings-drawer.chat-context .settings-row:last-child {
   border-bottom: 0;
 }
-
-/* Smooth rendering only: preserve all existing animation timings, easing, UI and behavior. */
-.chat-message-row,
-.screen,
-.settings-drawer,
-.user-sheet-modal,
-.panes-track,
-.inbox-tab-indicator {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-.messages-container,
-.inbox-scroll-body,
-.drawer-body {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
 </style>
 </head>
 <body>
@@ -2515,7 +2497,11 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
     if (!(h > 0)) return;
     if (h !== lastH) {
       lastH = h;
-      root.style.setProperty('--app-h', h + 'px');
+      /* The dedicated keyboard animation below owns live viewport-height updates.
+         This synchronizer only initializes the height, avoiding competing writes. */
+      if (!window.__chatKeyboardAnimationOwnsHeight) {
+        root.style.setProperty('--app-h', h + 'px');
+      }
     }
     lastW = w;
   }
@@ -4092,7 +4078,8 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
     const d = prevH - h;          // + when keyboard opens, - when it closes
     prevH = h;
     if (d !== 0) {
-      box.scrollTop = lastTop + d;
+      /* Scroll position is synchronized by chatKeyboardScrollAnimation().
+         Avoid a second scrollTop write in the same resize frame. */
       lastTop = box.scrollTop;
     }
   }).observe(box);
@@ -4325,6 +4312,7 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
    Nothing else in the page is touched.
    ========================================================================== */
 (function chatKeyboardScrollAnimation(){
+  window.__chatKeyboardAnimationOwnsHeight = true;
   var DURATION = 280;                       /* ms - same for open and close */
   function ease(t){ var u = 1 - t; return 1 - u * u * u; }  /* smooth ease-out */
 
