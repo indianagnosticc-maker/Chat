@@ -1565,7 +1565,7 @@ button, .chat-card, .settings-row, .inbox-tab { touch-action: manipulation; }
 
 /* Smoothness-only rendering hints; visual design is unchanged. */
 .settings-drawer, .backdrop-scrim, .panes-track, .app-shell { will-change: transform; backface-visibility: hidden; }
-body, .device-wrapper { height: var(--app-h, 100dvh); }
+body, .device-wrapper { height: 100dvh }
 
 /* ==========================================================================
    REFINEMENTS: calm, premium motion (transform + opacity only), sheet intro,
@@ -1804,7 +1804,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
     box-shadow: none;
   }
   @media (max-height: 640px) {
-    .device-wrapper { width: 100%; max-width: none; height: var(--app-h, 100dvh); border-radius: 0; border: 0; }
+    .device-wrapper { width: 100%; max-width: none; height: 100dvh border-radius: 0; border: 0; }
   }
 
   .screen { transition: none; }
@@ -2052,6 +2052,16 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 .settings-drawer.chat-context .settings-row:last-child {
   border-bottom: 0;
 }
+
+.user-sheet-modal:not(.active),
+.settings-drawer:not(.active) {
+  visibility: hidden;
+  box-shadow: none;
+  pointer-events: none;
+  transition: transform .38s var(--smooth), visibility 0s linear .45s;
+}
+.user-sheet-modal { transform: translateY(120%); }
+.user-sheet-modal.active { transform: translateY(0); }
 </style>
 </head>
 <body>
@@ -2480,41 +2490,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 })();
 </script>
 
-<script>
-(function(){
-  /* Keep --app-h synced to the browser's native keyboard animation.
-     Do not run a second eased height animation on top of visualViewport: it can
-     lag behind the keyboard and repeatedly resize/reflow the message list. */
-  var root = document.documentElement;
-  var queued = false;
-  var lastH = 0;
-  var lastW = 0;
-  var vv = window.visualViewport;
-  function syncViewport(){
-    queued = false;
-    var h = Math.round(vv ? vv.height : window.innerHeight);
-    var w = Math.round(vv ? vv.width : window.innerWidth);
-    if (!(h > 0)) return;
-    if (h !== lastH) {
-      lastH = h;
-      root.style.setProperty('--app-h', h + 'px');
-    }
-    lastW = w;
-  }
-  function scheduleSync(){
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(syncViewport);
-  }
-  syncViewport();
-  window.addEventListener('resize', scheduleSync, { passive: true });
-  window.addEventListener('orientationchange', scheduleSync, { passive: true });
-  if (vv) {
-    vv.addEventListener('resize', scheduleSync, { passive: true });
-    vv.addEventListener('scroll', scheduleSync, { passive: true });
-  }
-})();
-</script>
+
 
 <!-- Google Identity Services: in-page Google account prompt -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -3753,75 +3729,7 @@ $('chatInputText')?.addEventListener('keydown', e => {
   }
 });
 
-/* Keyboard viewport handling: chat-only, smooth, no UI/layout changes */
-(() => {
-  const chatInput = $('chatInputText');
-  const chatScreen = $('screenChat');
-  if (!chatInput || !chatScreen) return;
 
-  let keyboardOpen = false;
-  let keyboardScrollY = 0;
-  let keyboardTimer = null;
-
-  const getScroller = () =>
-    $('messagesContainer') ||
-    document.scrollingElement ||
-    document.documentElement;
-
-  const scrollChatForKeyboard = (open) => {
-    if (!document.body.contains(chatInput)) return;
-    const scroller = getScroller();
-    if (!scroller) return;
-
-    if (open) {
-      keyboardOpen = true;
-      keyboardScrollY = scroller.scrollTop || 0;
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // Keep the composer/input visible above the keyboard without changing
-          // any page dimensions or UI styles.
-          chatInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-      });
-    } else if (keyboardOpen) {
-      keyboardOpen = false;
-      requestAnimationFrame(() => {
-        scroller.scrollTo({ top: keyboardScrollY, behavior: 'smooth' });
-      });
-    }
-  };
-
-  chatInput.addEventListener('focus', () => {
-    clearTimeout(keyboardTimer);
-    keyboardTimer = setTimeout(() => scrollChatForKeyboard(true), 80);
-  });
-
-  chatInput.addEventListener('blur', () => {
-    clearTimeout(keyboardTimer);
-    keyboardTimer = setTimeout(() => scrollChatForKeyboard(false), 120);
-  });
-
-  if (window.visualViewport) {
-    let lastHeight = window.visualViewport.height;
-
-    const onViewportResize = () => {
-      const height = window.visualViewport.height;
-      const delta = lastHeight - height;
-      lastHeight = height;
-
-      // A significant visual viewport reduction while the composer is focused
-      // means the software keyboard opened.
-      if (chatInput === document.activeElement && delta > 80) {
-        scrollChatForKeyboard(true);
-      } else if (delta < -80 && document.activeElement !== chatInput) {
-        scrollChatForKeyboard(false);
-      }
-    };
-
-    window.visualViewport.addEventListener('resize', onViewportResize);
-  }
-})();
 
 /* Input auto-growth & send button activation */
 $('chatInputText')?.addEventListener('input', () => {
@@ -4168,18 +4076,15 @@ $('btnOpenYukiRoom')?.addEventListener('click', openYukiBotChat);
   const box = $('messagesContainer');
   if (!box || !window.ResizeObserver) return;
   let prevH = box.clientHeight;
-  let lastTop = box.scrollTop;
-  box.addEventListener('scroll', () => { lastTop = box.scrollTop; }, { passive: true });
   new ResizeObserver(() => {
-    const h = box.clientHeight;
-    const d = prevH - h;          // + when keyboard opens, - when it closes
+    const h = box.clientHeight, d = prevH - h;
     prevH = h;
-    if (d !== 0) {
-      box.scrollTop = lastTop + d;
-      lastTop = box.scrollTop;
-    }
+    if (d !== 0) box.scrollTop += d;
   }).observe(box);
 })();
+
+// send tap pe keyboard band na ho
+$('btnSendMessage')?.addEventListener('pointerdown', e => e.preventDefault());
 
 /* Keep relative times (now / 5m / 2h) live without refresh */
 setInterval(() => { if (currentUser) scheduleRenderDirects(); }, 30000);
