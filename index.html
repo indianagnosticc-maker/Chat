@@ -715,6 +715,13 @@ svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-wi
 }
 .chat-message-row.is-mine .msg-bubble { align-self: flex-end; }
 
+/* Yuki AI error messages */
+.chat-message-row.is-error .msg-bubble {
+  color: var(--accent-red);
+  border-color: rgba(244, 63, 94, 0.28);
+  background: color-mix(in srgb, var(--accent-red) 7%, var(--bubble-incoming));
+}
+
 /* Smooth message animations (only for NEW messages) */
 .chat-message-row { contain: layout style paint; will-change: transform, opacity; }
 .chat-message-row:not(.is-mine) {
@@ -3807,11 +3814,12 @@ function makeDateDivider(ts) {
 
 function buildMessageRow(id, msg, animate) {
   const isMine = msg.by === currentUser?.uid;
+  const isError = !!msg.isError;
   const senderName = isMine ? (currentProfile?.display || 'You') : (activePeer?.display || 'Operator');
   const timeStr = formatClock(msg.at);
 
   const row = document.createElement('div');
-  row.className = 'chat-message-row' + (isMine ? ' is-mine' : '') + (animate ? '' : ' no-anim');
+  row.className = 'chat-message-row' + (isMine ? ' is-mine' : '') + (isError ? ' is-error' : '') + (animate ? '' : ' no-anim');
   row.dataset.id = id;
   row.innerHTML = `
     <div class="msg-bubble-wrap">
@@ -4024,12 +4032,27 @@ async function handleSendMessage() {
       }, { merge: true });
       if (activeChatId === cId && !unsubscribeMessages) subscribeToMessages(cId);
     }
-    await addDoc(collection(db, 'chats', cId, 'messages'), {
+    const sentMessageRef = await addDoc(collection(db, 'chats', cId, 'messages'), {
       text,
       by: currentUser.uid,
       at: serverTimestamp(),
       seen: false
     });
+
+    // Render the just-sent Yuki message immediately; Firestore realtime will reconcile it.
+    if (peer.isYuki && activeChatId === cId) {
+      const localItems = msgCache.get(cId) || [];
+      if (!localItems.some(item => item.id === sentMessageRef.id)) {
+        localItems.push({ id: sentMessageRef.id, msg: { text, by: currentUser.uid, at: new Date(), seen: false } });
+        localItems.sort((a, b) => {
+          const at = toDate(a.msg.at)?.getTime() || 0;
+          const bt = toDate(b.msg.at)?.getTime() || 0;
+          return at - bt;
+        });
+        msgCache.set(cId, localItems);
+        renderMessages(cId, localItems);
+      }
+    }
 
     await setDoc(doc(db, 'chats', cId), {
       users: [currentUser.uid, peer.uid],
@@ -4056,43 +4079,69 @@ async function handleSendMessage() {
     // AI companion reply flow
     if (peer.isYuki) {
       setTimeout(async () => {
-        let reply = '...';
+        let reply = '';
+        let replyError = '';
         try {
           const res = await fetch('/api/yuki', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: text, history: yukiHistory })
           });
-          if (res.ok) {
-            const data = await res.json();
-            reply = data.reply || data.response || data.message || data.text || '...';
-          } else {
-            reply = "I'm Yuki AI. I'm connected to your backend workspace!";
+          if (!res.ok) {
+            throw new Error(`Yuki API request failed (${res.status})`);
           }
+          const data = await res.json();
+          reply = data.reply || data.response || data.message || data.text || '';
+          if (!reply) throw new Error('Yuki API returned an empty response.');
         } catch(e) {
-          reply = "I'm Yuki AI companion, ready to assist with code, design, and ideas!";
+          console.error('Yuki API error:', e);
+          replyError = 'Yuki AI could not reply right now. Please try again.';
         }
 
-        yukiHistory.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
-        yukiHistory = yukiHistory.slice(-20);
+        if (reply) {
+          yukiHistory.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
+          yukiHistory = yukiHistory.slice(-20);
 
-        try {
-          await addDoc(collection(db, 'chats', cId, 'messages'), {
-            text: reply,
-            by: YUKI_BOT_UID,
-            at: serverTimestamp(),
-            seen: true
-          });
+          try {
+            const replyRef = await addDoc(collection(db, 'chats', cId, 'messages'), {
+              text: reply,
+              by: YUKI_BOT_UID,
+              at: serverTimestamp(),
+              seen: true
+            });
 
-          await setDoc(doc(db, 'chats', cId), {
-            lastMsg: reply.slice(0, 80),
-            lastMsgAt: serverTimestamp(),
-            lastMsgBy: YUKI_BOT_UID,
-            touchAt: serverTimestamp()
-          }, { merge: true });
-        } catch(e) {
-          console.error('Yuki reply save error:', e);
-          showToast('Yuki reply could not be saved' + (e && e.code ? ' (' + e.code + ')' : ''));
+            if (activeChatId === cId) {
+              const localItems = msgCache.get(cId) || [];
+              if (!localItems.some(item => item.id === replyRef.id)) {
+                localItems.push({ id: replyRef.id, msg: { text: reply, by: YUKI_BOT_UID, at: new Date(), seen: true } });
+                localItems.sort((a, b) => {
+                  const at = toDate(a.msg.at)?.getTime() || 0;
+                  const bt = toDate(b.msg.at)?.getTime() || 0;
+                  return at - bt;
+                });
+                msgCache.set(cId, localItems);
+                renderMessages(cId, localItems);
+              }
+            }
+
+            await setDoc(doc(db, 'chats', cId), {
+              lastMsg: reply.slice(0, 80),
+              lastMsgAt: serverTimestamp(),
+              lastMsgBy: YUKI_BOT_UID,
+              touchAt: serverTimestamp()
+            }, { merge: true });
+          } catch(e) {
+            console.error('Yuki reply save error:', e);
+            replyError = 'Yuki AI replied, but the reply could not be saved.';
+          }
+        }
+
+        if (replyError && activeChatId === cId) {
+          const errorId = `yuki-error-${Date.now()}`;
+          const localItems = msgCache.get(cId) || [];
+          localItems.push({ id: errorId, msg: { text: replyError, by: YUKI_BOT_UID, at: new Date(), isError: true, seen: true } });
+          msgCache.set(cId, localItems);
+          renderMessages(cId, localItems);
         }
       }, 650);
     }
@@ -4722,23 +4771,7 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
 });
 </script>
 
-<script>
-(function(){
-  var errs=[];
-  function show(force){
-    if(window.__chatBooted && !force) return;
-    var b=document.getElementById('bootDiag');
-    if(!b){ b=document.createElement('div'); b.id='bootDiag';
-      b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#7f1d1d;color:#fff;padding:10px 12px;border-radius:12px;font:12px/1.4 monospace;max-height:50vh;overflow:auto;white-space:pre-wrap';
-      document.body.appendChild(b); }
-    b.textContent=(window.__chatBooted?'App error:\n':'App did not start:\n')+errs.join('\n')+'\n\n(Screenshot this box and send it)';
-  }
-  window.addEventListener('error',function(e){ if(!e.message) return; if(/ResizeObserver loop/i.test(e.message)){ e.stopImmediatePropagation(); e.preventDefault(); return; } errs.push(e.message+(e.filename?' @'+String(e.filename).split('/').pop()+':'+e.lineno:'')); setTimeout(function(){show(true)},300); },true);
-  window.addEventListener('unhandledrejection',function(e){ errs.push('promise: '+((e.reason&&e.reason.message)||e.reason)); setTimeout(function(){show(true)},300); });
-  window.addEventListener('fbloadfail',function(){ errs.push('Firebase failed to load: '+window.__fbLoadError+'\nCheck internet / VPN / ad-blocker blocking gstatic.com'); show(true); });
-  setTimeout(function(){ if(!window.__chatBooted){ if(!errs.length) errs.push('no error captured - Firebase still loading (slow/blocked network?)'); show(); } },7000);
-})();
-</script>
+
 <style id="kbFixSupport">
 /* Keyboard fix: html never scrolls; inputs are >=16px on touch devices so iOS doesn't zoom/shift the page on focus */
 html { height: 100%; overflow: hidden; overscroll-behavior: none; }
