@@ -2789,6 +2789,12 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
       <!-- Mentions Suggestions Autocomplete -->
       <div class="mentions-box" id="mentionsBox"></div>
 
+      <!-- Reply / Edit bar -->
+      <div class="reply-bar" id="replyBar">
+        <div class="reply-bar-body"><b id="replyBarLabel">Replying</b><span id="replyBarText"></span></div>
+        <button id="replyBarClose" aria-label="Cancel"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+
       <div class="composer-inner">
         <button class="composer-btn" id="btnAttachFile" aria-label="Attach File">
           <svg viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l7.9-7.9"/></svg>
@@ -3057,6 +3063,21 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
     <div class="del-actions" style="display:flex;gap:10px;margin-top:6px">
       <button class="profile-pill-btn outline" id="btnDeleteCancel" style="flex:1;height:44px">Cancel</button>
       <button class="profile-pill-btn danger" id="btnDeleteConfirm" style="flex:1">Delete</button>
+    </div>
+  </div>
+
+  <!-- Message long-press menu -->
+  <div class="msg-menu-scrim" id="msgMenuScrim"></div>
+  <div class="msg-menu" id="msgMenu"></div>
+
+  <!-- Forward sheet -->
+  <div class="user-sheet-modal" id="forwardModal">
+    <div class="modal-drag-pill"></div>
+    <h3 style="font-size:17px;font-weight:600;text-align:center;margin-bottom:12px">Forward to</h3>
+    <div class="fwd-list" id="fwdList"></div>
+    <div style="display:flex;gap:10px">
+      <button class="profile-pill-btn outline" id="btnFwdCancel" style="flex:1;height:44px">Cancel</button>
+      <button class="profile-pill-btn" id="btnFwdSend" style="flex:1;height:44px" disabled>Send</button>
     </div>
   </div>
 
@@ -3803,6 +3824,7 @@ function renderDirectsList() {
         ${unread > 0 ? `<span class="tab-badge">${unread > 9 ? '9+' : unread}</span>` : ''}
       </div>` };
   });
+  if (currentUser) entries.unshift(infoCardEntry());
   try { patchList(container, entries); }
   catch(e) { console.error(e); container.innerHTML = entries.map(x => x.html).join(''); }
 }
@@ -3904,7 +3926,9 @@ function stopChatListeners() {
 }
 
 function openChatView(peerUid, profile = null) {
+  cancelComposerMode();
   stopChatListeners();
+  if (peerUid === DEMO_INFO_UID) { openInfoChat(); return; }
   chatSettleAt = appShell.classList.contains('in-chat') ? 0 : Date.now() + 300;
   appShell.classList.add('in-chat');
 
@@ -3956,6 +3980,7 @@ function openChatView(peerUid, profile = null) {
 
   if (activePeer.isYuki && currentUser) {
     const _yid = activeChatId;
+    seedYukiMessages(_yid);
     scaffoldMessages(_yid);
     const _yc = msgCache.get(_yid);
     if (_yc) renderMessages(_yid, _yc);
@@ -4092,7 +4117,7 @@ function buildMessageRow(id, msg, animate) {
   row.dataset.id = id;
   row.innerHTML = `
     <div class="msg-bubble-wrap">
-      <div class="msg-bubble">${esc(msg.text)}<span class="msg-time">${esc(timeStr)}</span></div>
+      ${msgBubbleHtml(msg, timeStr)}
     </div>`;
   row.addEventListener('animationend', () => row.classList.add('no-anim'), { once: true });
   return row;
@@ -4100,6 +4125,7 @@ function buildMessageRow(id, msg, animate) {
 
 function renderMessages(chatId, items) {
   if (activeChatId !== chatId) return;
+  { const _hid = hiddenSet(chatId); if (_hid.size) items = items.filter(i => !_hid.has(i.id)); }
   const box = $('messagesContainer');
   scaffoldMessages(chatId);
   const typing = $('typingIndicator');
@@ -4157,7 +4183,7 @@ function renderMessages(chatId, items) {
     }
 
     const timeStr = formatClock(msg.at);
-    const sig = (msg.text || '') + '|' + timeStr;
+    const sig = (msg.text || '') + '|' + timeStr + '|' + (msg.edited ? 1 : 0) + (msg.deleted ? 1 : 0) + (msg.forwarded ? 1 : 0) + (msg.replyTo ? msg.replyTo.id : '');
     let row = renderedRows.get(id);
     if (!row) {
       row = buildMessageRow(id, msg, !initial);
@@ -4167,13 +4193,11 @@ function renderMessages(chatId, items) {
       if (initial) frag.appendChild(row); else anchor.after(row);
     } else {
       if (row.__sig !== sig) {
-        row.__sig = sig;
-        const b = row.querySelector('.msg-bubble');
-        if (b) {
-          b.firstChild.textContent = msg.text || '';
-          const t = b.querySelector('.msg-time');
-          if (t) t.textContent = timeStr;
-        }
+        const nr = buildMessageRow(id, msg, false);
+        nr.__sig = sig;
+        row.replaceWith(nr);
+        renderedRows.set(id, nr);
+        row = nr;
       }
       if (!initial && anchor.nextElementSibling !== row) anchor.after(row);
     }
@@ -4263,7 +4287,7 @@ function yukiMergeLocal(chatId, items) {
   const local = yukiLocalLoad(chatId);
   if (!local.length) return items;
   const have = new Set(items.filter(i => i.msg && i.msg.by === YUKI_BOT_UID).map(i => i.msg.text));
-  const extra = local.filter(l => !have.has(l.text)).map(l => ({ id: l.id, msg: { text: l.text, by: l.by, at: l.at, seen: true } }));
+  const extra = local.filter(l => !have.has(l.text)).map(l => ({ id: l.id, msg: { ...l, seen: true } }));
   if (!extra.length) return items;
   const ms = i => { const d = toDate(i.msg.at); return d ? d.getTime() : Date.now(); };
   return items.concat(extra).sort((a, b) => ms(a) - ms(b));
@@ -4272,10 +4296,426 @@ function yukiMergeLocal(chatId, items) {
 /* ==========================================================================
    MESSAGE SENDING & BOT INTEGRATION
    ========================================================================== */
+/* ==========================================================================
+   MESSAGE ACTIONS: long-press menu (reply / forward / edit / delete)
+   ========================================================================== */
+const EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+const ICONS = {
+  reply: '<svg viewBox="0 0 24 24"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>',
+  forward: '<svg viewBox="0 0 24 24"><path d="M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z"/></svg>',
+  edit: '<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
+  del: '<svg viewBox="0 0 24 24"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>',
+  delall: '<svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>'
+};
+const ICON_FWD = '<svg viewBox="0 0 24 24"><path d="M14 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z"/></svg>';
+
+let replyTarget = null;
+let editTarget = null;
+let menuMsgId = null;
+let menuOpenedAt = 0;
+let fwdMsg = null;
+const fwdSel = new Set();
+
+const snippet = t => String(t || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+const canEdit = msg => {
+  if (!msg || msg.deleted || !currentUser || msg.by !== currentUser.uid) return false;
+  const d = toDate(msg.at);
+  return !!d && (Date.now() - d.getTime()) < EDIT_WINDOW_MS;
+};
+function senderLabel(by) {
+  if (currentUser && by === currentUser.uid) return 'You';
+  if (by === YUKI_BOT_UID) return 'Yuki AI';
+  return (activePeer && activePeer.display) || 'Operator';
+}
+function msgBubbleHtml(msg, timeStr) {
+  if (msg.deleted) {
+    return `<div class="msg-bubble is-deleted"><span class="msg-text">This message was deleted</span><span class="msg-time">${esc(timeStr)}</span></div>`;
+  }
+  let h = '<div class="msg-bubble">';
+  if (msg.forwarded) h += `<div class="msg-fwd">${ICON_FWD}<span>Forwarded</span></div>`;
+  if (msg.replyTo) h += `<div class="msg-quote" data-reply-id="${esc(msg.replyTo.id)}"><b>${esc(senderLabel(msg.replyTo.by))}</b><span>${esc(msg.replyTo.text)}</span></div>`;
+  h += `<span class="msg-text">${esc(msg.text)}</span><span class="msg-time">${msg.edited ? 'edited \u00b7 ' : ''}${esc(timeStr)}</span></div>`;
+  return h;
+}
+
+/* delete-for-me store (per device, per chat) */
+const hiddenKey = c => 'yukiHidden:' + c;
+function hiddenSet(c) {
+  try { return new Set(JSON.parse(localStorage.getItem(hiddenKey(c)) || '[]')); } catch (e) { return new Set(); }
+}
+function saveHidden(c, set) {
+  try { localStorage.setItem(hiddenKey(c), JSON.stringify([...set].slice(-500))); } catch (e) {}
+}
+
+/* Yuki AI: local seed messages + local patching (these are not in Firestore) */
+function seedYukiMessages(chatId) {
+  if (!currentUser) return;
+  const flag = 'yukiSeeded:' + chatId;
+  try { if (localStorage.getItem(flag)) return; } catch (e) { return; }
+  const now = Date.now();
+  const arr = yukiLocalLoad(chatId);
+  arr.push({ id: 'local_seed_1', text: 'hello', by: YUKI_BOT_UID, at: now - 120000, seen: true });
+  arr.push({ id: 'local_seed_2', text: 'how are you', by: currentUser.uid, at: now - 60000, seen: true });
+  try { localStorage.setItem(yukiLocalKey(chatId), JSON.stringify(arr)); localStorage.setItem(flag, '1'); } catch (e) {}
+}
+function yukiLocalPatch(chatId, id, patch) {
+  const arr = yukiLocalLoad(chatId);
+  const i = arr.findIndex(x => x.id === id);
+  if (i < 0) return false;
+  arr[i] = { ...arr[i], ...patch };
+  try { localStorage.setItem(yukiLocalKey(chatId), JSON.stringify(arr)); } catch (e) {}
+  return true;
+}
+function refreshYukiLocal(chatId) {
+  const base = (msgCache.get(chatId) || []).filter(i => !String(i.id).startsWith('local_'));
+  msgCache.set(chatId, yukiMergeLocal(chatId, base));
+  if (activeChatId === chatId) renderMessages(chatId, msgCache.get(chatId));
+}
+
+/* composer: reply / edit bar */
+function showComposerBar(label, text) {
+  $('replyBarLabel').textContent = label;
+  $('replyBarText').textContent = text;
+  $('replyBar').classList.add('show');
+}
+function clearComposerMode() {
+  replyTarget = null;
+  editTarget = null;
+  $('replyBar')?.classList.remove('show');
+}
+function cancelComposerMode() {
+  if (editTarget) {
+    const i = $('chatInputText');
+    if (i) { i.value = ''; i.style.height = '36px'; }
+    $('btnSendMessage')?.classList.remove('can-send');
+  }
+  clearComposerMode();
+}
+$('replyBarClose')?.addEventListener('click', cancelComposerMode);
+
+function startReply(id, msg) {
+  cancelComposerMode();
+  replyTarget = { id, by: msg.by, text: snippet(msg.text) };
+  showComposerBar('Replying to ' + senderLabel(msg.by), replyTarget.text);
+  $('chatInputText')?.focus();
+}
+function startEdit(id, msg) {
+  cancelComposerMode();
+  editTarget = { id };
+  showComposerBar('Edit message', snippet(msg.text));
+  const i = $('chatInputText');
+  i.value = msg.text || '';
+  i.style.height = '36px';
+  i.style.height = Math.min(i.scrollHeight, 120) + 'px';
+  $('btnSendMessage')?.classList.add('can-send');
+  i.focus();
+  try { i.setSelectionRange(i.value.length, i.value.length); } catch (e) {}
+}
+
+function syncLastMsg(cId, id, text) {
+  const list = msgCache.get(cId) || [];
+  const last = list[list.length - 1];
+  if (!last || last.id !== id || String(id).startsWith('local_')) return;
+  const t = String(text).slice(0, 80);
+  setDoc(doc(db, 'chats', cId), { lastMsg: t }, { merge: true }).catch(() => {});
+  const le = conversationList.find(c => c.chatId === cId);
+  if (le) { le.data = { ...le.data, lastMsg: t }; renderDirectsList(); }
+}
+
+async function submitEdit(text) {
+  const t = editTarget;
+  const cId = activeChatId;
+  if (!t || !cId) return;
+  const cur = (msgCache.get(cId) || []).find(i => i.id === t.id);
+  if (!cur || cur.msg.deleted) { cancelComposerMode(); showToast('Message is no longer available'); return; }
+  if (!canEdit(cur.msg)) { cancelComposerMode(); showToast('Edit time (24 hours) is over'); return; }
+  if (text === cur.msg.text) { cancelComposerMode(); return; }
+  cancelComposerMode();
+  try {
+    if (String(t.id).startsWith('local_')) {
+      yukiLocalPatch(cId, t.id, { text, edited: true });
+      refreshYukiLocal(cId);
+    } else {
+      await updateDoc(doc(db, 'chats', cId, 'messages', t.id), { text, edited: true, editedAt: serverTimestamp() });
+      syncLastMsg(cId, t.id, text);
+    }
+    showToast('Message edited');
+  } catch (e) {
+    console.error('Edit error:', e);
+    showToast('Could not edit message');
+  }
+}
+
+function deleteForMe(id) {
+  const cId = activeChatId;
+  if (!cId) return;
+  const set = hiddenSet(cId);
+  set.add(id);
+  saveHidden(cId, set);
+  renderMessages(cId, msgCache.get(cId) || []);
+  showToast('Deleted for you');
+}
+async function deleteForEveryone(id) {
+  const cId = activeChatId;
+  if (!cId) return;
+  const patch = { deleted: true, text: '', replyTo: null, forwarded: false, edited: false };
+  try {
+    if (String(id).startsWith('local_')) {
+      yukiLocalPatch(cId, id, patch);
+      refreshYukiLocal(cId);
+    } else {
+      await updateDoc(doc(db, 'chats', cId, 'messages', id), patch);
+      syncLastMsg(cId, id, 'This message was deleted');
+    }
+    showToast('Message deleted for everyone');
+  } catch (e) {
+    console.error('Delete error:', e);
+    showToast('Could not delete message');
+  }
+}
+
+/* forward */
+function updateFwdBtn() {
+  const b = $('btnFwdSend');
+  if (!b) return;
+  b.disabled = !fwdSel.size;
+  b.textContent = fwdSel.size ? 'Send (' + fwdSel.size + ')' : 'Send';
+}
+function openForward(msg) {
+  fwdMsg = { text: msg.text };
+  fwdSel.clear();
+  const blocked = (currentProfile && currentProfile.blockedUids) || [];
+  const list = conversationList.filter(c => !blocked.includes(c.otherUid));
+  $('fwdList').innerHTML = list.length ? list.map(c => {
+    const p = c.profile || {};
+    const name = p.display || p.username || 'Operator';
+    return `<button class="fwd-item" data-fwd="${esc(c.otherUid)}"><div class="chat-card-avatar" style="background:${getAvColor(p.username || name)}">${avatarInner(p, name)}</div><span class="fwd-name">${esc(name)}</span><span class="fwd-check"></span></button>`;
+  }).join('') : '<p style="text-align:center;color:var(--text-muted);padding:24px 10px;font-size:13.5px">No contacts yet. Start a chat first.</p>';
+  updateFwdBtn();
+  const m = $('forwardModal');
+  m.classList.remove('active');
+  void m.offsetWidth;
+  requestAnimationFrame(() => m.classList.add('active'));
+  $('masterScrim')?.classList.add('active');
+}
+function closeForward() {
+  $('forwardModal')?.classList.remove('active');
+  $('masterScrim')?.classList.remove('active');
+}
+async function sendForward() {
+  if (!fwdMsg || !fwdSel.size || !currentUser) return;
+  const text = fwdMsg.text;
+  const uids = [...fwdSel];
+  closeForward();
+  let ok = 0;
+  for (const uid of uids) {
+    const cId = getChatId(currentUser.uid, uid);
+    try {
+      await addDoc(collection(db, 'chats', cId, 'messages'), {
+        text, by: currentUser.uid, at: serverTimestamp(), seen: false, forwarded: true
+      });
+      await setDoc(doc(db, 'chats', cId), {
+        users: [currentUser.uid, uid],
+        [`participants.${currentUser.uid}`]: true,
+        [`participants.${uid}`]: true,
+        lastMsg: text.slice(0, 80),
+        lastMsgAt: serverTimestamp(),
+        lastMsgBy: currentUser.uid,
+        touchAt: serverTimestamp(),
+        unread: { [uid]: increment(1), [currentUser.uid]: 0 }
+      }, { merge: true });
+      ok++;
+    } catch (e) { console.error('Forward error:', e); }
+  }
+  showToast(ok ? 'Forwarded to ' + ok + ' chat' + (ok > 1 ? 's' : '') : 'Could not forward');
+}
+$('fwdList')?.addEventListener('click', e => {
+  const b = e.target.closest('.fwd-item');
+  if (!b) return;
+  const uid = b.dataset.fwd;
+  if (fwdSel.has(uid)) { fwdSel.delete(uid); b.classList.remove('sel'); }
+  else { fwdSel.add(uid); b.classList.add('sel'); }
+  updateFwdBtn();
+});
+$('btnFwdCancel')?.addEventListener('click', closeForward);
+$('btnFwdSend')?.addEventListener('click', sendForward);
+$('masterScrim')?.addEventListener('click', () => $('forwardModal')?.classList.remove('active'));
+
+/* popup menu */
+const msgMenuEl = $('msgMenu');
+const msgMenuScrim = $('msgMenuScrim');
+function closeMsgMenu() {
+  msgMenuEl?.classList.remove('open');
+  msgMenuScrim?.classList.remove('open');
+  msgsBox.querySelectorAll('.chat-message-row.menu-active').forEach(r => r.classList.remove('menu-active'));
+  menuMsgId = null;
+}
+function openMsgMenu(row) {
+  if (!row || !activePeer || activePeer.isDemo || !currentUser || !msgMenuEl) return;
+  const id = row.dataset.id;
+  const item = (msgCache.get(activeChatId) || []).find(i => i.id === id);
+  if (!item) return;
+  const msg = item.msg;
+  const mine = msg.by === currentUser.uid;
+  const acts = [];
+  if (!msg.deleted) {
+    if (!activePeer.isInfo) acts.push(['reply', ICONS.reply, 'Reply']);
+    acts.push(['forward', ICONS.forward, 'Forward']);
+    if (mine && canEdit(msg)) acts.push(['edit', ICONS.edit, 'Edit']);
+  }
+  acts.push(['delme', ICONS.del, 'Delete for me', 1]);
+  if (mine && !msg.deleted) acts.push(['delall', ICONS.delall, 'Delete for everyone', 1]);
+
+  msgsBox.querySelectorAll('.chat-message-row.menu-active').forEach(r => r.classList.remove('menu-active'));
+  msgMenuEl.innerHTML = acts.map(a => `<button class="msg-menu-row${a[3] ? ' danger' : ''}" data-act="${a[0]}">${a[1]}<span>${a[2]}</span></button>`).join('');
+  menuMsgId = id;
+  row.classList.add('menu-active');
+
+  const shell = appShell.getBoundingClientRect();
+  const br = row.querySelector('.msg-bubble').getBoundingClientRect();
+  const W = 232, H = acts.length * 46 + 14;
+  let left = mine ? br.right - shell.left - W : br.left - shell.left;
+  left = Math.max(8, Math.min(left, shell.width - W - 8));
+  let top = br.bottom - shell.top + 6;
+  if (top + H > shell.height - 8) top = br.top - shell.top - H - 6;
+  top = Math.max(8, Math.min(top, shell.height - H - 8));
+  msgMenuEl.style.left = left + 'px';
+  msgMenuEl.style.top = top + 'px';
+  msgMenuScrim.classList.add('open');
+  void msgMenuEl.offsetWidth;
+  msgMenuEl.classList.add('open');
+  menuOpenedAt = Date.now();
+  try { if (navigator.vibrate) navigator.vibrate(10); } catch (e) {}
+}
+msgMenuEl?.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  const id = menuMsgId;
+  const act = b.dataset.act;
+  const item = (msgCache.get(activeChatId) || []).find(i => i.id === id);
+  closeMsgMenu();
+  if (!item) return;
+  if (act === 'reply') startReply(id, item.msg);
+  else if (act === 'forward') openForward(item.msg);
+  else if (act === 'edit') startEdit(id, item.msg);
+  else if (act === 'delme') deleteForMe(id);
+  else if (act === 'delall') deleteForEveryone(id);
+});
+msgMenuScrim?.addEventListener('click', () => { if (Date.now() - menuOpenedAt > 350) closeMsgMenu(); });
+msgMenuScrim?.addEventListener('contextmenu', e => e.preventDefault());
+msgsBox.addEventListener('scroll', () => { if (menuMsgId) closeMsgMenu(); }, { passive: true });
+
+/* long press detection (touch + mouse); right click also opens it */
+let lpTimer = 0, lpX = 0, lpY = 0, lpFiredAt = 0;
+const lpCancel = () => { clearTimeout(lpTimer); lpTimer = 0; };
+msgsBox.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const bubble = e.target.closest('.msg-bubble');
+  if (!bubble) return;
+  const row = bubble.closest('.chat-message-row');
+  if (!row) return;
+  lpX = e.clientX; lpY = e.clientY;
+  lpCancel();
+  lpTimer = setTimeout(() => { lpTimer = 0; lpFiredAt = Date.now(); openMsgMenu(row); }, 420);
+});
+msgsBox.addEventListener('pointermove', e => {
+  if (lpTimer && Math.hypot(e.clientX - lpX, e.clientY - lpY) > 10) lpCancel();
+}, { passive: true });
+['pointerup', 'pointercancel', 'pointerleave'].forEach(t => msgsBox.addEventListener(t, lpCancel));
+msgsBox.addEventListener('contextmenu', e => {
+  const bubble = e.target.closest('.msg-bubble');
+  if (!bubble) return;
+  e.preventDefault();
+  lpCancel();
+  if (Date.now() - lpFiredAt > 600) { lpFiredAt = Date.now(); openMsgMenu(bubble.closest('.chat-message-row')); }
+});
+
+/* tap on a quoted reply: jump to the original message */
+msgsBox.addEventListener('click', e => {
+  const q = e.target.closest('.msg-quote');
+  if (!q || Date.now() - lpFiredAt < 600) return;
+  const tgt = [...msgsBox.querySelectorAll('.chat-message-row')].find(r => r.dataset.id === q.dataset.replyId);
+  if (!tgt) { showToast('Original message not found'); return; }
+  tgt.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  tgt.classList.remove('flash');
+  void tgt.offsetWidth;
+  tgt.classList.add('flash');
+  setTimeout(() => tgt.classList.remove('flash'), 1300);
+});
+
+/* ==========================================================================
+   DEMO INFO CHAT: read-only chat that describes the website
+   ========================================================================== */
+const DEMO_INFO_UID = '__yuki_info__';
+const INFO_BLOCK_MSG = 'Demo chat pe ye option kaam nahi karta';
+const INFO_MESSAGES = [
+  "Welcome to Yuki! Ye ek realtime chat website hai jahan aap doston se aur AI se baat kar sakte ho.",
+  "Sign up: email, password, naam aur ek unique username se account banta hai. Email verify karna zaroori hai, uske baad hi login hota hai.",
+  "Directs: upar search icon se kisi ka bhi username search karo aur chat shuru karo. Unread messages ka badge list me dikhta hai.",
+  "AI Room: Yuki AI Companion se sawal pucho, code debug karwao ya bas gappe maaro. Isme 2 test messages pehle se rakhe hain.",
+  "Message options: kisi bhi message ko hold karo (desktop pe right-click). Reply, Forward, Edit (24 ghante tak) aur Delete (for me / for everyone) mil jaayenge.",
+  "Profile: settings me se display name, unique username aur profile photo badal sakte ho.",
+  "Appearance: Dark Mode, AMOLED Mode, Accent Colour, Text Size, High Contrast, Compact Chat List aur Reduce Motion settings me hain.",
+  "Privacy: kisi user ko block kar sakte ho, chat clear ya hide kar sakte ho, aur zaroorat ho to account delete bhi.",
+  "Technology: Firebase Firestore ka realtime engine use hota hai, to messages turant dikhte hain. Layout phone aur desktop dono pe chalta hai.",
+  "Ye demo chat sirf information ke liye hai, yahan reply nahi bhej sakte. Baaki chats me sab features use karo."
+];
+let infoCache = null;
+function getInfoItems() {
+  if (!infoCache) {
+    const now = Date.now();
+    infoCache = INFO_MESSAGES.map((text, i) => ({
+      id: 'info_' + (i + 1),
+      msg: { text, by: DEMO_INFO_UID, at: now - (INFO_MESSAGES.length - i) * 45000, seen: true }
+    }));
+  }
+  return infoCache;
+}
+function infoCardEntry() {
+  const items = getInfoItems();
+  const last = items[items.length - 1].msg;
+  const sel = (activePeer && activePeer.uid === DEMO_INFO_UID) || selectedCardUid === DEMO_INFO_UID;
+  return { uid: DEMO_INFO_UID, html: `
+    <div class="chat-card ${sel ? 'highlighted-blue' : ''}" data-uid="${DEMO_INFO_UID}">
+      <div class="chat-card-avatar" style="background:#1d72fe">YI</div>
+      <div class="chat-card-body">
+        <div class="chat-card-header">
+          <span class="chat-card-name">Yuki Info</span>
+          <span class="chat-card-time">Demo</span>
+        </div>
+        <div class="chat-card-preview">${esc(snippet(last.text))}</div>
+      </div>
+    </div>` };
+}
+function openInfoChat() {
+  chatSettleAt = appShell.classList.contains('in-chat') ? 0 : Date.now() + 300;
+  appShell.classList.add('in-chat');
+  activePeer = { uid: DEMO_INFO_UID, username: 'yuki_info', display: 'Yuki Info', photoURL: '', isInfo: true };
+  const cId = 'demo_info:' + (currentUser ? currentUser.uid : '');
+  activeChatId = cId;
+  $('chatHeaderTitle').textContent = 'Yuki Info';
+  $('chatHeaderSubtitle').textContent = 'Demo chat · About this website';
+  $('chatHeaderAvatar').textContent = 'YI';
+  $('chatHeaderAvatar').style.background = '#1d72fe';
+  $('searchInput').value = '';
+  $('searchBoxWrap')?.classList.remove('has-value');
+  $('searchResultsView').classList.remove('active');
+  scaffoldMessages(cId);
+  msgCache.set(cId, getInfoItems());
+  const run = () => { if (activeChatId === cId) renderMessages(cId, msgCache.get(cId) || []); };
+  const wait = chatSettleAt - Date.now();
+  if (wait > 0) setTimeout(run, wait); else run();
+  renderDirectsList();
+}
+
 async function handleSendMessage() {
   const input = $('chatInputText');
   const text = input.value.trim();
   if (!text) return;
+  if (activePeer?.isInfo) { showToast('Demo chat hai \u2014 yahan message nahi bhej sakte'); return; }
+  if (editTarget) { await submitEdit(text); return; }
+  const replyRef = replyTarget ? { id: replyTarget.id, by: replyTarget.by, text: replyTarget.text } : null;
+  clearComposerMode();
 
   if (activePeer?.isDemo) {
     // Append demo message locally
@@ -4339,7 +4779,8 @@ async function handleSendMessage() {
       text,
       by: currentUser.uid,
       at: serverTimestamp(),
-      seen: false
+      seen: false,
+      ...(replyRef ? { replyTo: replyRef } : {})
     });
     if (peer.isYuki && activeChatId === cId && window.__msgSubOk !== cId) {
       unsubscribeMessages && unsubscribeMessages();
@@ -4937,6 +5378,7 @@ $('btnOpenContactDetails')?.addEventListener('click', () => {
 
 /* Clear chats (messages go, contact stays) */
 $('btnContextClearChat')?.addEventListener('click', async () => {
+  if (activePeer?.isInfo) { toggleDrawer(false); showToast(INFO_BLOCK_MSG); return; }
   if (!activePeer) return;
   if (!confirm('Clear all messages in this chat? The contact will stay in your list.')) return;
   toggleDrawer(false);
@@ -4961,7 +5403,14 @@ $('btnContextClearChat')?.addEventListener('click', async () => {
     const meta = { lastMsg: '' };
     if (!peer.isYuki) meta.unread = { [currentUser.uid]: 0, [peer.uid]: 0 };
     await setDoc(doc(db, 'chats', cId), meta, { merge: true });
-    if (peer.isYuki) yukiHistory = [];
+    try { localStorage.removeItem(hiddenKey(cId)); } catch(e2) {}
+    if (peer.isYuki) {
+      yukiHistory = [];
+      try { localStorage.removeItem(yukiLocalKey(cId)); localStorage.removeItem('yukiSeeded:' + cId); } catch(e2) {}
+      seedYukiMessages(cId);
+      msgCache.set(cId, yukiMergeLocal(cId, []));
+      renderMessages(cId, msgCache.get(cId));
+    }
     const _le = conversationList.find(c => c.chatId === cId);
     if (_le) {
       _le.data = { ..._le.data, lastMsg: '', unread: { ...(_le.data.unread || {}), [currentUser.uid]: 0 } };
@@ -5030,6 +5479,7 @@ $('btnDeleteConfirm')?.addEventListener('click', async () => {
 
 /* Context actions in chat drawer */
 $('btnContextBlock')?.addEventListener('click', () => {
+  if (activePeer?.isInfo) { toggleDrawer(false); showToast(INFO_BLOCK_MSG); return; }
   if (activePeer && !activePeer.isYuki) {
     const isBlocked = (currentProfile?.blockedUids || []).includes(activePeer.uid);
     toggleBlockUser(activePeer.uid, !isBlocked);
@@ -5038,6 +5488,7 @@ $('btnContextBlock')?.addEventListener('click', () => {
 });
 
 $('btnContextDeleteChat')?.addEventListener('click', () => {
+  if (activePeer?.isInfo) { toggleDrawer(false); showToast(INFO_BLOCK_MSG); return; }
   if (activePeer && currentUser) {
     addDeletedChat(currentUser.uid, activePeer.uid);
     conversationList = conversationList.filter(c => c.otherUid !== activePeer.uid);
@@ -5067,6 +5518,59 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
   setTimeout(function(){ if(!window.__chatBooted){ if(!errs.length) errs.push('no error captured - Firebase still loading (slow/blocked network?)'); show(); } },7000);
 })();
 </script>
+<style id="msgActionsCss">
+/* ===== Message actions: long-press menu, reply bar, forward sheet ===== */
+.msg-bubble { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.msg-bubble.is-deleted { font-style: italic; opacity: 0.72; }
+.chat-message-row.menu-active .msg-bubble { filter: brightness(0.9); }
+.chat-message-row.flash .msg-bubble { animation: msgFlash 1.2s ease; }
+@keyframes msgFlash { 0%, 55% { filter: brightness(0.78); } 100% { filter: none; } }
+.msg-fwd { display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-style: italic; opacity: 0.82; margin-bottom: 3px; }
+.msg-fwd svg { width: 12px; height: 12px; fill: currentColor; stroke: none; }
+.msg-quote { display: block; max-width: 240px; border-left: 3px solid var(--primary-blue); background: rgba(100, 116, 139, 0.14); border-radius: 8px; padding: 5px 9px; margin-bottom: 5px; cursor: pointer; }
+.chat-message-row.is-mine .msg-quote { border-left-color: rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.18); }
+.msg-quote b { display: block; font-size: 12px; font-weight: 600; }
+.msg-quote span { display: block; font-size: 12.5px; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.msg-menu-scrim { position: absolute; inset: 0; z-index: 90; display: none; }
+.msg-menu-scrim.open { display: block; }
+.msg-menu {
+  position: absolute; z-index: 91; width: 232px; padding: 6px 0;
+  background: var(--card-bg); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: scale(0.9) translateY(-6px); transform-origin: top center;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s ease, visibility 0s linear 0.2s;
+}
+.msg-menu.open {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: none;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s ease, visibility 0s;
+}
+:root[data-theme="dark"] .msg-menu { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5); }
+.msg-menu-row { display: flex; align-items: center; gap: 16px; width: 100%; height: 46px; padding: 0 16px; text-align: left; font-size: 14.5px; color: var(--text-main); }
+.msg-menu-row:active { background: var(--card-hover); }
+.msg-menu-row svg { width: 24px; height: 24px; fill: var(--icon-fg); stroke: none; }
+.msg-menu-row.danger { color: #ef4444; }
+.msg-menu-row.danger svg { fill: #ef4444; }
+@media (hover: hover) and (pointer: fine) { .msg-menu-row:hover { background: var(--card-hover); } }
+
+.reply-bar { display: none; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px 8px 8px 12px; background: var(--card-bg); border: 1px solid var(--border-subtle); border-left: 3px solid var(--primary-blue); border-radius: 12px; }
+.reply-bar.show { display: flex; animation: drawerItemIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.reply-bar-body { flex: 1; min-width: 0; }
+.reply-bar-body b { display: block; font-size: 12.5px; font-weight: 600; color: var(--primary-blue); }
+.reply-bar-body span { display: block; font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reply-bar button { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--text-muted); flex: none; }
+
+.fwd-list { max-height: 46vh; overflow-y: auto; margin: 0 -4px 12px; }
+.fwd-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 6px; text-align: left; border-radius: 12px; }
+.fwd-item:active { background: var(--card-hover); }
+.fwd-item .chat-card-avatar { width: 40px; height: 40px; font-size: 14px; }
+.fwd-name { flex: 1; min-width: 0; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fwd-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border-subtle); display: grid; place-items: center; flex: none; }
+.fwd-item.sel .fwd-check { background: var(--primary-blue); border-color: var(--primary-blue); }
+.fwd-item.sel .fwd-check::after { content: ""; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px); }
+#btnFwdSend:disabled { opacity: 0.5; cursor: default; }
+</style>
 <style id="kbFixSupport">
 /* Keyboard fix: html never scrolls; inputs are >=16px on touch devices so iOS doesn't zoom/shift the page on focus */
 html { height: 100%; overflow: hidden; overscroll-behavior: none; }
