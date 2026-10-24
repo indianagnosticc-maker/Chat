@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="color-scheme" content="only light">
 <meta name="darkreader-lock">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Yuki">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Yuki</title>
 <link rel="icon" href="https://lh3.googleusercontent.com/aida-public/AB6AXuB4sBVUR8Nz47PlRnmU7Mn9yBzGxjtHQbmswmVJ8g5JBLmgwhevUrlEWaiPvzu5NGe_l3mKI1oWJzedHAZUWp_1iqSxEfaynl9A6aduhVIbZY_4KOtC4c22tAzKQJYC1E7gQtuq_k0JbQTLEPWTB2buOrT_ts7cIa-kfTMx_dbvLkbqkM7D00p3E_VLcpHPW49Vuv8tc_TAMxQCZGc2hpKdGpIkXY9j6A6mDYHzquEG8yWXaVh_tMpOUw">
@@ -2791,6 +2797,12 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
       <!-- Mentions Suggestions Autocomplete -->
       <div class="mentions-box" id="mentionsBox"></div>
 
+      <!-- Scroll to latest -->
+      <button class="scroll-down-btn" id="btnScrollDown" type="button" aria-label="Scroll to latest message">
+        <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        <span class="sd-badge" id="sdBadge"></span>
+      </button>
+
       <!-- Reply / Edit bar -->
       <div class="reply-bar" id="replyBar">
         <div class="reply-bar-body"><b id="replyBarLabel">Replying</b><span id="replyBarText"></span></div>
@@ -4282,6 +4294,48 @@ function senderLabel(by) {
   if (by === YUKI_BOT_UID) return 'Yuki AI';
   return (activePeer && activePeer.display) || 'Operator';
 }
+/* Markdown-lite for Yuki AI replies (input is HTML-escaped first, so it is safe) */
+function mdLite(src) {
+  const stash = [];
+  const put = html => { stash.push(html); return '\u0000' + (stash.length - 1) + '\u0000'; };
+  let t = String(src ?? '').replace(/\r\n/g, '\n');
+  t = t.replace(/```[a-zA-Z0-9_+-]*\n?([\s\S]*?)```/g, (m, code) => put('<pre><code>' + esc(code.replace(/\n$/, '')) + '</code></pre>'));
+  t = esc(t);
+  t = t.replace(/`([^`\n]+)`/g, (m, c) => put('<code>' + c + '</code>'));
+  t = t.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, label, url) => put('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + '</a>'));
+  t = t.replace(/(^|[\s(])(https?:\/\/[^\s<]+?)(?=[.,;:!?)]*(?:\s|$))/g, (m, pre, url) => pre + put('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>'));
+  t = t.replace(/\*\*([^\n]+?)\*\*/g, '<strong>$1</strong>')
+       .replace(/__([^\n]+?)__/g, '<strong>$1</strong>')
+       .replace(/~~([^\n]+?)~~/g, '<del>$1</del>')
+       .replace(/(^|[^\w*])\*(?!\s)([^*\n]+?)(?<!\s)\*(?![\w*])/g, '$1<em>$2</em>')
+       .replace(/(^|[^\w])_(?!\s)([^_\n]+?)(?<!\s)_(?![\w])/g, '$1<em>$2</em>');
+  const lines = t.split('\n');
+  const nodes = [];
+  let list = null;
+  const flush = () => { if (list) { nodes.push({ k: 'b', h: '<' + list.tag + '>' + list.items.map(i => '<li>' + i + '</li>').join('') + '</' + list.tag + '>' }); list = null; } };
+  lines.forEach(line => {
+    const raw = line.trim();
+    let m;
+    if (!raw) { flush(); nodes.push({ k: 'g' }); return; }
+    if ((m = raw.match(/^[-*\u2022]\s+(.+)$/))) { if (!list || list.tag !== 'ul') { flush(); list = { tag: 'ul', items: [] }; } list.items.push(m[1]); return; }
+    if ((m = raw.match(/^\d{1,3}[.)]\s+(.+)$/))) { if (!list || list.tag !== 'ol') { flush(); list = { tag: 'ol', items: [] }; } list.items.push(m[1]); return; }
+    flush();
+    if ((m = raw.match(/^#{1,6}\s+(.+)$/))) { nodes.push({ k: 'b', h: '<span class="md-h">' + m[1] + '</span>' }); return; }
+    const pm = raw.match(/^\u0000(\d+)\u0000$/);
+    if (pm && stash[+pm[1]].indexOf('<pre') === 0) { nodes.push({ k: 'b', h: raw }); return; }
+    nodes.push({ k: 't', h: raw });
+  });
+  flush();
+  while (nodes.length && nodes[0].k === 'g') nodes.shift();
+  while (nodes.length && nodes[nodes.length - 1].k === 'g') nodes.pop();
+  let html = '';
+  nodes.forEach((n, i) => {
+    if (n.k === 'g') { if (nodes[i - 1] && nodes[i - 1].k !== 'g') html += '<span class="md-gap"></span>'; return; }
+    if (n.k === 't' && nodes[i - 1] && nodes[i - 1].k === 't') html += '<br>';
+    html += n.h;
+  });
+  return html.replace(/\u0000(\d+)\u0000/g, (m, i) => stash[+i]);
+}
 function msgBubbleHtml(msg, timeStr) {
   if (msg.deleted) {
     return `<div class="msg-bubble is-deleted"><span class="msg-text">This message was deleted</span><span class="msg-time">${esc(timeStr)}</span></div>`;
@@ -4289,7 +4343,7 @@ function msgBubbleHtml(msg, timeStr) {
   let h = '<div class="msg-bubble">';
   if (msg.forwarded) h += `<div class="msg-fwd">${ICON_FWD}<span>Forwarded</span></div>`;
   if (msg.replyTo) h += `<div class="msg-quote" data-reply-id="${esc(msg.replyTo.id)}"><b>${esc(senderLabel(msg.replyTo.by))}</b><span>${esc(msg.replyTo.text)}</span></div>`;
-  h += `<span class="msg-text">${esc(msg.text)}</span><span class="msg-time">${msg.edited ? 'edited \u00b7 ' : ''}${esc(timeStr)}</span></div>`;
+  h += `<span class="msg-text">${msg.by === YUKI_BOT_UID ? mdLite(msg.text) : esc(msg.text)}</span><span class="msg-time">${msg.edited ? 'edited \u00b7 ' : ''}${esc(timeStr)}</span></div>`;
   return h;
 }
 
@@ -5320,6 +5374,111 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
     showToast('Conversation hidden');
   }
 });
+
+/* ==========================================================================
+   BATCH 1 ADDITIONS: scroll-to-latest button + swipe-to-reply
+   ========================================================================== */
+(function () {
+  const btn = $('btnScrollDown'), badge = $('sdBadge');
+  if (!btn || !msgsBox) return;
+  let unread = 0, near = true, far = false, lastChat = null;
+  const dist = () => msgsBox.scrollHeight - msgsBox.scrollTop - msgsBox.clientHeight;
+  function paint() {
+    btn.classList.toggle('show', !near && (far || unread > 0));
+    if (unread > 0) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.classList.add('show'); }
+    else badge.classList.remove('show');
+  }
+  function sync() {
+    if (activeChatId !== lastChat) { lastChat = activeChatId; unread = 0; }
+    const d = dist();
+    near = d < 140;
+    far = d > 220;
+    if (near) unread = 0;
+    paint();
+  }
+  msgsBox.addEventListener('scroll', sync, { passive: true });
+  new MutationObserver(muts => {
+    if (activeChatId !== lastChat) { sync(); return; }
+    muts.forEach(m => m.addedNodes.forEach(n => {
+      if (n.nodeType === 1 && n.classList.contains('chat-message-row') && !n.classList.contains('is-mine') && !n.classList.contains('no-anim') && !near) unread++;
+    }));
+    paint();
+  }).observe(msgsBox, { childList: true });
+  new MutationObserver(() => requestAnimationFrame(sync)).observe(appShell, { attributes: true, attributeFilter: ['class'] });
+  btn.addEventListener('mousedown', e => e.preventDefault());
+  btn.addEventListener('click', () => {
+    unread = 0;
+    msgsBox.scrollTo({ top: msgsBox.scrollHeight, behavior: 'smooth' });
+    paint();
+  });
+})();
+
+/* swipe-to-reply: incoming bubbles drag right, your own bubbles drag left (free side), release past the line to reply */
+(function () {
+  const TRIGGER = 56, MAX = 80;
+  let row = null, wrap = null, sx = 0, sy = 0, dx = 0, mode = 0, dir = 1, armed = false;
+  const buzz = () => { try { if (navigator.vibrate) navigator.vibrate(10); } catch (e) {} };
+
+  msgsBox.addEventListener('touchstart', e => {
+    row = wrap = null; mode = 0; armed = false; dx = 0;
+    if (e.touches.length !== 1) return;
+    const bubble = e.target.closest && e.target.closest('.msg-bubble');
+    if (!bubble || bubble.classList.contains('is-deleted') || e.target.closest('pre')) return;
+    const r = bubble.closest('.chat-message-row');
+    if (!r || !r.dataset.id) return;
+    if (!activePeer || activePeer.isDemo || !currentUser || menuMsgId) return;
+    row = r;
+    wrap = r.querySelector('.msg-bubble-wrap');
+    if (!wrap) { row = null; return; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    dir = r.classList.contains('is-mine') ? -1 : 1;
+  }, { passive: true });
+
+  msgsBox.addEventListener('touchmove', e => {
+    if (!row) return;
+    const t = e.touches[0];
+    const mx = t.clientX - sx, my = t.clientY - sy;
+    if (mode === 0) {
+      if (Math.hypot(mx, my) < 8) return;
+      if (Math.abs(mx) > Math.abs(my) * 1.4 && mx * dir > 0) {
+        mode = 1;
+        lpCancel();
+        wrap.style.transition = 'none';
+        row.classList.add('swiping');
+      } else { mode = 2; row = null; return; }
+    }
+    if (mode === 1) {
+      if (e.cancelable) e.preventDefault();
+      const p = Math.max(0, mx * dir);
+      dx = Math.min(MAX, p <= TRIGGER ? p : TRIGGER + (p - TRIGGER) * 0.25);
+      wrap.style.transform = 'translateX(' + (dx * dir) + 'px)';
+      row.style.setProperty('--sw-p', Math.min(1, dx / TRIGGER).toFixed(2));
+      if (!armed && dx >= TRIGGER) { armed = true; row.classList.add('armed'); buzz(); }
+      else if (armed && dx < TRIGGER - 6) { armed = false; row.classList.remove('armed'); }
+    }
+  }, { passive: false });
+
+  function finish(e) {
+    if (!row) return;
+    const r = row, w = wrap, go = mode === 1 && armed && e.type === 'touchend';
+    row = wrap = null;
+    if (mode !== 1) return;
+    w.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+    w.style.transform = '';
+    setTimeout(() => {
+      w.style.transition = '';
+      r.classList.remove('swiping', 'armed');
+      r.style.removeProperty('--sw-p');
+    }, 260);
+    if (go) {
+      const id = r.dataset.id;
+      const item = (msgCache.get(activeChatId) || []).find(i => i.id === id);
+      if (item && !item.msg.deleted) startReply(id, item.msg);
+    }
+  }
+  msgsBox.addEventListener('touchend', finish, { passive: true });
+  msgsBox.addEventListener('touchcancel', finish, { passive: true });
+})();
 </script>
 
 <script>
@@ -5954,6 +6113,106 @@ body { top: 0; left: 0; right: 0; }
               width 0.46s cubic-bezier(0.22, 1, 0.36, 1), height 0.46s cubic-bezier(0.22, 1, 0.36, 1),
               background-color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
 }
+
+/* ==========================================================================
+   BATCH 1 ADDITIONS: scroll-to-latest button, swipe-to-reply, markdown, (all additive)
+   ========================================================================== */
+.messages-container { overflow-x: hidden; }
+
+/* scroll-to-latest button */
+.scroll-down-btn {
+  position: absolute;
+  right: 14px;
+  bottom: 100%;
+  margin-bottom: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--card-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  z-index: 35;
+  opacity: 0;
+  transform: translateY(10px) scale(0.8);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.scroll-down-btn.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.scroll-down-btn.show:active { transform: scale(0.92); }
+.scroll-down-btn svg { width: 20px; height: 20px; stroke-width: 2.4; }
+.scroll-down-btn .sd-badge {
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--primary-blue);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 19px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(29, 114, 254, 0.4);
+  transform: scale(0);
+  transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.scroll-down-btn .sd-badge.show { transform: scale(1); }
+
+/* swipe-to-reply */
+.chat-message-row.swiping { position: relative; }
+.chat-message-row.swiping::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  border-radius: 50%;
+  background: var(--card-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d72fe' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 6.5 4 12l5.5 5.5'/%3E%3Cpath d='M4 12h9.5a6.5 6.5 0 0 1 6.5 6.5V19'/%3E%3C/svg%3E") center / 18px no-repeat;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  opacity: var(--sw-p, 0);
+  transform: scale(calc(0.5 + var(--sw-p, 0) * 0.5));
+  transition: background-color 0.15s ease;
+  pointer-events: none;
+}
+.chat-message-row.is-mine.swiping::before { left: auto; right: 6px; }
+.chat-message-row.swiping.armed::before { background-color: var(--primary-blue-light); }
+
+/* markdown inside Yuki replies */
+.msg-text strong { font-weight: 700; }
+.msg-text em { font-style: italic; }
+.msg-text del { opacity: 0.7; }
+.msg-text a { color: inherit; text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+.msg-text code {
+  font: 12.5px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: rgba(100, 116, 139, 0.16);
+  padding: 1px 5px;
+  border-radius: 6px;
+}
+.msg-text pre {
+  display: block;
+  margin: 6px 0 4px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: rgba(100, 116, 139, 0.14);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: pre;
+  scrollbar-width: none;
+}
+.msg-text pre::-webkit-scrollbar { display: none; }
+.msg-text pre code { background: none; padding: 0; border-radius: 0; font-size: 12.5px; }
+.msg-text ul, .msg-text ol { display: block; margin: 4px 0 2px; padding-left: 20px; }
+.msg-text li { margin: 1px 0; }
+.msg-text .md-h { display: block; font-weight: 700; margin: 2px 0; }
+.msg-text .md-gap { display: block; height: 6px; }
 </style>
 <script id="iosGlassMorphFixJs">
 /* Settings popup: Profile / Block List / Back = morph the box (size + blur), no side scroll.
@@ -6045,6 +6304,23 @@ document.getElementById('btnSaveChanges')?.addEventListener('click', function(){
     ic.classList.add('ico-anim');
     setTimeout(function () { ic.classList.remove('ico-anim'); }, 700);
   });
+})();
+</script>
+<script>
+/* PWA: install support. Does nothing visible in the browser. */
+(function () {
+  try {
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+    }
+    var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+    if (standalone) {
+      var m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m);
+      var paint = function () { m.content = document.documentElement.getAttribute('data-theme') === 'dark' ? '#141b2a' : '#ffffff'; };
+      paint();
+      new MutationObserver(paint).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    }
+  } catch (e) {}
 })();
 </script>
 </body>
