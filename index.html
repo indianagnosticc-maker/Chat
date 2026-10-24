@@ -4,12 +4,6 @@
 <meta charset="utf-8">
 <meta name="color-scheme" content="only light">
 <meta name="darkreader-lock">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Yuki">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Yuki</title>
 <link rel="icon" href="https://lh3.googleusercontent.com/aida-public/AB6AXuB4sBVUR8Nz47PlRnmU7Mn9yBzGxjtHQbmswmVJ8g5JBLmgwhevUrlEWaiPvzu5NGe_l3mKI1oWJzedHAZUWp_1iqSxEfaynl9A6aduhVIbZY_4KOtC4c22tAzKQJYC1E7gQtuq_k0JbQTLEPWTB2buOrT_ts7cIa-kfTMx_dbvLkbqkM7D00p3E_VLcpHPW49Vuv8tc_TAMxQCZGc2hpKdGpIkXY9j6A6mDYHzquEG8yWXaVh_tMpOUw">
@@ -2663,30 +2657,39 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
        ========================================== -->
   <div class="screen" id="screenInbox">
     <!-- Header -->
-    <header class="app-header">
-      <div class="brand-badge" id="btnBrandMenu">
-        <div class="brand-logo-icon"><img class="brand-logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4sBVUR8Nz47PlRnmU7Mn9yBzGxjtHQbmswmVJ8g5JBLmgwhevUrlEWaiPvzu5NGe_l3mKI1oWJzedHAZUWp_1iqSxEfaynl9A6aduhVIbZY_4KOtC4c22tAzKQJYC1E7gQtuq_k0JbQTLEPWTB2buOrT_ts7cIa-kfTMx_dbvLkbqkM7D00p3E_VLcpHPW49Vuv8tc_TAMxQCZGc2hpKdGpIkXY9j6A6mDYHzquEG8yWXaVh_tMpOUw" alt="logo"></div>
-        <span class="brand-title">Yuki</span>
-      </div>
+    <header class="app-header" id="appHeader">
+      <button class="header-profile-btn" id="btnHeaderProfile" aria-label="My Profile">
+          <div class="av" id="headerProfileAvatar" style="background:#1d72fe">U</div>
+        </button>
       <div class="header-actions">
-        
         <button class="action-btn-circle" id="btnToggleSearch" aria-label="Search" title="Search" aria-expanded="false">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         </button>
-        <button class="action-btn-circle" id="btnOpenSettings" aria-label="Settings" title="Settings">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <button class="action-btn-circle" id="btnToggleSlide" aria-label="Slide bar" title="Directs / AI Room" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><path d="M8 4h4v16H8a5 5 0 0 1-5-5V9a5 5 0 0 1 5-5z" fill="currentColor" fill-opacity="0.2" stroke="none"/><rect x="3" y="4" width="18" height="16" rx="5"/><path d="M12 4v16"/></svg>
         </button>
-        <button class="header-profile-btn" id="btnHeaderProfile" aria-label="My Profile">
-          <div class="av" id="headerProfileAvatar" style="background:#1d72fe">U</div>
+        <button class="action-btn-circle" id="btnToggleTheme" aria-label="Toggle dark mode" title="Dark / Light" aria-pressed="false">
+          <span class="theme-sky">
+            <svg class="t-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>
+            <svg class="t-moon" viewBox="0 0 24 24"><path d="M20 14.3A8.2 8.2 0 0 1 9.7 4a8.2 8.2 0 1 0 10.3 10.3z"/></svg>
+          </span>
+        </button>
+        <button class="action-btn-circle" id="btnOpenSettings" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
         </button>
       </div>
-    </header>
-
-    <!-- Scrollable Inbox List -->
-    <div class="inbox-scroll-body">
-      <!-- Slide bar <-> Search bar (they swap places) -->
-      <div class="search-tab-slot" id="searchTabSlot">
-      <div class="inbox-tab-bar" id="inboxTabBar">
+      <!-- whole header turns into the search bar -->
+      <div class="hdr-layer" id="hdrSearchLayer" aria-hidden="true">
+        <div class="search-container" id="searchBoxWrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" name="yk-find-handle" placeholder="Search by username..." inputmode="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
+        <button id="searchClear" aria-label="Clear Search"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+        <button class="action-btn-circle" id="btnSearchToSlide" aria-label="Slide bar" title="Directs / AI Room"><svg viewBox="0 0 24 24"><path d="M8 4h4v16H8a5 5 0 0 1-5-5V9a5 5 0 0 1 5-5z" fill="currentColor" fill-opacity="0.2" stroke="none"/><rect x="3" y="4" width="18" height="16" rx="5"/><path d="M12 4v16"/></svg></button>
+      </div>
+      <!-- whole header turns into the slide bar -->
+      <div class="hdr-layer" id="hdrSlideLayer" aria-hidden="true">
+        <div class="inbox-tab-bar" id="inboxTabBar">
         <button class="inbox-tab active" data-tab="0">
           <span>Directs</span>
           <span class="tab-badge" id="directsUnreadBadge" style="display:none">0</span>
@@ -2696,13 +2699,12 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
         </button>
         <div class="inbox-tab-indicator" id="tabIndicator"></div>
       </div>
-      <div class="search-container" id="searchBoxWrap">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input id="searchInput" type="text" name="yk-find-handle" placeholder="Search by username..." inputmode="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
-        <button id="searchClear" aria-label="Clear Search"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        <button class="action-btn-circle" id="btnSlideToSearch" aria-label="Search" title="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
       </div>
-      </div>
+    </header>
 
+    <!-- Scrollable Inbox List -->
+    <div class="inbox-scroll-body">
       <!-- Search Results Dropdown -->
       <div id="searchResultsView"></div>
 
@@ -2797,27 +2799,26 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
       <!-- Mentions Suggestions Autocomplete -->
       <div class="mentions-box" id="mentionsBox"></div>
 
-      <!-- Scroll to latest -->
-      <button class="scroll-down-btn" id="btnScrollDown" type="button" aria-label="Scroll to latest message">
-        <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
-        <span class="sd-badge" id="sdBadge"></span>
-      </button>
-
       <!-- Reply / Edit bar -->
       <div class="reply-bar" id="replyBar">
         <div class="reply-bar-body"><b id="replyBarLabel">Replying</b><span id="replyBarText"></span></div>
         <button id="replyBarClose" aria-label="Cancel"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
 
+      <div class="emoji-panel" id="emojiPanel" aria-hidden="true">
+        <div class="emoji-tabs" id="emojiTabs"></div>
+        <div class="emoji-grid" id="emojiGrid"></div>
+      </div>
+
       <div class="composer-inner">
-        <button class="composer-btn" id="btnAttachFile" aria-label="Attach File">
-          <svg viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l7.9-7.9"/></svg>
+        <button class="composer-btn" id="btnAttachFile" aria-label="Emoji" aria-expanded="false">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.2"/><path d="M8.3 14.1c.9 1.35 2.2 2.05 3.7 2.05s2.8-.7 3.7-2.05"/><path d="M9.1 9.6h.01M14.9 9.6h.01" stroke-width="2.6"/></svg>
         </button>
 
         <textarea class="composer-textarea" id="chatInputText" name="yk-compose-body" rows="1" placeholder="Write a message..." enterkeyhint="send" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"></textarea>
 
         <button class="composer-btn send-action-btn" id="btnSendMessage" aria-label="Send Message">
-          <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m5.5 11.5 6.5-6.5 6.5 6.5"/></svg>
         </button>
       </div>
     </div>
@@ -2871,7 +2872,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
             <div class="toggle-switch" id="switchTheme"></div>
           </div>
             <div class="settings-row pm-pref" id="rowPrefTextSize" data-pref="fs" data-type="cycle" data-n="3">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19l5-13 5 13M4.9 14.6h6.2M15.2 19l2.9-7.2 2.9 7.2M16.2 16.6h3.8"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path class="ic-A" d="M3 19l5-13 5 13M4.9 14.6h6.2"/><path class="ic-a" d="M15.2 19l2.9-7.2 2.9 7.2M16.2 16.6h3.8"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">Text Size</span></div>
               <span class="pm-value" data-val></span>
             </div>
@@ -2884,27 +2885,27 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 
         <div class="settings-card" id="homePrefsCard">
             <div class="settings-row pm-pref" id="rowPrefReduceMotion" data-pref="rm" data-type="toggle">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 3 5.5 13.4h5.8L10.6 21l7.9-10.4h-5.8z"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path class="ic-bolt" d="M13.2 3 5.5 13.4h5.8L10.6 21l7.9-10.4h-5.8z"/><path class="ic-slash" pathLength="1" d="M4.2 4.2l15.6 15.6"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">Reduce Motion</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
             <div class="settings-row pm-pref" id="rowPrefContrast" data-pref="hc" data-type="toggle">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17"/><path class="ic-half" d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">High Contrast</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
             <div class="settings-row pm-pref" id="rowPrefCompactList" data-pref="cl" data-type="toggle">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path class="ic-l1" d="M4 7h16"/><path class="ic-l2" d="M4 12h16"/><path class="ic-l3" d="M4 17h10"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">Compact Chat List</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
             <div class="settings-row pm-pref" id="rowPrefHaptics" data-pref="hp" data-type="toggle">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3.8" width="8" height="16.4" rx="2"/><path d="M4.6 9v6M19.4 9v6M2.2 10.8v2.4M21.8 10.8v2.4"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3.8" width="8" height="16.4" rx="2"/><path class="ic-w ic-wl1" d="M4.6 9v6"/><path class="ic-w ic-wr1" d="M19.4 9v6"/><path class="ic-w ic-wl2" d="M2.2 10.8v2.4"/><path class="ic-w ic-wr2" d="M21.8 10.8v2.4"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">Vibration Feedback</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
             <div class="settings-row pm-pref" id="rowPrefAmoled" data-pref="amoled" data-type="toggle">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6.8" y="2.8" width="10.4" height="18.4" rx="2.6"/><path d="M10.4 18.2h3.2"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6.8" y="2.8" width="10.4" height="18.4" rx="2.6"/><rect class="ic-screen" x="8.3" y="4.3" width="7.4" height="11.9" rx="1.2"/><path class="ic-bar" d="M10.4 18.2h3.2"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">AMOLED Mode</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
@@ -2943,17 +2944,17 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
               <div class="toggle-switch" id="switchContextTheme"></div>
             </div>
             <div class="settings-row pm-pref" id="rowChatTimestamps" data-pref="ts" data-type="toggle">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.6V12l3 1.9"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path class="ic-min" d="M12 7.6V12"/><path class="ic-hr" d="M12 12l3 1.9"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">Message Time</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
             <div class="settings-row pm-pref" id="rowChatAvatars" data-pref="mav" data-type="toggle">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.6" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle class="ic-head" cx="12" cy="8.6" r="3.5"/><path d="M5 20c.8-3.8 3.6-5.7 7-5.7s6.2 1.9 7 5.7"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">Message Avatars</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
             <div class="settings-row pm-pref" id="rowChatCompact" data-pref="cb" data-type="toggle">
-              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 5h13A1.5 1.5 0 0 1 20 6.5v8a1.5 1.5 0 0 1-1.5 1.5H12l-4.5 3.6V16h-2A1.5 1.5 0 0 1 4 14.5v-8A1.5 1.5 0 0 1 5.5 5z"/></svg></span>
+              <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path class="ic-bub" d="M5.5 5h13A1.5 1.5 0 0 1 20 6.5v8a1.5 1.5 0 0 1-1.5 1.5H12l-4.5 3.6V16h-2A1.5 1.5 0 0 1 4 14.5v-8A1.5 1.5 0 0 1 5.5 5z"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">Compact Bubbles</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
@@ -4294,48 +4295,6 @@ function senderLabel(by) {
   if (by === YUKI_BOT_UID) return 'Yuki AI';
   return (activePeer && activePeer.display) || 'Operator';
 }
-/* Markdown-lite for Yuki AI replies (input is HTML-escaped first, so it is safe) */
-function mdLite(src) {
-  const stash = [];
-  const put = html => { stash.push(html); return '\u0000' + (stash.length - 1) + '\u0000'; };
-  let t = String(src ?? '').replace(/\r\n/g, '\n');
-  t = t.replace(/```[a-zA-Z0-9_+-]*\n?([\s\S]*?)```/g, (m, code) => put('<pre><code>' + esc(code.replace(/\n$/, '')) + '</code></pre>'));
-  t = esc(t);
-  t = t.replace(/`([^`\n]+)`/g, (m, c) => put('<code>' + c + '</code>'));
-  t = t.replace(/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, label, url) => put('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + '</a>'));
-  t = t.replace(/(^|[\s(])(https?:\/\/[^\s<]+?)(?=[.,;:!?)]*(?:\s|$))/g, (m, pre, url) => pre + put('<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>'));
-  t = t.replace(/\*\*([^\n]+?)\*\*/g, '<strong>$1</strong>')
-       .replace(/__([^\n]+?)__/g, '<strong>$1</strong>')
-       .replace(/~~([^\n]+?)~~/g, '<del>$1</del>')
-       .replace(/(^|[^\w*])\*(?!\s)([^*\n]+?)(?<!\s)\*(?![\w*])/g, '$1<em>$2</em>')
-       .replace(/(^|[^\w])_(?!\s)([^_\n]+?)(?<!\s)_(?![\w])/g, '$1<em>$2</em>');
-  const lines = t.split('\n');
-  const nodes = [];
-  let list = null;
-  const flush = () => { if (list) { nodes.push({ k: 'b', h: '<' + list.tag + '>' + list.items.map(i => '<li>' + i + '</li>').join('') + '</' + list.tag + '>' }); list = null; } };
-  lines.forEach(line => {
-    const raw = line.trim();
-    let m;
-    if (!raw) { flush(); nodes.push({ k: 'g' }); return; }
-    if ((m = raw.match(/^[-*\u2022]\s+(.+)$/))) { if (!list || list.tag !== 'ul') { flush(); list = { tag: 'ul', items: [] }; } list.items.push(m[1]); return; }
-    if ((m = raw.match(/^\d{1,3}[.)]\s+(.+)$/))) { if (!list || list.tag !== 'ol') { flush(); list = { tag: 'ol', items: [] }; } list.items.push(m[1]); return; }
-    flush();
-    if ((m = raw.match(/^#{1,6}\s+(.+)$/))) { nodes.push({ k: 'b', h: '<span class="md-h">' + m[1] + '</span>' }); return; }
-    const pm = raw.match(/^\u0000(\d+)\u0000$/);
-    if (pm && stash[+pm[1]].indexOf('<pre') === 0) { nodes.push({ k: 'b', h: raw }); return; }
-    nodes.push({ k: 't', h: raw });
-  });
-  flush();
-  while (nodes.length && nodes[0].k === 'g') nodes.shift();
-  while (nodes.length && nodes[nodes.length - 1].k === 'g') nodes.pop();
-  let html = '';
-  nodes.forEach((n, i) => {
-    if (n.k === 'g') { if (nodes[i - 1] && nodes[i - 1].k !== 'g') html += '<span class="md-gap"></span>'; return; }
-    if (n.k === 't' && nodes[i - 1] && nodes[i - 1].k === 't') html += '<br>';
-    html += n.h;
-  });
-  return html.replace(/\u0000(\d+)\u0000/g, (m, i) => stash[+i]);
-}
 function msgBubbleHtml(msg, timeStr) {
   if (msg.deleted) {
     return `<div class="msg-bubble is-deleted"><span class="msg-text">This message was deleted</span><span class="msg-time">${esc(timeStr)}</span></div>`;
@@ -4343,7 +4302,7 @@ function msgBubbleHtml(msg, timeStr) {
   let h = '<div class="msg-bubble">';
   if (msg.forwarded) h += `<div class="msg-fwd">${ICON_FWD}<span>Forwarded</span></div>`;
   if (msg.replyTo) h += `<div class="msg-quote" data-reply-id="${esc(msg.replyTo.id)}"><b>${esc(senderLabel(msg.replyTo.by))}</b><span>${esc(msg.replyTo.text)}</span></div>`;
-  h += `<span class="msg-text">${msg.by === YUKI_BOT_UID ? mdLite(msg.text) : esc(msg.text)}</span><span class="msg-time">${msg.edited ? 'edited \u00b7 ' : ''}${esc(timeStr)}</span></div>`;
+  h += `<span class="msg-text">${esc(msg.text)}</span><span class="msg-time">${msg.edited ? 'edited \u00b7 ' : ''}${esc(timeStr)}</span></div>`;
   return h;
 }
 
@@ -5374,111 +5333,6 @@ $('btnContextDeleteChat')?.addEventListener('click', () => {
     showToast('Conversation hidden');
   }
 });
-
-/* ==========================================================================
-   BATCH 1 ADDITIONS: scroll-to-latest button + swipe-to-reply
-   ========================================================================== */
-(function () {
-  const btn = $('btnScrollDown'), badge = $('sdBadge');
-  if (!btn || !msgsBox) return;
-  let unread = 0, near = true, far = false, lastChat = null;
-  const dist = () => msgsBox.scrollHeight - msgsBox.scrollTop - msgsBox.clientHeight;
-  function paint() {
-    btn.classList.toggle('show', !near && (far || unread > 0));
-    if (unread > 0) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.classList.add('show'); }
-    else badge.classList.remove('show');
-  }
-  function sync() {
-    if (activeChatId !== lastChat) { lastChat = activeChatId; unread = 0; }
-    const d = dist();
-    near = d < 140;
-    far = d > 220;
-    if (near) unread = 0;
-    paint();
-  }
-  msgsBox.addEventListener('scroll', sync, { passive: true });
-  new MutationObserver(muts => {
-    if (activeChatId !== lastChat) { sync(); return; }
-    muts.forEach(m => m.addedNodes.forEach(n => {
-      if (n.nodeType === 1 && n.classList.contains('chat-message-row') && !n.classList.contains('is-mine') && !n.classList.contains('no-anim') && !near) unread++;
-    }));
-    paint();
-  }).observe(msgsBox, { childList: true });
-  new MutationObserver(() => requestAnimationFrame(sync)).observe(appShell, { attributes: true, attributeFilter: ['class'] });
-  btn.addEventListener('mousedown', e => e.preventDefault());
-  btn.addEventListener('click', () => {
-    unread = 0;
-    msgsBox.scrollTo({ top: msgsBox.scrollHeight, behavior: 'smooth' });
-    paint();
-  });
-})();
-
-/* swipe-to-reply: incoming bubbles drag right, your own bubbles drag left (free side), release past the line to reply */
-(function () {
-  const TRIGGER = 56, MAX = 80;
-  let row = null, wrap = null, sx = 0, sy = 0, dx = 0, mode = 0, dir = 1, armed = false;
-  const buzz = () => { try { if (navigator.vibrate) navigator.vibrate(10); } catch (e) {} };
-
-  msgsBox.addEventListener('touchstart', e => {
-    row = wrap = null; mode = 0; armed = false; dx = 0;
-    if (e.touches.length !== 1) return;
-    const bubble = e.target.closest && e.target.closest('.msg-bubble');
-    if (!bubble || bubble.classList.contains('is-deleted') || e.target.closest('pre')) return;
-    const r = bubble.closest('.chat-message-row');
-    if (!r || !r.dataset.id) return;
-    if (!activePeer || activePeer.isDemo || !currentUser || menuMsgId) return;
-    row = r;
-    wrap = r.querySelector('.msg-bubble-wrap');
-    if (!wrap) { row = null; return; }
-    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-    dir = r.classList.contains('is-mine') ? -1 : 1;
-  }, { passive: true });
-
-  msgsBox.addEventListener('touchmove', e => {
-    if (!row) return;
-    const t = e.touches[0];
-    const mx = t.clientX - sx, my = t.clientY - sy;
-    if (mode === 0) {
-      if (Math.hypot(mx, my) < 8) return;
-      if (Math.abs(mx) > Math.abs(my) * 1.4 && mx * dir > 0) {
-        mode = 1;
-        lpCancel();
-        wrap.style.transition = 'none';
-        row.classList.add('swiping');
-      } else { mode = 2; row = null; return; }
-    }
-    if (mode === 1) {
-      if (e.cancelable) e.preventDefault();
-      const p = Math.max(0, mx * dir);
-      dx = Math.min(MAX, p <= TRIGGER ? p : TRIGGER + (p - TRIGGER) * 0.25);
-      wrap.style.transform = 'translateX(' + (dx * dir) + 'px)';
-      row.style.setProperty('--sw-p', Math.min(1, dx / TRIGGER).toFixed(2));
-      if (!armed && dx >= TRIGGER) { armed = true; row.classList.add('armed'); buzz(); }
-      else if (armed && dx < TRIGGER - 6) { armed = false; row.classList.remove('armed'); }
-    }
-  }, { passive: false });
-
-  function finish(e) {
-    if (!row) return;
-    const r = row, w = wrap, go = mode === 1 && armed && e.type === 'touchend';
-    row = wrap = null;
-    if (mode !== 1) return;
-    w.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
-    w.style.transform = '';
-    setTimeout(() => {
-      w.style.transition = '';
-      r.classList.remove('swiping', 'armed');
-      r.style.removeProperty('--sw-p');
-    }, 260);
-    if (go) {
-      const id = r.dataset.id;
-      const item = (msgCache.get(activeChatId) || []).find(i => i.id === id);
-      if (item && !item.msg.deleted) startReply(id, item.msg);
-    }
-  }
-  msgsBox.addEventListener('touchend', finish, { passive: true });
-  msgsBox.addEventListener('touchcancel', finish, { passive: true });
-})();
 </script>
 
 <script>
@@ -5732,34 +5586,51 @@ body { top: 0; left: 0; right: 0; }
 })();
 </script>
 <script>
-/* Search icon: swaps the slide bar with the search bar (and back) */
+/* Header morphs: normal <-> search bar <-> slide bar (same blur + lift animation).
+   It stays in a mode until the user taps outside the header (or Esc). */
 (function(){
-  var btn=document.getElementById('btnToggleSearch');
-  var wrap=document.getElementById('searchBoxWrap');
-  var slot=document.getElementById('searchTabSlot');
-  var input=document.getElementById('searchInput');
-  if(!btn||!wrap||!slot) return;
-  function isOpen(){ return wrap.classList.contains('search-open'); }
-  function setOpen(open,clear){
-    wrap.classList.toggle('search-open',open);
-    slot.classList.toggle('search-mode',open);
-    btn.classList.toggle('active',open);
-    btn.setAttribute('aria-expanded',open?'true':'false');
-    if(open){
-      setTimeout(function(){ if(isOpen() && input) input.focus(); },350);
-    } else {
+  var $=function(i){return document.getElementById(i);};
+  var hdr=$('appHeader'), wrap=$('searchBoxWrap'), input=$('searchInput');
+  var lS=$('hdrSearchLayer'), lL=$('hdrSlideLayer'), badge=$('directsUnreadBadge'), bL=$('btnToggleSlide');
+  if(!hdr||!wrap||!lS||!lL) return;
+  var mode='';
+  function setMode(m,clear){
+    var prev=mode; mode=m;
+    hdr.classList.toggle('mode-search',m==='search');
+    hdr.classList.toggle('mode-slide',m==='slide');
+    wrap.classList.toggle('search-open',m==='search');
+    lS.setAttribute('aria-hidden',m==='search'?'false':'true');
+    lL.setAttribute('aria-hidden',m==='slide'?'false':'true');
+    $('btnToggleSearch').setAttribute('aria-expanded',m==='search'?'true':'false');
+    bL.setAttribute('aria-expanded',m==='slide'?'true':'false');
+    if(prev==='search' && m!=='search'){
       if(input) input.blur();
-      var clr=document.getElementById('searchClear');
+      var clr=$('searchClear');
       if(clear && clr && input && input.value) clr.click();
     }
   }
-  btn.addEventListener('click',function(){ setOpen(!isOpen(),true); });
+  $('btnToggleSearch').addEventListener('click',function(){ setMode('search'); });
+  bL.addEventListener('click',function(){ setMode('slide'); });
+  $('btnSearchToSlide').addEventListener('click',function(){ setMode('slide',true); });
+  $('btnSlideToSearch').addEventListener('click',function(){ setMode('search'); });
+  /* Enter only hides the keyboard, the search bar stays */
   if(input) input.addEventListener('keydown',function(e){
-    if(e.key==='Enter'){ e.preventDefault(); setOpen(false,false); }
+    if(e.key==='Enter'){ e.preventDefault(); input.blur(); }
   });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape' && mode) setMode('',true); });
+  /* tap anywhere outside the header closes the open bar (a tapped search result just opens, without clearing) */
   document.addEventListener('click',function(e){
-    if(isOpen() && e.target.closest && e.target.closest('#searchResultsView .chat-card')) setOpen(false,false);
+    if(!mode || !e.target || !e.target.closest) return;
+    if(hdr.contains(e.target)) return;
+    var onResult=!!e.target.closest('#searchResultsView .chat-card');
+    setMode('',!onResult);
   });
+  /* unread dot on the slide icon while the Directs badge is showing */
+  function syncDot(){
+    var on=badge && badge.style.display!=='none' && badge.textContent.trim()!=='' && badge.textContent.trim()!=='0';
+    bL.classList.toggle('unread-dot',!!on);
+  }
+  if(badge){ new MutationObserver(syncDot).observe(badge,{attributes:true,childList:true,characterData:true,subtree:true}); syncDot(); }
 })();
 </script>
 <script>
@@ -6113,106 +5984,6 @@ body { top: 0; left: 0; right: 0; }
               width 0.46s cubic-bezier(0.22, 1, 0.36, 1), height 0.46s cubic-bezier(0.22, 1, 0.36, 1),
               background-color 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
 }
-
-/* ==========================================================================
-   BATCH 1 ADDITIONS: scroll-to-latest button, swipe-to-reply, markdown, (all additive)
-   ========================================================================== */
-.messages-container { overflow-x: hidden; }
-
-/* scroll-to-latest button */
-.scroll-down-btn {
-  position: absolute;
-  right: 14px;
-  bottom: 100%;
-  margin-bottom: 12px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--card-bg);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-md);
-  z-index: 35;
-  opacity: 0;
-  transform: translateY(10px) scale(0.8);
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.scroll-down-btn.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-.scroll-down-btn.show:active { transform: scale(0.92); }
-.scroll-down-btn svg { width: 20px; height: 20px; stroke-width: 2.4; }
-.scroll-down-btn .sd-badge {
-  position: absolute;
-  top: -7px;
-  right: -4px;
-  min-width: 19px;
-  height: 19px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--primary-blue);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 19px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(29, 114, 254, 0.4);
-  transform: scale(0);
-  transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
-}
-.scroll-down-btn .sd-badge.show { transform: scale(1); }
-
-/* swipe-to-reply */
-.chat-message-row.swiping { position: relative; }
-.chat-message-row.swiping::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 6px;
-  width: 32px;
-  height: 32px;
-  margin-top: -16px;
-  border-radius: 50%;
-  background: var(--card-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d72fe' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 6.5 4 12l5.5 5.5'/%3E%3Cpath d='M4 12h9.5a6.5 6.5 0 0 1 6.5 6.5V19'/%3E%3C/svg%3E") center / 18px no-repeat;
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
-  opacity: var(--sw-p, 0);
-  transform: scale(calc(0.5 + var(--sw-p, 0) * 0.5));
-  transition: background-color 0.15s ease;
-  pointer-events: none;
-}
-.chat-message-row.is-mine.swiping::before { left: auto; right: 6px; }
-.chat-message-row.swiping.armed::before { background-color: var(--primary-blue-light); }
-
-/* markdown inside Yuki replies */
-.msg-text strong { font-weight: 700; }
-.msg-text em { font-style: italic; }
-.msg-text del { opacity: 0.7; }
-.msg-text a { color: inherit; text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
-.msg-text code {
-  font: 12.5px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  background: rgba(100, 116, 139, 0.16);
-  padding: 1px 5px;
-  border-radius: 6px;
-}
-.msg-text pre {
-  display: block;
-  margin: 6px 0 4px;
-  padding: 9px 11px;
-  border-radius: 10px;
-  background: rgba(100, 116, 139, 0.14);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  white-space: pre;
-  scrollbar-width: none;
-}
-.msg-text pre::-webkit-scrollbar { display: none; }
-.msg-text pre code { background: none; padding: 0; border-radius: 0; font-size: 12.5px; }
-.msg-text ul, .msg-text ol { display: block; margin: 4px 0 2px; padding-left: 20px; }
-.msg-text li { margin: 1px 0; }
-.msg-text .md-h { display: block; font-weight: 700; margin: 2px 0; }
-.msg-text .md-gap { display: block; height: 6px; }
 </style>
 <script id="iosGlassMorphFixJs">
 /* Settings popup: Profile / Block List / Back = morph the box (size + blur), no side scroll.
@@ -6306,22 +6077,688 @@ document.getElementById('btnSaveChanges')?.addEventListener('click', function(){
   });
 })();
 </script>
-<script>
-/* PWA: install support. Does nothing visible in the browser. */
+
+
+<style id="pmCardsCss">
+/* Settings popup: only the transition box needs to wait on close so the cards can leave first */
+:root #settingsDrawer.pm-out:not(.active) {
+  transition: opacity 0.24s ease 0.14s, transform 0.3s cubic-bezier(0.4, 0, 1, 1) 0.1s,
+              filter 0.25s ease 0.12s, visibility 0s linear 0.42s;
+}
+
+</style>
+<script id="pmCardsJs">
+/* Settings popup = Apple-style: every card (box) enters on its own, top -> bottom,
+   and leaves bottom -> top. Web Animations API, so no CSS rule can block it. */
 (function () {
-  try {
-    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-      window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  var d = document.getElementById('settingsDrawer');
+  var main = document.getElementById('drawerMainView');
+  if (!d || !main || !d.animate) return;
+  var wasActive = d.classList.contains('active');
+  var anims = [], tOut = 0;
+
+  function reduced() {
+    return document.documentElement.dataset.pRm === '1' ||
+      (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+  function cards() {
+    var chat = (d.dataset.ctx === 'chat');
+    var sel = chat ? '#chatContextActions .settings-card'
+                   : ':scope > .settings-card, :scope > .mp-logout-wrap';
+    return Array.prototype.slice.call(chat ? document.querySelectorAll(sel) : main.querySelectorAll(sel));
+  }
+  function stop() {
+    anims.forEach(function (a) { try { a.cancel(); } catch (e) {} });
+    anims = [];
+  }
+
+  new MutationObserver(function () {
+    var now = d.classList.contains('active');
+    if (now === wasActive) return;
+    wasActive = now;
+    clearTimeout(tOut);
+    stop();
+    d.classList.remove('pm-out');
+    if (reduced() || main.classList.contains('hidden')) return;
+    var list = cards();
+    if (now) {
+      list.forEach(function (el, i) {
+        var a = el.animate([
+          { opacity: 0, transform: 'translateY(-12px) scale(0.95)' },
+          { opacity: 1, transform: 'translateY(0) scale(1)' }
+        ], { duration: 560, delay: 60 + i * 75, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'both' });
+        a.onfinish = function () { try { a.cancel(); } catch (e) {} };
+        anims.push(a);
+      });
+    } else {
+      d.classList.add('pm-out');
+      var n = list.length;
+      list.forEach(function (el, i) {
+        anims.push(el.animate([
+          { opacity: 1, transform: 'translateY(0) scale(1)' },
+          { opacity: 0, transform: 'translateY(-8px) scale(0.96)' }
+        ], { duration: 240, delay: (n - 1 - i) * 50, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'both' }));
+      });
+      tOut = setTimeout(function () { d.classList.remove('pm-out'); }, 700);
     }
-    var standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
-    if (standalone) {
-      var m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m);
-      var paint = function () { m.content = document.documentElement.getAttribute('data-theme') === 'dark' ? '#141b2a' : '#ffffff'; };
-      paint();
-      new MutationObserver(paint).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    }
-  } catch (e) {}
+  }).observe(d, { attributes: true, attributeFilter: ['class'] });
 })();
 </script>
+
+<style id="pmIconMorphCss">
+/* Old pop / shake / flash animations are off: icons now TRANSFORM themselves between OFF and ON */
+#settingsDrawer .settings-icon.ico-anim { animation: none !important; }
+
+#settingsDrawer .settings-icon svg [class^="ic-"], #settingsDrawer .settings-icon svg [class*=" ic-"] {
+  transform-box: view-box; transform-origin: 12px 12px;
+  --ease: cubic-bezier(0.65, 0, 0.35, 1);
+  --spring: cubic-bezier(0.34, 1.35, 0.64, 1);
+}
+
+/* Reduce Motion: a slash is drawn through the bolt */
+#settingsDrawer .ic-slash { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 0.55s var(--ease); }
+#settingsDrawer .ic-bolt  { transition: fill-opacity 0.45s ease; fill: currentColor; fill-opacity: 0; }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-slash { stroke-dashoffset: 0; }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-bolt  { fill-opacity: 0.18; }
+
+/* High Contrast: the filled half swings to the other side */
+#settingsDrawer .ic-half { transition: transform 0.7s var(--spring); }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-half { transform: rotate(180deg); }
+
+/* Compact list: lines tighten and the short line stretches */
+#settingsDrawer .ic-l1, #settingsDrawer .ic-l2, #settingsDrawer .ic-l3 { transition: transform 0.6s var(--spring); vector-effect: non-scaling-stroke; }
+#settingsDrawer .ic-l3 { transform-origin: 4px 17px; }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-l1 { transform: translateY(1.6px); }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-l3 { transform: translateY(-1.6px) scaleX(1.6); }
+
+/* Vibration: waves leave / return, outer ones first when switching off, inner ones first when switching on */
+#settingsDrawer .ic-w { opacity: 0; transition: opacity 0.3s ease, transform 0.5s var(--spring); }
+#settingsDrawer .ic-wl1, #settingsDrawer .ic-wl2 { transform: translateX(2.6px); }
+#settingsDrawer .ic-wr1, #settingsDrawer .ic-wr2 { transform: translateX(-2.6px); }
+#settingsDrawer .ic-wl1, #settingsDrawer .ic-wr1 { transition-delay: 0.1s; }
+#settingsDrawer .ic-wl2, #settingsDrawer .ic-wr2 { transition-delay: 0s; }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-w { opacity: 1; transform: none; }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-wl1, #settingsDrawer .settings-row:has(.toggle-switch.on) .ic-wr1 { transition-delay: 0s; }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-wl2, #settingsDrawer .settings-row:has(.toggle-switch.on) .ic-wr2 { transition-delay: 0.1s; }
+
+/* AMOLED: the screen fills in from the top */
+#settingsDrawer .ic-screen { fill: var(--primary-blue); stroke: none; transform-origin: 12px 4.3px; transform: scaleY(0); transition: transform 0.65s var(--ease); }
+#settingsDrawer .ic-bar { transition: opacity 0.3s ease; }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-screen { transform: scaleY(1); }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-bar { opacity: 0; }
+
+/* Message time: clock hands spin round */
+#settingsDrawer .ic-min { transition: transform 0.9s var(--ease); }
+#settingsDrawer .ic-hr  { transition: transform 0.9s var(--ease); }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-min { transform: rotate(360deg); }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-hr  { transform: rotate(60deg); }
+
+/* Message avatars: the head fills in */
+#settingsDrawer .ic-head { fill: var(--primary-blue); fill-opacity: 0; transition: fill-opacity 0.45s ease, transform 0.55s var(--spring); }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-head { fill-opacity: 1; transform: translateY(-0.8px); }
+
+/* Compact bubbles: the bubble tightens */
+#settingsDrawer .ic-bub { transition: transform 0.6s var(--spring); vector-effect: non-scaling-stroke; }
+#settingsDrawer .settings-row:has(.toggle-switch.on) .ic-bub { transform: scale(0.8) translateY(0.6px); }
+
+/* Text size: big A / small a follow the chosen size */
+#settingsDrawer .ic-A, #settingsDrawer .ic-a { transition: transform 0.55s var(--spring); vector-effect: non-scaling-stroke; }
+#settingsDrawer .ic-A { transform-origin: 8px 19px; }
+#settingsDrawer .ic-a { transform-origin: 18px 19px; }
+:root[data-p-fs="0"] #settingsDrawer .ic-A { transform: scale(0.8); }
+:root[data-p-fs="0"] #settingsDrawer .ic-a { transform: scale(0.85); }
+:root[data-p-fs="2"] #settingsDrawer .ic-A { transform: scale(1.12); }
+:root[data-p-fs="2"] #settingsDrawer .ic-a { transform: scale(1.22); }
+</style>
+<script id="pmIconMorphJs">
+/* Accent Colour / Reset: the icon turns when tapped (accumulated rotation, so it always turns the same way) */
+(function () {
+  var d = document.getElementById('settingsDrawer');
+  if (!d) return;
+  var spec = { rowPrefAccent: { step: 90 }, rowPrefReset: { step: -360 } };
+  var ang = {};
+  d.addEventListener('click', function (e) {
+    var row = e.target.closest && e.target.closest('#rowPrefAccent, #rowPrefReset');
+    if (!row) return;
+    var svg = row.querySelector('.settings-icon svg');
+    if (!svg) return;
+    ang[row.id] = (ang[row.id] || 0) + spec[row.id].step;
+    svg.style.transition = 'stroke 0.3s ease, rotate ' + (row.id === 'rowPrefReset' ? '0.85s cubic-bezier(0.65,0,0.35,1)' : '0.6s cubic-bezier(0.34,1.35,0.64,1)');
+    svg.style.rotate = ang[row.id] + 'deg';
+  });
+})();
+</script>
+
+<style id="composerEmojiCss">
+/* ===== Send button: ChatGPT style (theme based) ===== */
+.composer-inner .send-action-btn {
+  --send-bg: #0d0d0d; --send-fg: #ffffff;
+  background: var(--send-bg); color: var(--send-fg);
+  box-shadow: none; opacity: 0.28; transform: scale(1);
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1), background-color 0.25s ease, color 0.25s ease;
+}
+:root[data-theme="dark"] .composer-inner .send-action-btn { --send-bg: #ffffff; --send-fg: #0d0d0d; }
+.composer-inner .send-action-btn.can-send { background: var(--send-bg); box-shadow: none; opacity: 1; transform: scale(1); }
+.composer-inner .send-action-btn:active, .composer-inner .send-action-btn.can-send:active { transform: scale(0.92) !important; }
+.composer-inner .send-action-btn svg { width: 20px; height: 20px; stroke-width: 2.4; }
+.composer-inner .send-action-btn.can-send svg { animation: sendArrowIn 0.35s cubic-bezier(0.34, 1.4, 0.64, 1); }
+@keyframes sendArrowIn { from { transform: translateY(5px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+
+/* ===== Emoji button ===== */
+#btnAttachFile svg { width: 24px; height: 24px; stroke-width: 1.7; }
+#btnAttachFile { transition: color 0.2s ease, transform 0.2s ease; }
+#btnAttachFile.open { color: var(--primary-blue); }
+
+/* ===== Emoji panel ===== */
+.emoji-panel {
+  position: absolute; left: 14px; right: 14px; bottom: calc(100% + 8px);
+  height: 272px; display: flex; flex-direction: column;
+  background: var(--card-bg); border: 1px solid var(--border-subtle); border-radius: 18px;
+  box-shadow: var(--shadow-lg); overflow: hidden; z-index: 40;
+  transform-origin: bottom left;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translateY(8px) scale(0.97); filter: blur(6px);
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.4, 0, 1, 1), filter 0.22s ease, visibility 0s linear 0.28s;
+}
+.emoji-panel.open {
+  opacity: 1; visibility: visible; pointer-events: auto; transform: none; filter: none;
+  transition: opacity 0.26s ease, transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), filter 0.28s ease, visibility 0s;
+}
+.emoji-tabs { display: flex; gap: 2px; padding: 6px 8px 0; border-bottom: 1px solid var(--border-subtle); flex: none; position: relative; }
+.emoji-tab {
+  flex: 1; height: 38px; display: grid; place-items: center; font-size: 19px; border-radius: 10px 10px 0 0;
+  opacity: 0.5; filter: grayscale(0.6); transition: opacity 0.2s ease, filter 0.2s ease, background-color 0.2s ease;
+}
+.emoji-tab.active { opacity: 1; filter: none; }
+.emoji-tabs::after {
+  content: ""; position: absolute; left: 8px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--primary-blue);
+  width: calc((100% - 16px) / var(--n, 6)); transform: translateX(calc(var(--k, 0) * 100%));
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.emoji-grid {
+  flex: 1; overflow-y: auto; padding: 8px 8px 10px; display: grid; grid-template-columns: repeat(8, 1fr);
+  align-content: start; gap: 2px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; scrollbar-width: none;
+}
+.emoji-grid::-webkit-scrollbar { display: none; }
+.emoji-item { height: 40px; display: grid; place-items: center; font-size: 25px; line-height: 1; border-radius: 10px; transition: transform 0.15s ease, background-color 0.15s ease; }
+.emoji-item:active { transform: scale(1.25); background: var(--surface-subtle); }
+.emoji-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+.emoji-grid.swap { animation: emojiSwap 0.28s ease; }
+@keyframes emojiSwap { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .emoji-panel, .emoji-grid.swap { transition: none; animation: none; } }
+</style>
+<script id="composerEmojiJs">
+(function () {
+  var btn = document.getElementById('btnAttachFile');
+  var panel = document.getElementById('emojiPanel');
+  var tabs = document.getElementById('emojiTabs');
+  var grid = document.getElementById('emojiGrid');
+  var input = document.getElementById('chatInputText');
+  if (!btn || !panel || !tabs || !grid || !input) return;
+
+  var SETS = [
+    { i: '🕘', n: 'Recent', e: '' },
+    { i: '😀', n: 'Smileys', e: '😀 😃 😄 😁 😆 😅 😂 🤣 🥲 ☺️ 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🫣 🤭 🫢 🤫 🫡 🤥 😶 😐 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠 😈 👿 👻 💀 ☠️ 🤡 👽 🤖 💩' },
+    { i: '👍', n: 'People', e: '👍 👎 👌 🤌 🤏 ✌️ 🤞 🫰 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ 👋 🤚 🖐️ ✋ 🖖 👏 🙌 🫶 👐 🤲 🤝 🙏 ✍️ 💅 🤳 💪 🦾 🧠 👀 👁️ 👅 👄 🫦 👶 🧒 👦 👧 🧑 👨 👩 🧔 👱 👴 👵 🙍 🙎 🙅 🙆 💁 🙋 🧏 🙇 🤦 🤷 💃 🕺 🚶 🏃 🧘' },
+    { i: '❤️', n: 'Hearts', e: '❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 ❤️‍🩹 ❣️ 💕 💞 💓 💗 💖 💘 💝 💟 💌 💋 💯 💢 💥 💫 💦 💨 🕊️ ✨ 🌟 ⭐ 🔥 🎉 🎊 🎈 🎁 🏆 🥇' },
+    { i: '🐶', n: 'Animals', e: '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🙈 🙉 🙊 🐔 🐧 🐦 🐤 🦆 🦅 🦉 🦇 🐺 🐗 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐢 🐍 🦎 🐙 🦑 🦀 🐠 🐟 🐬 🐳 🦈 🐘 🦒 🦓 🐪 🌸 🌹 🌺 🌻 🌼 🌷 🌱 🌴 🌵 🍀 🍁 🌈 ☀️ 🌙 ⛅ ☁️ 🌧️ ⚡ ❄️' },
+    { i: '🍕', n: 'Food', e: '🍎 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🍆 🥕 🌽 🌶️ 🥔 🍞 🧀 🥚 🍳 🥞 🥓 🥩 🍗 🍖 🌭 🍔 🍟 🍕 🌮 🌯 🥙 🍝 🍜 🍣 🍱 🍤 🍙 🍚 🍦 🍩 🍪 🎂 🍰 🍫 🍬 🍭 ☕ 🍵 🥤 🧋 🍺 🍷 🥂 🍹' },
+    { i: '⚽', n: 'Things', e: '⚽ 🏀 🏈 ⚾ 🎾 🏐 🎱 🏓 🥊 🎮 🕹️ 🎲 🎯 🎵 🎶 🎤 🎧 🎸 🎹 🎬 📷 📱 💻 ⌨️ 🖥️ 🔋 💡 📚 ✏️ 📌 📎 🔑 🔒 💰 💳 🚗 🚕 🏍️ 🚲 ✈️ 🚀 ⛵ 🏠 🏖️ ⏰ ⌛ 🔔 📢 💬 💭 ✅ ❌ ⚠️ ❓ ❗ 🔴 🟢 🔵 🟡' }
+  ];
+  SETS.forEach(function (c) { c.list = c.e ? c.e.split(' ') : []; });
+
+  var KEY = 'yukiRecentEmoji', cur = 1;
+  function getRecent() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+  function addRecent(em) {
+    var r = getRecent().filter(function (x) { return x !== em; });
+    r.unshift(em); r = r.slice(0, 24);
+    try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) {}
+  }
+
+  tabs.style.setProperty('--n', SETS.length);
+  SETS.forEach(function (c, idx) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'emoji-tab'; b.textContent = c.i; b.setAttribute('aria-label', c.n);
+    b.addEventListener('click', function () { show(idx, true); });
+    tabs.appendChild(b);
+  });
+
+  function show(idx, animate) {
+    cur = idx;
+    tabs.style.setProperty('--k', idx);
+    Array.prototype.forEach.call(tabs.children, function (t, i) { t.classList && t.classList.toggle('active', i === idx); });
+    var list = idx === 0 ? getRecent() : SETS[idx].list;
+    grid.textContent = '';
+    if (!list.length) {
+      var em = document.createElement('div'); em.className = 'emoji-empty'; em.textContent = 'No recent emoji yet';
+      grid.appendChild(em);
+    } else {
+      var frag = document.createDocumentFragment();
+      list.forEach(function (e) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'emoji-item'; b.textContent = e;
+        frag.appendChild(b);
+      });
+      grid.appendChild(frag);
+    }
+    grid.scrollTop = 0;
+    if (animate) { grid.classList.remove('swap'); void grid.offsetWidth; grid.classList.add('swap'); }
+  }
+
+  function insert(em) {
+    var st = input.selectionStart, en = input.selectionEnd;
+    if (typeof st !== 'number') { st = en = input.value.length; }
+    input.value = input.value.slice(0, st) + em + input.value.slice(en);
+    var pos = st + em.length;
+    try { input.setSelectionRange(pos, pos); } catch (e) {}
+    input.dispatchEvent(new Event('input', { bubbles: true }));   /* send button + auto-grow keep working */
+  }
+
+  function setOpen(v) {
+    if (v) { show(getRecent().length ? 0 : 1, false); }
+    panel.classList.toggle('open', v);
+    btn.classList.toggle('open', v);
+    btn.setAttribute('aria-expanded', v ? 'true' : 'false');
+    panel.setAttribute('aria-hidden', v ? 'false' : 'true');
+  }
+
+  /* keep the keyboard / caret where it is when tapping the button or an emoji */
+  [btn, panel].forEach(function (el) {
+    el.addEventListener('pointerdown', function (e) { if (e.target.closest('button')) e.preventDefault(); });
+    el.addEventListener('mousedown',   function (e) { if (e.target.closest('button')) e.preventDefault(); });
+  });
+  btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!panel.classList.contains('open')); });
+  grid.addEventListener('click', function (e) {
+    var it = e.target.closest('.emoji-item');
+    if (!it) return;
+    var em = it.textContent;
+    insert(em); addRecent(em);
+  });
+  document.addEventListener('pointerdown', function (e) {
+    if (panel.classList.contains('open') && !panel.contains(e.target) && !btn.contains(e.target)) setOpen(false);
+  }, true);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+})();
+</script>
+
+<style id="composerFloatCss">
+/* Composer floats: the bar/border box behind the text box is removed, the text box stays exactly where it is */
+.composer-dock {
+  background: transparent !important;
+  border-top: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+</style>
+
+<style id="chatHeaderGlassCss">
+/* Chat header = glass, one flat colour; edges are given by shade, not by lines */
+#screenChat > .chat-top-header {
+  position: absolute; top: 0; left: 0; right: 0;
+  --glass-top: rgba(255, 255, 255, 0.6);
+  background: var(--glass-top) !important;
+  backdrop-filter: blur(26px) saturate(1.7) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(1.7) !important;
+  border: 0 !important;
+  box-shadow: 0 10px 26px -14px rgba(15, 23, 42, 0.28) !important;
+}
+:root[data-theme="dark"] #screenChat > .chat-top-header {
+  --glass-top: rgba(18, 22, 30, 0.55);
+  box-shadow: 0 12px 28px -14px rgba(0, 0, 0, 0.85) !important;
+}
+/* back button: no circle normally, the circle only appears while it is tapped */
+#screenChat > .chat-top-header .chat-back-btn {
+  width: 38px; height: 38px;
+  color: #0d0d0d !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  transition: background-color 0.18s ease, transform 0.12s ease-out !important;
+}
+:root[data-theme="dark"] #screenChat > .chat-top-header .chat-back-btn { color: #ffffff !important; }
+#screenChat > .chat-top-header .chat-back-btn:hover { background: transparent !important; }
+#screenChat > .chat-top-header .chat-back-btn:active { background: rgba(15, 23, 42, 0.1) !important; }
+:root[data-theme="dark"] #screenChat > .chat-top-header .chat-back-btn:active { background: rgba(255, 255, 255, 0.16) !important; }
+#screenChat > .chat-top-header .chat-back-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; }
+/* conversation starts below the header, but scrolls under it */
+#screenChat > .messages-container {
+  padding-top: 80px;
+  scroll-padding-top: 76px;
+}
+</style>
+
+<style id="noOuterLinesCss">
+/* Fewer outer lines: shapes are given by shade (soft shadow + surface colour), not by borders */
+.search-container {
+  border: 0 !important;
+  background: var(--card-bg);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 22px -8px rgba(15, 23, 42, 0.16) !important;
+  transition: box-shadow 0.25s ease, background-color 0.2s ease;
+}
+:root[data-theme="dark"] .search-container {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 24px -8px rgba(0, 0, 0, 0.6) !important;
+}
+.search-container:focus-within {
+  border: 0 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 10px 28px -8px rgba(29, 114, 254, 0.32) !important;
+}
+:root[data-theme="dark"] .search-container:focus-within {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px -8px rgba(59, 130, 246, 0.45) !important;
+}
+
+/* line above the search bar (header bottom line) -> soft shade */
+.app-header {
+  border-bottom: 0 !important;
+  box-shadow: 0 8px 22px -12px rgba(15, 23, 42, 0.2);
+}
+:root[data-theme="dark"] .app-header { box-shadow: 0 8px 22px -12px rgba(0, 0, 0, 0.7); }
+
+/* lines around the chat list (below the search bar) */
+#directsListContainer { border-top: 0 !important; border-bottom: 0 !important; }
+</style>
+
+<style id="hideHeaderDpCss">
+/* header: user's DP (top right) removed */
+#btnHeaderProfile {
+  display: block !important; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%;
+  overflow: hidden; background: transparent; box-shadow: none; flex: none;
+}
+#btnHeaderProfile img, #btnHeaderProfile .av { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: grid; place-items: center; font-weight: 600; font-size: 16px; color: #fff; }
+</style>
+
+<style id="settingsSmoothCss">
+/* Smooth settings popup: no blur filter, no box-shadow / colour transitions while it opens or closes.
+   Only opacity + transform run (GPU composited). */
+:root #settingsDrawer { filter: none !important; will-change: transform, opacity; backface-visibility: hidden; contain: layout paint; }
+:root #settingsDrawer.active:not(.vt-morph) {
+  transition: opacity 0.22s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+}
+:root #settingsDrawer:not(.active):not(.vt-morph):not(.pm-out) {
+  transition: opacity 0.18s ease, transform 0.26s cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 0.26s;
+}
+:root #settingsDrawer.pm-out:not(.active) {
+  transition: opacity 0.22s ease 0.14s, transform 0.28s cubic-bezier(0.4, 0, 1, 1) 0.1s, visibility 0s linear 0.4s;
+}
+/* sub-view swaps (Profile / Block list): same, without blur */
+#settingsDrawer .vt-out { filter: none !important; }
+@keyframes vtIn  { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes vtFade { from { opacity: 0; } to { opacity: 1; } }
+#masterScrim { transition-duration: 0.22s; }
+</style>
+
+<style id="shadeShapesCss">
+/* Shapes by shade (fill + soft shadow), no outline - same in light and dark */
+
+/* AI companion card: outline removed */
+.ai-companion-card {
+  border: 0 !important;
+  background: rgba(29, 114, 254, 0.09) !important;
+  box-shadow: 0 10px 24px -12px rgba(29, 114, 254, 0.32) !important;
+}
+:root[data-theme="dark"] .ai-companion-card {
+  background: rgba(37, 99, 235, 0.16) !important;
+  box-shadow: 0 12px 28px -12px rgba(37, 99, 235, 0.45) !important;
+}
+
+/* Search bar in dark: a clearly lighter fill, because shadows are invisible on dark */
+:root[data-theme="dark"] .search-container {
+  background: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="dark"] .search-container:focus-within {
+  background: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 28px -10px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Header shade: softer (no hard band) */
+.app-header { box-shadow: 0 6px 18px -12px rgba(15, 23, 42, 0.16) !important; }
+:root[data-theme="dark"] .app-header { box-shadow: none !important; }
+</style>
+
+<style id="aiCardCleanCss">
+/* AI card: clean solid fill, no coloured haze around it */
+.ai-companion-card {
+  background: #e8f1ff !important;
+  box-shadow: 0 8px 20px -14px rgba(15, 23, 42, 0.25) !important;
+}
+:root[data-theme="dark"] .ai-companion-card {
+  background: #151f35 !important;
+  box-shadow: none !important;
+}
+.ai-companion-icon { box-shadow: 0 4px 10px -2px rgba(29, 114, 254, 0.35) !important; }
+:root[data-theme="dark"] .ai-companion-icon { box-shadow: none !important; }
+</style>
+
+<style id="searchGlassCss">
+/* Search bar glass: ONLY dark and dark + AMOLED. Light modes keep the original white bar. */
+:root[data-theme="dark"] .search-container {
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Same colours as the slide bar (#inboxTabBar) in dark modes */
+/* DARK: soft grey-blue, same as slide bar */
+:root[data-theme="dark"] .search-container {
+  background: rgba(124, 146, 186, 0.12) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="dark"] .search-container:focus-within {
+  background: rgba(124, 146, 186, 0.18) !important;
+  box-shadow: none !important;
+}
+
+/* DARK + AMOLED: neutral translucent, same as slide bar */
+:root[data-theme="dark"][data-p-amoled="1"] .search-container {
+  background: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="dark"][data-p-amoled="1"] .search-container:focus-within {
+  background: rgba(255, 255, 255, 0.11) !important;
+  box-shadow: none !important;
+}
+/* light: no blue glow on focus, keep the normal soft shadow */
+:root:not([data-theme="dark"]) .search-container:focus-within {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 8px 22px -8px rgba(15, 23, 42, 0.16) !important;
+}
+</style>
+
+<style id="headerMorphCss">
+/* Header morphs into the search bar / slide bar (same blur + lift animation as before) */
+.app-header { position: relative; }
+.app-header > .header-profile-btn,
+.app-header > .header-actions {
+  transition: opacity 0.32s ease 0.12s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, filter 0.32s ease 0.1s, visibility 0s;
+}
+.app-header.mode-search > .header-profile-btn, .app-header.mode-search > .header-actions,
+.app-header.mode-slide  > .header-profile-btn, .app-header.mode-slide  > .header-actions {
+  opacity: 0; transform: translateY(-8px) scale(0.97); filter: blur(6px);
+  visibility: hidden; pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 1, 1), filter 0.25s ease, visibility 0s linear 0.3s;
+}
+.hdr-layer {
+  position: absolute; inset: 0; padding: 0 16px;
+  display: flex; align-items: center; gap: 8px;
+  opacity: 0; transform: translateY(8px) scale(0.97); filter: blur(6px);
+  visibility: hidden; pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.4, 0, 1, 1), filter 0.25s ease, visibility 0s linear 0.3s;
+}
+.app-header.mode-search #hdrSearchLayer,
+.app-header.mode-slide  #hdrSlideLayer {
+  opacity: 1; transform: none; filter: none; visibility: visible; pointer-events: auto;
+  transition: opacity 0.32s ease 0.12s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, filter 0.32s ease 0.1s, visibility 0s;
+}
+/* bars inside the header: always shown, the layer does the animating */
+.hdr-layer #searchBoxWrap {
+  flex: 1; min-width: 0; margin: 0; height: 44px;
+  opacity: 1 !important; transform: none !important; filter: none !important;
+  visibility: inherit !important; pointer-events: inherit !important;
+}
+.hdr-layer #inboxTabBar { flex: 1; min-width: 0; margin: 0; height: 44px; }
+.hdr-layer .action-btn-circle { flex: none; }
+</style>
+
+<style id="slideIconPlainCss">
+#btnToggleSlide, #btnSearchToSlide, #btnSlideToSearch {
+  background: transparent; border: 0; box-shadow: none;
+}
+#btnToggleSlide:active, #btnSearchToSlide:active, #btnSlideToSearch:active { background: transparent; }
+#btnToggleSlide svg, #btnSearchToSlide svg { width: 22px; height: 22px; stroke-width: 1.9; }
+.app-header.mode-slide #btnToggleSlide, .app-header.mode-search #btnSearchToSlide { color: var(--primary-blue); }
+</style>
+
+<style id="settingsShadeCss">
+/* Settings popup: no boxy lines. Shapes come from a soft shade instead. */
+:root { --set-shade: rgba(15, 23, 42, 0.05); }
+:root[data-theme="dark"] { --set-shade: rgba(124, 146, 186, 0.12); }
+:root[data-theme="dark"][data-p-amoled="1"] { --set-shade: rgba(255, 255, 255, 0.07); }
+:root[data-p-amoled="1"]:not([data-theme="dark"]) { --set-shade: rgba(0, 0, 0, 0.045); }
+
+:root #settingsDrawer .settings-card,
+:root #settingsDrawer .ep-card,
+:root #settingsDrawer #btnLogout,
+:root #settingsDrawer .drawer-back-btn,
+:root #settingsDrawer .action-btn-circle {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: var(--set-shade) !important;
+}
+/* row dividers -> gone */
+:root #settingsDrawer .settings-row,
+:root #settingsDrawer .pm-pref,
+:root #settingsDrawer .ep-row {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+:root #settingsDrawer .settings-card::before, :root #settingsDrawer .settings-card::after,
+:root #settingsDrawer .settings-row::before, :root #settingsDrawer .settings-row::after { border: 0 !important; }
+
+/* same, with the popup's own id so it wins over the older, more specific rules */
+:root #settingsDrawer #drawerMainView .settings-card,
+:root #settingsDrawer #drawerMainView #chatContextActions .settings-card {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: var(--set-shade) !important;
+  border-radius: 16px !important;
+}
+:root #settingsDrawer #drawerMainView .settings-row,
+:root #settingsDrawer #drawerMainView .settings-card > .settings-row,
+:root #settingsDrawer #drawerMainView .settings-card > .settings-row + .settings-row,
+:root #settingsDrawer #drawerMainView #chatContextActions .settings-card > .settings-row,
+:root #settingsDrawer #drawerMainView #chatContextActions .settings-card > .settings-row + .settings-row,
+:root #settingsDrawer #drawerMainView #chatContextActions .settings-card > .settings-row:not(:last-child) {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+</style>
+
+
+<style id="settingsSolidCss">
+/* Main settings popup: no outer box. Each card floats on its own (solid, so nothing shows through). */
+:root { --set-card: #f1f4f9; --set-card-shadow: 0 8px 20px -10px rgba(15, 23, 42, 0.28); }
+:root[data-theme="dark"] { --set-card: #1c2435; --set-card-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.7); }
+:root[data-theme="dark"][data-p-amoled="1"] { --set-card: #141414; --set-card-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.9); }
+:root[data-p-amoled="1"]:not([data-theme="dark"]) { --set-card: #f2f2f2; --set-card-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.18); }
+
+:root #settingsDrawer:has(#drawerMainView:not(.hidden)) {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+}
+:root #settingsDrawer:has(#drawerMainView:not(.hidden)) > .drawer-body {
+  padding: 6px 14px 24px !important;
+  overflow: visible !important;
+}
+:root #settingsDrawer:has(#drawerMainView:not(.hidden)) #drawerMainView .settings-card,
+:root #settingsDrawer:has(#drawerMainView:not(.hidden)) #drawerMainView #chatContextActions .settings-card,
+:root #settingsDrawer:has(#drawerMainView:not(.hidden)) #btnLogout {
+  background: var(--set-card) !important;
+  box-shadow: var(--set-card-shadow) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+}
+:root #settingsDrawer:has(#drawerMainView:not(.hidden)) #drawerMainView .settings-card + .settings-card { margin-top: 12px !important; }
+
+/* sub views (Profile / Block list) keep one solid panel */
+:root #settingsDrawer:has(#drawerMainView.hidden) {
+  background: var(--card-bg) !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 14px 40px -12px rgba(15, 23, 42, 0.28) !important;
+}
+:root[data-theme="dark"] #settingsDrawer:has(#drawerMainView.hidden) { box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.8) !important; }
+</style>
+
+<style id="headerBandCss">
+/* Header = a visible soft band on the page in every look (like normal dark mode) */
+:root[data-theme="dark"][data-p-amoled="1"] .app-header { background: #101010 !important; }
+:root[data-p-amoled="1"]:not([data-theme="dark"]) .app-header { background: #f2f4f7 !important; }
+</style>
+
+<style id="surfaceContrastCss">
+/* Every look: search bar sits visibly on the header, AI card sits visibly on the page */
+
+/* LIGHT (not AMOLED): white header -> tinted search bar; blue page -> white AI card */
+:root:not([data-theme="dark"]):not([data-p-amoled="1"]) .hdr-layer #searchBoxWrap {
+  background: #edf1f8 !important;
+  box-shadow: none !important;
+}
+:root:not([data-theme="dark"]):not([data-p-amoled="1"]) .hdr-layer #searchBoxWrap:focus-within {
+  background: #e4eaf4 !important;
+  box-shadow: none !important;
+}
+:root:not([data-theme="dark"]):not([data-p-amoled="1"]) .ai-companion-card {
+  background: #ffffff !important;
+  box-shadow: 0 8px 22px -12px rgba(15, 23, 42, 0.25) !important;
+}
+
+/* DARK + AMOLED: a bit more contrast for the search bar on the grey header */
+:root[data-theme="dark"][data-p-amoled="1"] .hdr-layer #searchBoxWrap { background: rgba(255, 255, 255, 0.10) !important; }
+:root[data-theme="dark"][data-p-amoled="1"] .hdr-layer #searchBoxWrap:focus-within { background: rgba(255, 255, 255, 0.14) !important; }
+</style>
+
+<style id="headerThemeBtnCss">
+/* Header theme button: sun sets down, moon rises up (and back) */
+#btnToggleTheme { background: transparent; border: 0; box-shadow: none; }
+#btnToggleTheme:active { background: transparent; }
+#btnToggleTheme .theme-sky { position: relative; display: block; width: 24px; height: 24px; overflow: hidden; border-radius: 8px; }
+#btnToggleTheme .theme-sky svg {
+  position: absolute; left: 0; top: 0; width: 24px !important; height: 24px !important;
+  stroke-width: 1.7; will-change: transform, opacity;
+  transition: transform 0.7s cubic-bezier(0.5, 1.25, 0.45, 1), opacity 0.4s ease;
+}
+#btnToggleTheme .t-sun { stroke: #f5a400; transform: translateY(0) rotate(0deg); opacity: 1; }
+#btnToggleTheme .t-sun circle { fill: rgba(245, 164, 0, 0.22); }
+#btnToggleTheme .t-moon { stroke: #d5deec; fill: rgba(213, 222, 236, 0.2); transform: translateY(120%) rotate(25deg); opacity: 0; }
+:root[data-theme="dark"] #btnToggleTheme .t-sun { transform: translateY(120%) rotate(-70deg); opacity: 0; }
+:root[data-theme="dark"] #btnToggleTheme .t-moon { transform: translateY(0) rotate(0deg); opacity: 1; }
+</style>
+
+<script>
+/* Header sun/moon button -> same action as the Dark Mode row in settings */
+(function(){
+  var b=document.getElementById('btnToggleTheme'), row=document.getElementById('rowToggleTheme');
+  if(!b||!row) return;
+  b.addEventListener('click',function(){ row.click(); });
+  function sync(){ b.setAttribute('aria-pressed',document.documentElement.getAttribute('data-theme')==='dark'?'true':'false'); }
+  new MutationObserver(sync).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  sync();
+})();
+</script>
+
+<style id="headerLineCss">
+/* one very thin grey line under the header */
+:root { --hdr-line: rgba(100, 116, 139, 0.22); }
+:root[data-theme="dark"] { --hdr-line: rgba(148, 163, 184, 0.16); }
+:root[data-theme="dark"][data-p-amoled="1"] { --hdr-line: rgba(255, 255, 255, 0.12); }
+.app-header::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: var(--hdr-line); pointer-events: none;
+}
+</style>
 </body>
 </html>
