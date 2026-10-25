@@ -2666,12 +2666,16 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         </button>
         <button class="action-btn-circle" id="btnToggleSlide" aria-label="Slide bar" title="Directs / AI Room" aria-expanded="false">
-          <svg viewBox="0 0 24 24"><path d="M8 4h4v16H8a5 5 0 0 1-5-5V9a5 5 0 0 1 5-5z" fill="currentColor" fill-opacity="0.2" stroke="none"/><rect x="3" y="4" width="18" height="16" rx="5"/><path d="M12 4v16"/></svg>
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="10" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="5.5" rx="2.2"/><rect x="13.5" y="11.5" width="7.5" height="9.5" rx="2.2"/><rect x="3" y="16" width="7.5" height="5" rx="2.2"/></svg>
         </button>
         <button class="action-btn-circle" id="btnToggleTheme" aria-label="Toggle dark mode" title="Dark / Light" aria-pressed="false">
           <span class="theme-sky">
-            <svg class="t-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>
-            <svg class="t-moon" viewBox="0 0 24 24"><path d="M20 14.3A8.2 8.2 0 0 1 9.7 4a8.2 8.2 0 1 0 10.3 10.3z"/></svg>
+            <svg class="tg" viewBox="0 0 24 24" aria-hidden="true">
+              <defs><mask id="tgMoonMask"><rect width="24" height="24" fill="#fff"/><circle class="tg-cut" cx="12" cy="12" r="4.12" fill="#000"/></mask></defs>
+              <g class="tg-rays"><path d="M12 1.6v2.5M12 19.9v2.5M1.6 12h2.5M19.9 12h2.5M4.65 4.65l1.8 1.8M17.55 17.55l1.8 1.8M4.65 19.35l1.8-1.8M17.55 6.45l1.8-1.8"/></g>
+              <circle class="tg-orb" cx="12" cy="12" r="5" mask="url(#tgMoonMask)"/>
+              <g class="tg-stars"><circle class="s1" cx="19.2" cy="5.6" r="1"/><circle class="s2" cx="15.6" cy="3" r="0.7"/><circle class="s3" cx="21" cy="10.6" r="0.65"/></g>
+            </svg>
           </span>
         </button>
         <button class="action-btn-circle" id="btnOpenSettings" aria-label="Settings" title="Settings">
@@ -2685,7 +2689,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
         <input id="searchInput" type="text" name="yk-find-handle" placeholder="Search by username..." inputmode="search" enterkeyhint="search" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
         <button id="searchClear" aria-label="Clear Search"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
-        <button class="action-btn-circle" id="btnSearchToSlide" aria-label="Slide bar" title="Directs / AI Room"><svg viewBox="0 0 24 24"><path d="M8 4h4v16H8a5 5 0 0 1-5-5V9a5 5 0 0 1 5-5z" fill="currentColor" fill-opacity="0.2" stroke="none"/><rect x="3" y="4" width="18" height="16" rx="5"/><path d="M12 4v16"/></svg></button>
+        <button class="action-btn-circle" id="btnSearchToSlide" aria-label="Slide bar" title="Directs / AI Room"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="10" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="5.5" rx="2.2"/><rect x="13.5" y="11.5" width="7.5" height="9.5" rx="2.2"/><rect x="3" y="16" width="7.5" height="5" rx="2.2"/></svg></button>
       </div>
       <!-- whole header turns into the slide bar -->
       <div class="hdr-layer" id="hdrSlideLayer" aria-hidden="true">
@@ -2883,7 +2887,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
             </div>
         </div>
 
-        <div class="settings-card" id="homePrefsCard">
+        <div class="settings-card pg-more" id="homePrefsCard">
             <div class="settings-row pm-pref" id="rowPrefReduceMotion" data-pref="rm" data-type="toggle">
               <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path class="ic-bolt" d="M13.2 3 5.5 13.4h5.8L10.6 21l7.9-10.4h-5.8z"/><path class="ic-slash" pathLength="1" d="M4.2 4.2l15.6 15.6"/></svg></span>
               <div class="settings-info"><span class="settings-main-title">Reduce Motion</span></div>
@@ -2906,12 +2910,20 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
             </div>
             <div class="settings-row pm-pref" id="rowPrefAmoled" data-pref="amoled" data-type="toggle">
               <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6.8" y="2.8" width="10.4" height="18.4" rx="2.6"/><rect class="ic-screen" x="8.3" y="4.3" width="7.4" height="11.9" rx="1.2"/><path class="ic-bar" d="M10.4 18.2h3.2"/></svg></span>
-              <div class="settings-info"><span class="settings-main-title">AMOLED Mode</span></div>
+              <div class="settings-info"><span class="settings-main-title">AMOLED Mode</span><span class="amoled-hint">Only in dark mode</span></div>
               <div class="toggle-switch" data-sw></div>
             </div>
         </div>
 
         <div class="settings-card">
+            <div class="settings-row" id="rowOpenMore">
+            <span class="settings-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></span>
+            <div class="settings-info">
+              <span class="settings-main-title">More settings</span>
+              <span class="settings-sub-title">Motion, contrast, haptics &amp; more</span>
+            </div>
+            <svg class="settings-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
             <div class="settings-row" id="rowOpenBlockList">
             <span class="settings-icon "><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg></span>
             <div class="settings-info">
@@ -2927,8 +2939,8 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
             </div>
         </div>
 
-        <div class="mp-logout-wrap">
-          <button class="profile-pill-btn danger" id="btnLogout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4.5H6.5A2 2 0 0 0 4.5 6.5v11a2 2 0 0 0 2 2H10"/><path d="M14.5 8l4 4-4 4M18.5 12H9.5"/></svg>Log Out</button>
+        <div class="mp-logout-wrap pg-more">
+          <button class="profile-pill-btn danger" id="btnLogout"><span class="lo-label">Sign Out</span></button>
         </div>
 
         <!-- Chat Specific Actions when opened from active room -->
@@ -4844,6 +4856,7 @@ function toggleDrawer(open, isChatContext = false) {
 
 function showDrawerSubView(view) {
   const main = $('drawerMainView');
+  if (view !== 'more') delete main.dataset.page;
   const prof = $('drawerProfileView');
   const blk = $('drawerBlockView');
   const backBtn = $('btnDrawerBack');
@@ -4863,6 +4876,13 @@ function showDrawerSubView(view) {
     backBtn.style.display = 'grid';
     title.textContent = 'Blocked Accounts';
     renderBlockedAccounts();
+  } else if (view === 'more') {
+    main.classList.remove('hidden');
+    main.dataset.page = 'more';
+    prof.classList.remove('active');
+    blk.classList.remove('active');
+    backBtn.style.display = 'grid';
+    title.textContent = 'More settings';
   } else {
     main.classList.remove('hidden');
     prof.classList.remove('active');
@@ -4890,6 +4910,7 @@ $('masterScrim')?.addEventListener('click', () => {
 
 $('rowOpenProfile')?.addEventListener('click', () => showDrawerSubView('profile'));
 $('rowOpenBlockList')?.addEventListener('click', () => showDrawerSubView('block'));
+$('rowOpenMore')?.addEventListener('click', () => showDrawerSubView('more'));
 
 /* Profile Saving Functions */
 $('btnSaveDisplayName')?.addEventListener('click', async () => {
@@ -5993,7 +6014,7 @@ body { top: 0; left: 0; right: 0; }
   var $ = function (id) { return document.getElementById(id); };
   var drawer = $('settingsDrawer'), main = $('drawerMainView'), prof = $('drawerProfileView'), blk = $('drawerBlockView');
   if (!drawer || !main || !prof || !blk) return;
-  var OUT_MS = 170, MORPH_MS = 480, bypass = false, busy = false, t1 = 0, t2 = 0;
+  var OUT_MS = 190, MORPH_MS = 700, bypass = false, busy = false, t1 = 0, t2 = 0;
 
   function reduced() {
     return document.documentElement.dataset.pRm === '1' ||
@@ -6038,7 +6059,7 @@ body { top: 0; left: 0; right: 0; }
 
   document.addEventListener('click', function (e) {
     if (bypass) return;
-    var t = e.target && e.target.closest && e.target.closest('#rowOpenProfile,#rowOpenBlockList,#btnDrawerBack');
+    var t = e.target && e.target.closest && e.target.closest('#rowOpenProfile,#rowOpenBlockList,#rowOpenMore,#btnDrawerBack');
     if (!t) return;
     if (!drawer.classList.contains('active') || reduced()) return;   /* plain behaviour */
     e.stopImmediatePropagation(); e.preventDefault();
@@ -6722,20 +6743,41 @@ document.getElementById('btnSaveChanges')?.addEventListener('click', function(){
 </style>
 
 <style id="headerThemeBtnCss">
-/* Header theme button: sun sets down, moon rises up (and back) */
-#btnToggleTheme { background: transparent; border: 0; box-shadow: none; }
-#btnToggleTheme:active { background: transparent; }
-#btnToggleTheme .theme-sky { position: relative; display: block; width: 24px; height: 24px; overflow: hidden; border-radius: 8px; }
-#btnToggleTheme .theme-sky svg {
-  position: absolute; left: 0; top: 0; width: 24px !important; height: 24px !important;
-  stroke-width: 1.7; will-change: transform, opacity;
-  transition: transform 0.7s cubic-bezier(0.5, 1.25, 0.45, 1), opacity 0.4s ease;
+/* Sun <-> moon morph: sun grows into a moon while a cut-out slides in, rays spin away, stars twinkle on */
+#btnToggleTheme { background: transparent; border: 0; box-shadow: none; transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important; }
+#btnToggleTheme:active { background: transparent; transform: scale(0.86); }
+#btnToggleTheme .theme-sky { position: relative; display: block; width: 26px; height: 26px; }
+#btnToggleTheme svg.tg {
+  width: 26px !important; height: 26px !important; overflow: visible; fill: none; stroke: none;
+  transform: rotate(0deg); transform-origin: 50% 50%;
+  transition: transform 0.95s cubic-bezier(0.34, 1.35, 0.5, 1) !important;
 }
-#btnToggleTheme .t-sun { stroke: #f5a400; transform: translateY(0) rotate(0deg); opacity: 1; }
-#btnToggleTheme .t-sun circle { fill: rgba(245, 164, 0, 0.22); }
-#btnToggleTheme .t-moon { stroke: #d5deec; fill: rgba(213, 222, 236, 0.2); transform: translateY(120%) rotate(25deg); opacity: 0; }
-:root[data-theme="dark"] #btnToggleTheme .t-sun { transform: translateY(120%) rotate(-70deg); opacity: 0; }
-:root[data-theme="dark"] #btnToggleTheme .t-moon { transform: translateY(0) rotate(0deg); opacity: 1; }
+#btnToggleTheme .tg-orb {
+  fill: #f5a400; transform: scale(1); transform-box: fill-box; transform-origin: center;
+  transition: transform 0.8s cubic-bezier(0.55, 0, 0.2, 1), fill 0.6s ease !important;
+}
+#btnToggleTheme .tg-cut {
+  transform: translate(12px, -12px);
+  transition: transform 0.8s cubic-bezier(0.55, 0, 0.2, 1) !important;
+}
+#btnToggleTheme .tg-rays {
+  stroke: #f5a400; stroke-width: 1.9; stroke-linecap: round; fill: none;
+  transform-box: view-box; transform-origin: 12px 12px; transform: rotate(0deg) scale(1); opacity: 1;
+  transition: transform 0.75s cubic-bezier(0.55, 0, 0.2, 1), opacity 0.4s ease !important;
+}
+#btnToggleTheme .tg-stars circle {
+  fill: #dfe7f5; opacity: 0; transform: scale(0.2); transform-box: fill-box; transform-origin: center;
+  transition: transform 0.3s ease, opacity 0.25s ease !important;
+}
+/* dark = moon */
+:root[data-theme="dark"] #btnToggleTheme svg.tg { transform: rotate(-20deg); }
+:root[data-theme="dark"] #btnToggleTheme .tg-orb { fill: #d9e2f2; transform: scale(1.7); }
+:root[data-theme="dark"] #btnToggleTheme .tg-cut { transform: translate(2.06px, -2.06px); }
+:root[data-theme="dark"] #btnToggleTheme .tg-rays { transform: rotate(110deg) scale(0.2); opacity: 0; }
+:root[data-theme="dark"] #btnToggleTheme .tg-stars circle { opacity: 1; transform: scale(1); transition: transform 0.55s cubic-bezier(0.34, 1.7, 0.64, 1), opacity 0.3s ease !important; }
+:root[data-theme="dark"] #btnToggleTheme .tg-stars .s1 { transition-delay: 0.45s !important; }
+:root[data-theme="dark"] #btnToggleTheme .tg-stars .s2 { transition-delay: 0.58s !important; }
+:root[data-theme="dark"] #btnToggleTheme .tg-stars .s3 { transition-delay: 0.7s !important; }
 </style>
 
 <script>
@@ -6750,15 +6792,227 @@ document.getElementById('btnSaveChanges')?.addEventListener('click', function(){
 })();
 </script>
 
-<style id="headerLineCss">
-/* one very thin grey line under the header */
-:root { --hdr-line: rgba(100, 116, 139, 0.22); }
-:root[data-theme="dark"] { --hdr-line: rgba(148, 163, 184, 0.16); }
-:root[data-theme="dark"][data-p-amoled="1"] { --hdr-line: rgba(255, 255, 255, 0.12); }
-.app-header::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
-  background: var(--hdr-line); pointer-events: none;
+
+<style id="headerBarsPremiumCss">
+/* Thin search bar + slide bar. Slide pill is flat and soft (no gloss). */
+.hdr-layer #searchBoxWrap { height: 38px; }
+.hdr-layer #searchBoxWrap input { font-size: 14px; }
+.hdr-layer #inboxTabBar {
+  height: 38px; padding: 3px; border-radius: 999px; gap: 0;
+  border: 0; position: relative; overflow: hidden;
+  background: #eaeff6; box-shadow: none;
 }
+.hdr-layer #inboxTabBar .inbox-tab {
+  height: 100%; padding: 0; font-size: 13.5px; font-weight: 500; letter-spacing: 0.01em;
+  color: #7b879b; border-radius: 999px;
+  transition: color 0.3s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hdr-layer #inboxTabBar .inbox-tab.active { color: #0f172a; font-weight: 600; }
+.hdr-layer #inboxTabBar .inbox-tab-indicator {
+  top: 3px; bottom: 3px; left: 3px; height: auto;
+  width: calc((100% - 6px) / 2); border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hdr-layer #inboxTabBar .tab-badge {
+  min-width: 16px; height: 16px; padding: 0 5px; margin: 0;
+  font-size: 10px; line-height: 16px; font-weight: 700; text-align: center;
+  border-radius: 999px; background: var(--primary-blue); color: #fff;
+}
+:root[data-p-amoled="1"]:not([data-theme="dark"]) .hdr-layer #inboxTabBar { background: #e5e8ee; }
+:root[data-theme="dark"] .hdr-layer #inboxTabBar { background: rgba(124, 146, 186, 0.12); box-shadow: none; }
+:root[data-theme="dark"] .hdr-layer #inboxTabBar .inbox-tab { color: #8e9bb3; }
+:root[data-theme="dark"] .hdr-layer #inboxTabBar .inbox-tab.active { color: #e6ecf8; }
+:root[data-theme="dark"] .hdr-layer #inboxTabBar .inbox-tab-indicator { background: rgba(124, 146, 186, 0.24); box-shadow: none; }
+:root[data-theme="dark"][data-p-amoled="1"] .hdr-layer #inboxTabBar { background: rgba(255, 255, 255, 0.07); }
+:root[data-theme="dark"][data-p-amoled="1"] .hdr-layer #inboxTabBar .inbox-tab { color: #8b8b8b; }
+:root[data-theme="dark"][data-p-amoled="1"] .hdr-layer #inboxTabBar .inbox-tab.active { color: #ffffff; }
+:root[data-theme="dark"][data-p-amoled="1"] .hdr-layer #inboxTabBar .inbox-tab-indicator { background: rgba(255, 255, 255, 0.14); box-shadow: none; }
+</style>
+
+<style id="headerSoftShadowCss">
+/* no line: a very light, tiny shadow under the header divides it from the page */
+.app-header::after { content: none !important; }
+.app-header { border-bottom: 0 !important; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 5px 10px -7px rgba(15, 23, 42, 0.10) !important; }
+:root[data-theme="dark"] .app-header { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22), 0 5px 10px -7px rgba(0, 0, 0, 0.40) !important; }
+:root[data-theme="dark"][data-p-amoled="1"] .app-header { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 5px 10px -7px rgba(0, 0, 0, 0.7) !important; }
+</style>
+
+<style id="amoledDarkOnlyCss">
+/* AMOLED belongs to dark mode only: in light mode the row is dimmed and shows a hint */
+#rowPrefAmoled .amoled-hint { display: none; font-size: 11.5px; font-weight: 400; color: var(--text-muted); margin-top: 2px; }
+:root:not([data-theme="dark"]) #rowPrefAmoled { opacity: 0.55; }
+:root:not([data-theme="dark"]) #rowPrefAmoled .amoled-hint { display: block; }
+</style>
+
+<script id="amoledDarkOnlyJs">
+/* AMOLED mode only takes effect (and only shows as ON) while dark mode is on.
+   The saved choice is kept, so it comes back automatically when you return to dark. */
+(function(){
+  var root=document.documentElement, busy=false;
+  function wanted(){ try{ return JSON.parse(localStorage.getItem('yukiPrefs')||'{}').amoled===1; }catch(e){ return false; } }
+  function sync(){
+    if(busy) return; busy=true;
+    var dark=root.getAttribute('data-theme')==='dark';
+    var eff=(wanted()&&dark)?'1':'0';
+    if(root.getAttribute('data-p-amoled')!==eff) root.setAttribute('data-p-amoled',eff);
+    var sw=document.querySelector('#rowPrefAmoled [data-sw]');
+    if(sw) sw.classList.toggle('on',eff==='1');
+    busy=false;
+  }
+  new MutationObserver(sync).observe(root,{attributes:true,attributeFilter:['data-theme','data-p-amoled']});
+  /* tapping the AMOLED row in light mode does nothing */
+  var row=document.getElementById('rowPrefAmoled');
+  if(row) row.addEventListener('click',function(e){
+    if(root.getAttribute('data-theme')!=='dark'){ e.stopPropagation(); e.preventDefault(); }
+  },true);
+  sync();
+})();
+</script>
+
+<style id="settingsBoxMorphCss">
+/* Profile / Block List / Back: the popup BOX shrinks (or grows) into the new shape while the
+   content swaps with a blur. Box background shows up right away at the start of the morph. */
+@keyframes vtInBlur {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); filter: blur(9px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+:root #drawerProfileView.active, :root #drawerBlockView.active, :root #drawerMainView.vt-in {
+  animation: vtInBlur 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.14s backwards !important;
+}
+:root #settingsDrawer .vt-out {
+  opacity: 0 !important;
+  transform: translateY(-10px) scale(0.96) !important;
+  filter: blur(8px) !important;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.26s cubic-bezier(0.4, 0, 1, 1), filter 0.2s ease !important;
+}
+/* header title/back button blur in with the new view */
+@keyframes vtHdrBlur { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: blur(0); } }
+:root #settingsDrawer.vt-run > .drawer-header { animation: vtHdrBlur 0.45s ease 0.16s backwards !important; }
+
+/* same corner radius in every view, so only size + background change */
+:root #settingsDrawer:has(#drawerMainView:not(.hidden)) { border-radius: 22px !important; }
+
+/* box morph timing: size follows an iOS-like curve, background appears fast (box is seen shrinking) */
+:root #settingsDrawer.active.vt-morph:has(#drawerMainView.hidden) {
+  transition: opacity 0.3s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s,
+              width 0.55s cubic-bezier(0.32, 0.72, 0, 1), height 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+              background-color 0.16s ease, box-shadow 0.3s ease, border-radius 0.4s ease !important;
+}
+/* going back: the box grows to the main size while its background melts away */
+:root #settingsDrawer.active.vt-morph:has(#drawerMainView:not(.hidden)) {
+  transition: opacity 0.3s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s,
+              width 0.55s cubic-bezier(0.32, 0.72, 0, 1), height 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+              background-color 0.42s ease 0.08s, box-shadow 0.35s ease, border-radius 0.4s ease !important;
+}
+</style>
+
+<style id="settingsBackMorphCss">
+/* BACK (sub view -> main): 1) sub content blurs out  2) the box grows fast to the main size
+   3) only then the floating cards blur in, while the box background melts away. */
+:root #drawerMainView.vt-in {
+  animation: vtInBlur 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.24s backwards !important;
+}
+:root #settingsDrawer.vt-run:has(#drawerMainView:not(.hidden)) > .drawer-header {
+  animation: vtHdrBlur 0.4s ease 0.24s backwards !important;
+}
+:root #settingsDrawer.active.vt-morph:has(#drawerMainView:not(.hidden)) {
+  transition: opacity 0.3s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s,
+              width 0.42s cubic-bezier(0.22, 1, 0.36, 1), height 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 0.36s ease 0.2s, box-shadow 0.3s ease 0.2s, border-radius 0.4s ease !important;
+}
+</style>
+
+<style id="settingsMorePageCss">
+/* More settings page: same floating style as the main menu (no big box behind).
+   Header, switches card and Log Out are three separate floating cards. */
+#drawerMainView > .pg-more { display: none !important; }
+#drawerMainView[data-page="more"] > :not(.pg-more) { display: none !important; }
+#drawerMainView[data-page="more"] > .pg-more { display: block !important; }
+
+:root #settingsDrawer:has(#drawerMainView[data-page="more"]) {
+  width: 316px;
+  background: transparent !important; border: 0 !important; box-shadow: none !important;
+  border-radius: 0 !important; overflow: visible !important;
+}
+:root #settingsDrawer:has(#drawerMainView[data-page="more"]) #btnDrawerClose { display: none !important; }
+:root #settingsDrawer:has(#drawerMainView[data-page="more"]) > .drawer-body { padding: 6px 14px 24px !important; overflow: visible !important; }
+
+/* no header / back arrow on this page: tap outside closes the popup */
+:root #settingsDrawer:has(#drawerMainView[data-page="more"]) > .drawer-header { display: none !important; }
+
+/* switches card */
+:root #settingsDrawer:has(#drawerMainView[data-page="more"]) #drawerMainView .settings-card.pg-more {
+  background: var(--set-card) !important; box-shadow: var(--set-card-shadow) !important;
+  border: 0 !important; border-radius: 18px !important;
+}
+
+/* Log Out card */
+:root #drawerMainView .mp-logout-wrap.pg-more { padding: 0; margin-top: 12px; }
+:root #settingsDrawer #drawerMainView #btnLogout {
+  position: relative; overflow: hidden;
+  width: 100%; height: 62px; padding: 0 16px 0 12px; gap: 13px;
+  display: flex; align-items: center; justify-content: flex-start; text-align: left;
+  border: 0 !important; border-radius: 18px !important;
+  background: linear-gradient(0deg, rgba(239, 68, 68, 0.07), rgba(239, 68, 68, 0.07)), var(--set-card) !important;
+  box-shadow: var(--set-card-shadow) !important;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+}
+:root #settingsDrawer #drawerMainView #btnLogout svg {
+  box-sizing: border-box; flex: none; width: 38px !important; height: 38px !important; padding: 9px;
+  border-radius: 13px; color: #fff;
+  background: linear-gradient(145deg, #ff7a7a, #ef4444 60%, #dc2626);
+  stroke: #fff !important; fill: none !important; stroke-width: 1.9;
+  box-shadow: 0 6px 12px -5px rgba(239, 68, 68, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+:root #settingsDrawer #drawerMainView #btnLogout .lo-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+:root #settingsDrawer #drawerMainView #btnLogout .lo-label { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; color: #ef4444; line-height: 1.2; }
+:root #settingsDrawer #drawerMainView #btnLogout .lo-sub { font-size: 12px; font-weight: 400; color: var(--text-muted); line-height: 1.2; }
+:root #settingsDrawer #drawerMainView #btnLogout:active { transform: scale(0.97); filter: brightness(0.97); }
+
+/* entering the More page: content blurs in right away (no box to wait for) */
+:root #drawerMainView[data-page="more"].vt-in { animation: vtInBlur 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards !important; }
+</style>
+
+<script id="morePageResetJs">
+/* Leaving the popup (tap outside) while on "More settings": next time it opens on the normal menu. */
+(function(){
+  var d=document.getElementById('settingsDrawer'), m=document.getElementById('drawerMainView');
+  if(!d||!m) return;
+  function reset(){
+    if(m.dataset.page!=='more') return;
+    delete m.dataset.page;
+    var b=document.getElementById('btnDrawerBack'), t=document.getElementById('drawerTitle');
+    if(b) b.style.display='none';
+    if(t) t.textContent='Settings';
+  }
+  var was=d.classList.contains('active'), tmr=0;
+  new MutationObserver(function(){
+    var now=d.classList.contains('active');
+    if(now===was) return; was=now;
+    clearTimeout(tmr);
+    if(now) reset();                          /* opened again -> fresh menu */
+    else tmr=setTimeout(reset,650);           /* after the close animation */
+  }).observe(d,{attributes:true,attributeFilter:['class']});
+})();
+</script>
+
+<style id="signOutSimpleCss">
+/* simple Sign Out: one slim card, centred red text */
+:root #drawerMainView .mp-logout-wrap.pg-more { margin-top: 10px; }
+:root #settingsDrawer #drawerMainView #btnLogout {
+  height: 44px; padding: 0 16px; gap: 0;
+  justify-content: center; text-align: center;
+  border-radius: 14px !important;
+  background: var(--set-card) !important;
+  box-shadow: var(--set-card-shadow) !important;
+}
+:root #settingsDrawer #drawerMainView #btnLogout .lo-label {
+  font-size: 15px; font-weight: 500; letter-spacing: 0; color: #ef4444; line-height: 1;
+}
+:root #settingsDrawer #drawerMainView #btnLogout:active { transform: scale(0.98); filter: none; background: var(--set-card) !important; opacity: 0.8; }
 </style>
 </body>
 </html>
