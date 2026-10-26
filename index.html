@@ -2618,6 +2618,31 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
               filter 0.32s ease 0.1s,
               visibility 0s;
 }
+
+/* ===== Guest sign-in (grey circle, theme based) + guest profile setup ===== */
+.auth-guest-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:4px; }
+.auth-guest-btn {
+  width:46px; height:46px; border-radius:50%;
+  display:grid; place-items:center;
+  background:var(--surface-subtle); color:var(--text-muted);
+  border:1px solid var(--border-subtle);
+  cursor:pointer; padding:0;
+  transition:transform .15s ease, background .18s ease, color .18s ease, border-color .18s ease;
+}
+.auth-guest-btn svg { width:24px; height:24px; stroke:none; fill:currentColor; }
+.auth-guest-btn:hover { color:var(--text-main); border-color:var(--text-muted); }
+.auth-guest-btn:active { transform:scale(.92); }
+.auth-guest-btn:disabled { opacity:.6; cursor:wait; }
+.auth-guest-label { font-size:11.5px; color:var(--text-muted); letter-spacing:.2px; }
+#authScreen .auth-divider { margin:20px 0 14px; }
+#btnGuestCancel { display:none; }
+#authScreen.guest-setup #authEmail,
+#authScreen.guest-setup #authPassword,
+#authScreen.guest-setup #btnToggleAuthMode,
+#authScreen.guest-setup #btnResendVerification,
+#authScreen.guest-setup .auth-guest-wrap,
+#authScreen.guest-setup .auth-divider { display:none !important; }
+#authScreen.guest-setup #btnGuestCancel { display:inline-block !important; }
 </style>
 </head>
 <body>
@@ -2649,6 +2674,15 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 
       <button class="auth-toggle-link" id="btnToggleAuthMode">New here? Create account</button>
       <button class="auth-toggle-link" id="btnResendVerification" style="display:none;margin-top:6px">Resend verification email</button>
+      <button class="auth-toggle-link" id="btnGuestCancel" type="button">Back</button>
+
+      <div class="auth-divider"><span></span>or<span></span></div>
+      <div class="auth-guest-wrap">
+        <button class="auth-guest-btn" id="btnGuestAuth" type="button" aria-label="Continue as guest" title="Continue as guest">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.1 0-7.5 2.2-7.5 5v1.5h15V19c0-2.8-3.4-5-7.5-5z"/></svg>
+        </button>
+        <span class="auth-guest-label">Guest</span>
+      </div>
     </div>
   </div>
 
@@ -3154,7 +3188,7 @@ body, .device-wrapper { height: var(--app-h, 100dvh); }
 <!-- Firebase & Application Modules -->
 <script type="module">
 /* Firebase is loaded dynamically so a load failure shows a clear on-screen error instead of a dead page */
-let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup, signInWithCredential, getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction;
+let initializeApp, getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup, signInWithCredential, signInAnonymously, getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction;
 try {
   const [__A, __Au, __F] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js"),
@@ -3162,7 +3196,7 @@ try {
     import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js")
   ]);
   ({ initializeApp } = __A);
-  ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup, signInWithCredential } = __Au);
+  ({ getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, sendEmailVerification, GoogleAuthProvider, signInWithPopup, signInWithCredential, signInAnonymously } = __Au);
   ({ getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection, query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, runTransaction } = __F);
 } catch (err) {
   window.__fbLoadError = (err && (err.name + ': ' + err.message)) || String(err);
@@ -3376,6 +3410,7 @@ const restoreChat = (u, o) => {
    AUTHENTICATION LOGIC
    ========================================================================== */
 $('btnToggleAuthMode')?.addEventListener('click', () => {
+  if (guestSetupPending) return;
   isSignUpMode = !isSignUpMode;
   $('authHeading').textContent = isSignUpMode ? 'Create Account' : 'Yuki';
   $('authSub').textContent = isSignUpMode ? 'Sign up to start messaging' : 'Sign in to continue to your messages';
@@ -3491,8 +3526,115 @@ $('btnGoogleAuth')?.addEventListener('click', async () => {
 
 $('btnAuthSubmit')?.addEventListener('click', handleAuthSubmit);
 $('authPassword')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuthSubmit(); });
+$('authUsername')?.addEventListener('keydown', e => { if (e.key === 'Enter' && guestSetupPending) handleAuthSubmit(); });
+
+/* ==========================================================================
+   GUEST ACCOUNT (anonymous sign-in, then name + username setup)
+   ========================================================================== */
+let guestSetupPending = false;
+
+function setGuestSetupMode(on) {
+  guestSetupPending = on;
+  const scr = $('authScreen');
+  scr?.classList.toggle('guest-setup', on);
+  document.querySelectorAll('.auth-extra').forEach(el => el.classList.toggle('show', on || isSignUpMode));
+  if (on) {
+    $('authHeading').textContent = 'Set up your profile';
+    $('authSub').textContent = 'Choose a name and username to continue';
+    $('authSubmitText').textContent = 'Done';
+  } else {
+    $('authHeading').textContent = isSignUpMode ? 'Create Account' : 'Yuki';
+    $('authSub').textContent = isSignUpMode ? 'Sign up to start messaging' : 'Sign in to continue to your messages';
+    $('authSubmitText').textContent = isSignUpMode ? 'Create account' : 'Sign in';
+  }
+  $('authError').textContent = '';
+  $('authInfo').textContent = '';
+}
+
+$('btnGuestAuth')?.addEventListener('click', async () => {
+  const btn = $('btnGuestAuth');
+  $('authError').textContent = '';
+  $('authInfo').textContent = '';
+  btn.disabled = true;
+  try {
+    await signInAnonymously(auth);   // onAuthStateChanged opens the name/username page
+  } catch (err) {
+    console.error('Guest sign-in error:', err);
+    const code = err.code || '';
+    $('authError').textContent = code === 'auth/operation-not-allowed' || code === 'auth/admin-restricted-operation'
+      ? 'Enable Anonymous sign-in in Firebase Authentication settings.'
+      : code === 'auth/network-request-failed' ? 'Network error. Check your connection.'
+      : 'Guest sign-in failed. Please try again.';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('btnGuestCancel')?.addEventListener('click', async () => {
+  const u = auth.currentUser;
+  setGuestSetupMode(false);
+  try {
+    if (u && u.isAnonymous) {
+      const { deleteUser } = await import('https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js');
+      await deleteUser(u);
+    }
+  } catch (e) { /* ignore, fall back to sign out */ }
+  try { await signOut(auth); } catch (e) {}
+});
+
+async function handleGuestSetup() {
+  const errEl = $('authError');
+  errEl.textContent = '';
+  const user = auth.currentUser;
+  if (!user) { setGuestSetupMode(false); return; }
+  const name = $('authName').value.trim().replace(/\s+/g, ' ');
+  const handle = $('authUsername').value.trim().toLowerCase().replace(/^@/, '');
+  if (!name) { errEl.textContent = 'Please enter your name.'; return; }
+  if (!/^[a-z0-9_]{3,20}$/.test(handle)) {
+    errEl.textContent = 'Username: 3-20 characters, only a-z, 0-9 and _';
+    return;
+  }
+  const btn = $('btnAuthSubmit');
+  btn.disabled = true;
+  try {
+    const profile = {
+      username: handle,
+      display: name,
+      email: '',
+      isGuest: true,
+      createdAt: serverTimestamp(),
+      lastSeen: serverTimestamp(),
+      emailVerified: false
+    };
+    await runTransaction(db, async txn => {
+      const hRef = doc(db, 'usernames', handle);
+      const snap = await txn.get(hRef);
+      if (snap.exists()) throw new Error('TAKEN');
+      txn.set(hRef, { uid: user.uid, at: serverTimestamp() });
+      txn.set(doc(db, 'users', user.uid), profile);
+    });
+    currentUser = user;
+    currentProfile = { ...profile, createdAt: null, lastSeen: null };
+    setGuestSetupMode(false);
+    syncDeviceInfo(user.uid);
+    $('authScreen')?.classList.remove('active');
+    $('authName').value = '';
+    $('authUsername').value = '';
+    updateProfileBadges();
+    initRosterListener();
+    renderDirectsList();
+  } catch (err) {
+    console.error('Guest setup error:', err);
+    errEl.textContent = err.message === 'TAKEN'
+      ? `@${handle} is already taken. Please choose another username.`
+      : 'Could not save your profile. Please try again.';
+  } finally {
+    btn.disabled = false;
+  }
+}
 
 async function handleAuthSubmit() {
+  if (guestSetupPending) return handleGuestSetup();
   const email = $('authEmail').value.trim().toLowerCase();
   const password = $('authPassword').value;
   const errEl = $('authError');
@@ -3609,12 +3751,29 @@ onAuthStateChanged(auth, async user => {
     renderedChatId = null;
     appShell.classList.remove('in-chat');
     toggleDrawer(false);
+    setGuestSetupMode(false);
     $('authScreen')?.classList.add('active');
     renderDirectsList();
     return;
   }
 
-  if (!user.emailVerified) {
+  /* Guest (anonymous) user: no email to verify. New guests must pick name + username first. */
+  if (user.isAnonymous) {
+    let gSnap = null;
+    try {
+      gSnap = await Promise.race([
+        getDoc(doc(db, 'users', user.uid)),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Firestore timeout')), 8000))
+      ]);
+    } catch (e) { console.warn('Guest profile check failed:', e); }
+    if (!gSnap || !gSnap.exists() || !gSnap.data().username) {
+      $('authScreen')?.classList.add('active');
+      setGuestSetupMode(true);
+      return;
+    }
+  }
+
+  if (!user.emailVerified && !user.isAnonymous) {
     $('authScreen')?.classList.add('active');
     $('authError').textContent = 'Please verify your email before continuing.';
     $('btnResendVerification').style.display = 'inline-block';
@@ -3684,7 +3843,7 @@ function updateProfileBadges() {
   }
   if ($('inputDisplayName')) $('inputDisplayName').value = currentProfile.display || '';
   if ($('inputUsername')) $('inputUsername').value = currentProfile.username || '';
-  if ($('inputEmail')) $('inputEmail').value = currentUser?.email || currentProfile.email || '';
+  if ($('inputEmail')) $('inputEmail').value = currentUser?.email || currentProfile.email || (currentUser?.isAnonymous ? 'Guest account' : '');
   if ($('inputCountry')) $('inputCountry').value = currentProfile.country || '';
   if ($('menuProfileAvatar') && $('menuProfileAvatar').__sig !== avHtml) { $('menuProfileAvatar').__sig = avHtml; $('menuProfileAvatar').innerHTML = avHtml; }
   if ($('menuProfileName')) $('menuProfileName').textContent = currentProfile.display || currentProfile.username || 'Your profile';
@@ -5021,6 +5180,21 @@ $('btnLogout')?.addEventListener('click', async () => {
   if (currentUser) {
     updateDoc(doc(db, 'users', currentUser.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
   }
+  const gu = auth.currentUser;
+  if (gu && gu.isAnonymous) {
+    try {
+      const { deleteDoc } = await import(FB_FS_URL);
+      const { deleteUser } = await import(FB_AUTH_URL);
+      const gh = (currentProfile?.username || '').toLowerCase();
+      stopAllListeners();
+      unwatchProfiles();
+      try { if (gh) await deleteDoc(doc(db, 'usernames', gh)); } catch (e) {}
+      try { await deleteDoc(doc(db, 'users', gu.uid)); } catch (e) {}
+      await deleteUser(gu);
+      showToast('Guest session ended');
+      return;
+    } catch (e) { console.warn('Guest cleanup failed, signing out:', e); }
+  }
   await signOut(auth);
   showToast('Logged out');
 });
@@ -5287,6 +5461,8 @@ function openDeleteAccount() {
   toggleDrawer(false);
   $('inputDeletePassword').value = '';
   $('deleteAccountError').textContent = '';
+  const _isGuest = !!auth.currentUser?.isAnonymous;
+  $('inputDeletePassword').style.display = _isGuest ? 'none' : '';
   if (deleteModal) {
     deleteModal.classList.remove('active');
     void deleteModal.offsetWidth;
@@ -5306,14 +5482,14 @@ $('btnDeleteConfirm')?.addEventListener('click', async () => {
   const pw = $('inputDeletePassword').value;
   const user = auth.currentUser;
   if (!user) return;
-  if (!pw) { errEl.textContent = 'Enter your password to continue.'; return; }
+  if (!pw && !user.isAnonymous) { errEl.textContent = 'Enter your password to continue.'; return; }
   const btn = $('btnDeleteConfirm');
   btn.disabled = true;
   errEl.textContent = '';
   try {
     const { reauthenticateWithCredential, EmailAuthProvider, deleteUser } = await import(FB_AUTH_URL);
     const { deleteDoc } = await import(FB_FS_URL);
-    await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, pw));
+    if (!user.isAnonymous) await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, pw));
     const uid = user.uid;
     const handle = (currentProfile?.username || '').toLowerCase();
     stopAllListeners();
