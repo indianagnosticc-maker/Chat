@@ -1,0 +1,728 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Development</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Minimal Pixel Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --mono-main: #ffbe7b;
+            --mono-muted: rgba(255, 190, 123, 0.65);
+            --mono-dim: rgba(255, 190, 123, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            background-color: #000000;
+            color: var(--mono-main);
+            font-family: 'Silkscreen', monospace;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        body::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .font-press {
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .font-silk {
+            font-family: 'Silkscreen', monospace;
+        }
+
+        /* Crisp Pixelated Rendering */
+        #pixelCanvas,
+        #ownerPixelCanvas {
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            display: block;
+        }
+
+        /* Subtle 8-Bit Blink & Bob */
+        @keyframes stepBlink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.18; }
+        }
+
+        @keyframes stepBob {
+            0%, 49% { transform: translateY(0px); }
+            50%, 100% { transform: translateY(3px); }
+        }
+
+        .blink-dot {
+            animation: stepBlink 1.1s steps(2, start) infinite;
+        }
+
+        .scroll-cue {
+            animation: stepBob 1.2s steps(2, start) infinite;
+        }
+    </style>
+</head>
+<body class="w-full bg-black text-[#ffbe7b] flex flex-col items-center">
+
+    <!-- Optional local GIF sources (if present in the same folder, they get pixelated onto the canvases) -->
+    <img id="sourceGif" src="20418.gif" alt="" class="hidden" />
+    <img id="ownerGif" src="20248.gif" alt="" class="hidden" />
+
+    <!-- ========================================================= -->
+    <!-- SECTION 1: TOP VIEWPORT (UNDER DEVELOPMENT)               -->
+    <!-- ========================================================= -->
+    <section class="relative w-full min-h-screen flex flex-col items-center justify-center px-6">
+        <main class="flex flex-col items-center text-center max-w-md w-full">
+
+            <!-- Pixelated Calcifer (20418.gif) 200x200 Area -->
+            <div class="relative w-[200px] h-[200px] flex items-center justify-center mb-6">
+                <canvas id="pixelCanvas" width="256" height="256" class="w-full h-full"></canvas>
+            </div>
+
+            <!-- Small Uppercase Status Title -->
+            <div class="flex items-center justify-center gap-2 mb-2.5">
+                <span class="inline-block w-1.5 h-1.5 bg-[#ffbe7b] blink-dot"></span>
+                <h1 class="font-press text-[10px] sm:text-xs tracking-[0.18em] text-[#ffbe7b] uppercase">
+                    UNDER DEVELOPMENT
+                </h1>
+            </div>
+
+            <!-- Short, Small Single-Color English Message -->
+            <p class="font-silk text-[11px] sm:text-xs leading-relaxed text-[#ffbe7b]/70 max-w-xs sm:max-w-sm mb-6">
+                Work is currently in progress. The website will be back live within 24–42 hours.
+            </p>
+
+            <!-- Ultra-Slim Single-Color Segmented Pixel Progress Bar -->
+            <div id="pixelProgress" class="w-44 sm:w-52 flex items-center gap-[3px] mb-3"></div>
+
+            <!-- Tiny Monochrome Countdown Readout -->
+            <div class="font-press text-[8px] sm:text-[9px] tracking-[0.2em] text-[#ffbe7b]/50 uppercase">
+                EST. RETURN &bull; <span id="countdownText">36:14:52</span>
+            </div>
+
+        </main>
+
+        <!-- Subtle Scroll Down Hint at Bottom of First Screen -->
+        <a href="#ownerSection" class="absolute bottom-6 font-press text-[7px] sm:text-[8px] tracking-[0.22em] text-[#ffbe7b]/40 hover:text-[#ffbe7b]/80 transition-opacity uppercase scroll-cue">
+            &darr; scroll for more
+        </a>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SECTION 2: SCROLL DOWN (MORE ABOUT THE OWNER)             -->
+    <!-- ========================================================= -->
+    <section id="ownerSection" class="w-full min-h-screen flex flex-col items-center justify-center px-6 py-16">
+        <div class="flex flex-col items-center text-center max-w-md w-full">
+
+            <!-- Small Pixel Heading -->
+            <div class="flex items-center justify-center gap-2 mb-6">
+                <span class="inline-block w-1.5 h-1.5 bg-[#ffbe7b]/80 blink-dot"></span>
+                <h2 class="font-press text-[9px] sm:text-[11px] tracking-[0.18em] text-[#ffbe7b] uppercase">
+                    MORE ABOUT THE OWNER
+                </h2>
+            </div>
+
+            <!-- Exact Pixelated 20248.gif Visual Area (264x150px, 88x50 pixel grid) -->
+            <div class="relative w-[264px] h-[150px] sm:w-[308px] sm:h-[175px] flex items-center justify-center mb-6 overflow-hidden">
+                <canvas id="ownerPixelCanvas" width="352" height="200" class="w-full h-full"></canvas>
+            </div>
+
+            <!-- Short 6-Line Minimal Bio in English -->
+            <div class="font-silk text-[11px] sm:text-xs leading-relaxed text-[#ffbe7b]/70 max-w-xs sm:max-w-sm space-y-1.5 mb-7">
+                <p class="text-[#ffbe7b]">Hey, I'm Coro.</p>
+                <p>I'm currently a Class 12th student (Commerce without Maths).</p>
+                <p>Didn't have any big reason or master plan behind this project &mdash;</p>
+                <p>just felt like building a website, so I started putting it together.</p>
+                <p>Right now I'm tweaking the layout and fixing a few things in the code.</p>
+                <p>It'll be up and running soon.</p>
+            </div>
+
+            <!-- Contact Email -->
+            <div class="font-press text-[8px] sm:text-[9px] tracking-[0.14em] text-[#ffbe7b]/55 lowercase">
+                contact:
+                <a href="mailto:indianagnosticc@gmail.com"
+                   class="text-[#ffbe7b]/90 hover:text-[#ffbe7b] underline decoration-[#ffbe7b]/35 underline-offset-4 transition-colors">
+                    indianagnosticc@gmail.com
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        (function () {
+            let tick = 0;
+
+            // =====================================================
+            // 1. SLIM PIXEL PROGRESS BAR & LIVE COUNTDOWN TIMER
+            // =====================================================
+            const progressContainer = document.getElementById('pixelProgress');
+            const totalSegments = 18;
+            const activeSegments = 11;
+            const segmentEls = [];
+
+            if (progressContainer) {
+                for (let i = 0; i < totalSegments; i++) {
+                    const seg = document.createElement('div');
+                    seg.className = 'h-1.5 flex-1 transition-opacity duration-150';
+                    seg.style.backgroundColor = '#ffbe7b';
+                    seg.style.opacity = i < activeSegments ? '0.85' : '0.14';
+                    progressContainer.appendChild(seg);
+                    segmentEls.push(seg);
+                }
+            }
+
+            setInterval(() => {
+                if (segmentEls.length > activeSegments) {
+                    const pulseOn = (Math.floor(Date.now() / 450) % 2) === 0;
+                    segmentEls[activeSegments].style.opacity = pulseOn ? '0.65' : '0.16';
+                }
+            }, 450);
+
+            const countdownEl = document.getElementById('countdownText');
+            let remainingSeconds = (36 * 3600) + (14 * 60) + 52;
+
+            function updateCountdown() {
+                if (!countdownEl) return;
+                if (remainingSeconds > 0) remainingSeconds--;
+                const hrs = String(Math.floor(remainingSeconds / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((remainingSeconds % 3600) / 60)).padStart(2, '0');
+                const secs = String(remainingSeconds % 60).padStart(2, '0');
+                countdownEl.textContent = `${hrs}:${mins}:${secs}`;
+            }
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+
+            // =====================================================
+            // 2. TOP PIXELATED CALCIFER (20418.GIF) - 64x64 GRID
+            // =====================================================
+            const canvas = document.getElementById('pixelCanvas');
+            const ctx = canvas.getContext('2d');
+            const sourceGif = document.getElementById('sourceGif');
+
+            const C_GRID = 64;
+            const C_CELL = 4; // 64 * 4 = 256px
+            canvas.width = C_GRID * C_CELL;
+            canvas.height = C_GRID * C_CELL;
+            ctx.imageSmoothingEnabled = false;
+
+            const calciferSample = document.createElement('canvas');
+            calciferSample.width = C_GRID;
+            calciferSample.height = C_GRID;
+            const calciferSampleCtx = calciferSample.getContext('2d', { willReadFrequently: true });
+
+            let gifReady = false;
+            if (sourceGif) {
+                sourceGif.addEventListener('load', () => {
+                    if (sourceGif.naturalWidth > 0) gifReady = true;
+                });
+            }
+
+            function setCalciferPixel(gx, gy, color) {
+                if (gx < 0 || gx >= C_GRID || gy < 0 || gy >= C_GRID) return;
+                ctx.fillStyle = color;
+                ctx.fillRect(gx * C_CELL, gy * C_CELL, C_CELL, C_CELL);
+            }
+
+            function renderLoadedGifPixels() {
+                try {
+                    calciferSampleCtx.clearRect(0, 0, C_GRID, C_GRID);
+                    calciferSampleCtx.drawImage(sourceGif, 0, 0, C_GRID, C_GRID);
+                    const data = calciferSampleCtx.getImageData(0, 0, C_GRID, C_GRID).data;
+                    for (let y = 0; y < C_GRID; y++) {
+                        for (let x = 0; x < C_GRID; x++) {
+                            const idx = (y * C_GRID + x) * 4;
+                            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+                            // Blend outermost dark corners cleanly into pure #000000
+                            const dx = (x - 32) / 31;
+                            const dy = (y - 32) / 31;
+                            if (dx * dx + dy * dy > 0.95 || (r < 14 && g < 10 && b < 10)) continue;
+                            setCalciferPixel(x, y, `rgb(${r},${g},${b})`);
+                        }
+                    }
+                } catch (e) {
+                    gifReady = false;
+                }
+            }
+
+            const embers = [
+                { x: 24, y: 18, speed: 0.25, color: '#ff5a1f' },
+                { x: 38, y: 14, speed: 0.32, color: '#ff9e2c' },
+                { x: 29, y: 11, speed: 0.20, color: '#ffd452' },
+                { x: 35, y: 20, speed: 0.28, color: '#ff4518' }
+            ];
+
+            function renderPixelCalciferScene() {
+                const fStep = Math.floor(tick / 4);
+                const sway = Math.round(Math.sin(fStep * 0.65) * 1.2);
+                const squash = (fStep % 2 === 0) ? 0 : 1;
+
+                // Faint dark-red cast-iron hearth silhouette behind Calcifer (from 20418.gif)
+                for (let y = 6; y <= 24; y++) {
+                    for (let x = 18; x <= 45; x++) {
+                        const dx = (x - 31.5) / 14;
+                        const dy = (y - 12) / 12;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist > 0.72 && dist < 0.96) {
+                            setCalciferPixel(x, y, '#2b0905');
+                        }
+                        // Subtle mouth-like arch relief above flames
+                        if (y >= 11 && y <= 13 && x >= 26 && x <= 37) {
+                            setCalciferPixel(x, y, y === 12 ? '#47120a' : '#260704');
+                        }
+                    }
+                }
+
+                // Glowing logs / charcoals and ash bed at bottom (y: 40..56)
+                for (let y = 41; y <= 55; y++) {
+                    for (let x = 8; x <= 55; x++) {
+                        const edgeDist = Math.abs(x - 31.5);
+                        if (edgeDist > 24 - (y - 41) * 0.4) continue;
+
+                        if (y >= 46 && y <= 48) {
+                            // Dark iron grate bar across lower hearth
+                            setCalciferPixel(x, y, '#140806');
+                        } else if (y > 48) {
+                            // Warm ash floor with dark charcoal pebbles
+                            const isPebble = ((x * 7 + y * 13) % 11 === 0);
+                            setCalciferPixel(x, y, isPebble ? '#241814' : '#785a46');
+                        } else {
+                            // Cracked glowing red-orange coals on sides of Calcifer
+                            const crack = ((x + y + Math.floor(fStep / 2)) % 4 === 0);
+                            setCalciferPixel(x, y, crack ? '#a8230c' : '#290a06');
+                        }
+                    }
+                }
+
+                // Calcifer Flame Body (y: 17..45, x: 16..48)
+                const cx = 32 + sway * 0.5;
+                const cy = 36 + squash * 0.5;
+
+                for (let y = 16; y <= 45; y++) {
+                    for (let x = 14; x <= 49; x++) {
+                        const dx = (x - cx) / 13.5;
+                        const dy = (y - cy) / 12.5;
+                        // Wavy flame crown tongues at the top
+                        const wave = Math.sin((x * 0.55) + fStep * 0.9) * 0.16
+                                   + Math.cos((x * 0.9) - fStep * 0.7) * 0.10;
+                        const dist = dx * dx + (dy + (y < cy ? wave : 0)) * (dy + (y < cy ? wave : 0));
+
+                        if (dist < 1.0) {
+                            let flameColor = '#d92b0f'; // Outer deep red-orange
+                            if (dist < 0.74) flameColor = '#ff5912'; // Mid bright orange
+                            if (dist < 0.48) flameColor = '#ff981a'; // Inner warm gold-orange
+                            if (dist < 0.24 && y >= 31) flameColor = '#ffe14d'; // Bright yellow core around face
+                            if (dist < 0.10 && y >= 34) flameColor = '#fff799'; // Hot white-yellow mouth glow
+                            setCalciferPixel(x, y, flameColor);
+                        }
+                    }
+                }
+
+                // Calcifer Wide Round White Eyes (Left: 25,36 | Right: 38,36)
+                function drawCalciferEye(ex, ey) {
+                    for (let dy = -3; dy <= 3; dy++) {
+                        for (let dx = -3; dx <= 3; dx++) {
+                            const r2 = dx * dx + dy * dy;
+                            if (r2 <= 10) {
+                                // Thin dark crimson outline around eye, crisp off-white sclera inside
+                                setCalciferPixel(ex + dx, ey + dy, r2 >= 8 ? '#6e190c' : '#f7e6de');
+                            }
+                        }
+                    }
+                    // Small dark pupil
+                    const px = ex + (sway > 0 ? 1 : 0);
+                    const py = ey + squash;
+                    setCalciferPixel(px, py, '#1a0908');
+                }
+
+                drawCalciferEye(25, 36 + squash);
+                drawCalciferEye(38, 36 + squash);
+
+                // Small curved mouth line between eyes at bottom
+                const my = 42 + squash;
+                setCalciferPixel(30, my, '#591107');
+                setCalciferPixel(31, my - 1, '#591107');
+                setCalciferPixel(32, my - 1, '#591107');
+                setCalciferPixel(33, my, '#591107');
+            }
+
+            function renderRisingEmbers() {
+                for (let i = 0; i < embers.length; i++) {
+                    const e = embers[i];
+                    e.y -= e.speed;
+                    if (e.y < 6) {
+                        e.y = 24;
+                        e.x = 24 + ((tick + i * 7) % 16);
+                    }
+                    const ex = Math.round(e.x + Math.sin((tick * 0.08) + i) * 1.5);
+                    const ey = Math.round(e.y);
+                    setCalciferPixel(ex, ey, e.color);
+                }
+            }
+
+            // =====================================================
+            // 3. PIXELATED 20248.GIF (EXACT ORIGINAL SCENE & COLORS)
+            // =====================================================
+            const ownerCanvas = document.getElementById('ownerPixelCanvas');
+            const ownerCtx = ownerCanvas.getContext('2d');
+            const ownerGif = document.getElementById('ownerGif');
+
+            // Exact 16:9 landscape pixel grid (88x50 blocks) scaled up 4x -> 352x200
+            const OW_GRID_W = 88;
+            const OW_GRID_H = 50;
+            const OW_CELL = 4;
+            ownerCanvas.width = OW_GRID_W * OW_CELL;
+            ownerCanvas.height = OW_GRID_H * OW_CELL;
+            ownerCtx.imageSmoothingEnabled = false;
+
+            const ownerSampleCanvas = document.createElement('canvas');
+            ownerSampleCanvas.width = OW_GRID_W;
+            ownerSampleCanvas.height = OW_GRID_H;
+            const ownerSampleCtx = ownerSampleCanvas.getContext('2d', { willReadFrequently: true });
+
+            let ownerGifReady = false;
+            if (ownerGif) {
+                ownerGif.addEventListener('load', () => {
+                    if (ownerGif.naturalWidth > 0) ownerGifReady = true;
+                });
+            }
+
+            function setOwnerPixel(gx, gy, color) {
+                if (gx < 0 || gx >= OW_GRID_W || gy < 0 || gy >= OW_GRID_H) return;
+                ownerCtx.fillStyle = color;
+                ownerCtx.fillRect(gx * OW_CELL, gy * OW_CELL, OW_CELL, OW_CELL);
+            }
+
+            function renderLoadedOwnerGifPixels() {
+                try {
+                    ownerSampleCtx.clearRect(0, 0, OW_GRID_W, OW_GRID_H);
+                    ownerSampleCtx.drawImage(ownerGif, 0, 0, OW_GRID_W, OW_GRID_H);
+                    const data = ownerSampleCtx.getImageData(0, 0, OW_GRID_W, OW_GRID_H).data;
+
+                    for (let y = 0; y < OW_GRID_H; y++) {
+                        for (let x = 0; x < OW_GRID_W; x++) {
+                            const idx = (y * OW_GRID_W + x) * 4;
+                            setOwnerPixel(x, y, `rgb(${data[idx]},${data[idx + 1]},${data[idx + 2]})`);
+                        }
+                    }
+                } catch (e) {
+                    ownerGifReady = false;
+                }
+            }
+
+            // Faithful 88x50 Pixelated Reproduction of 20248.gif (Yui running with jam toast)
+            function renderPixelToastRunnerScene() {
+                const frameStep = Math.floor(tick / 3) % 4;
+                const camBobY = (frameStep === 0 || frameStep === 2) ? 0 : (frameStep === 1 ? -1 : 1);
+                const camBobX = (frameStep === 1) ? -1 : (frameStep === 3 ? 1 : 0);
+                const rushShift = Math.floor(tick / 2) % 6;
+
+                // 1. Hallway Background (Cream Left Wall, Wood Right Wall, Lavender Floor)
+                for (let y = 0; y < OW_GRID_H; y++) {
+                    for (let x = 0; x < OW_GRID_W; x++) {
+                        const sy = y - camBobY;
+                        const sx = x - camBobX;
+
+                        const floorTopY = 33 + Math.floor((28 - sx) * 0.18);
+                        if (sx < 58 && sy >= floorTopY) {
+                            if (sy <= floorTopY + 1 && sx < 24) {
+                                setOwnerPixel(x, y, '#7b583b');
+                            } else {
+                                const plankLine = ((sx + sy * 2 + rushShift) % 7 === 0);
+                                const floorShade = sy > 43 ? '#87788e' : (sy > 38 ? '#97889e' : '#a697ad');
+                                setOwnerPixel(x, y, plankLine ? '#7d6e84' : floorShade);
+                            }
+                            continue;
+                        }
+
+                        if (sx < 46) {
+                            const cornerWallX = 35 - Math.floor(sy * 0.28);
+                            if (Math.abs(sx - cornerWallX) <= 1 && sy < 28) {
+                                setOwnerPixel(x, y, '#c4a77d');
+                            } else if (sx > cornerWallX) {
+                                setOwnerPixel(x, y, sy < 12 ? '#dec69b' : '#d5bc90');
+                            } else {
+                                const wallTone = sx < 14 ? '#ead5ae' : (sx < 26 ? '#e4cda4' : '#dcc398');
+                                setOwnerPixel(x, y, wallTone);
+                            }
+                        } else {
+                            const isDoorFrame = (sx >= 69 && sx <= 72);
+                            const isDarkRightPanel = (sx > 72);
+                            if (isDoorFrame) {
+                                setOwnerPixel(x, y, '#593d25');
+                            } else if (isDarkRightPanel) {
+                                setOwnerPixel(x, y, (sx + sy) % 5 === 0 ? '#6e4c30' : '#63442b');
+                            } else {
+                                const dxBurst = sx - 57;
+                                const dyBurst = sy - 2;
+                                const burstDist = Math.sqrt(dxBurst * dxBurst + dyBurst * dyBurst);
+                                if (burstDist < 4.2) {
+                                    setOwnerPixel(x, y, burstDist < 2.2 ? '#efe0bd' : '#c7a97b');
+                                } else {
+                                    const woodTone = sy < 14 ? '#8f6945' : '#7d5a3b';
+                                    setOwnerPixel(x, y, woodTone);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2. Billowing Dark School Blazer
+                const bx = camBobX;
+                const by = camBobY;
+                const capeFlutter = (frameStep % 2 === 0) ? 0 : 1;
+
+                for (let y = 9; y < OW_GRID_H; y++) {
+                    for (let x = 15; x < OW_GRID_W; x++) {
+                        const rx = x - bx;
+                        const ry = y - by;
+
+                        const topEdgeRight = 32 - Math.floor((rx - 44) * 0.56) + capeFlutter;
+                        const bottomEdgeRight = 46 - Math.floor((rx - 52) * 0.25);
+
+                        const inLeftSleeve = (
+                            rx >= 15 && rx <= 33 &&
+                            ry >= 33 - Math.floor((rx - 15) * 0.25) &&
+                            ry <= 42 - Math.floor((33 - rx) * 0.15)
+                        );
+
+                        const inTorso = (
+                            rx >= 29 && rx <= 54 &&
+                            ry >= 29 &&
+                            rx >= 32 - Math.floor((ry - 29) * 0.25) &&
+                            rx <= 51 + Math.floor((ry - 29) * 0.35)
+                        );
+
+                        const inRightBillow = (
+                            rx >= 44 &&
+                            ry >= Math.max(10, topEdgeRight) &&
+                            ry <= Math.min(OW_GRID_H - 1, bottomEdgeRight)
+                        );
+
+                        if (inLeftSleeve || inTorso || inRightBillow) {
+                            let coatColor = '#3b3a32';
+                            if (inRightBillow && ry < topEdgeRight + 3) {
+                                coatColor = '#4a483e';
+                            } else if (inTorso && rx > 35 && rx < 47 && ry > 35) {
+                                coatColor = '#2e2e27';
+                            } else if ((rx + ry) % 7 === 0) {
+                                coatColor = '#33322b';
+                            }
+                            setOwnerPixel(x, y, coatColor);
+                        }
+                    }
+                }
+
+                // Outstretched right hand
+                for (let hy = 38; hy <= 42; hy++) {
+                    for (let hx = 13; hx <= 17; hx++) {
+                        if (hy === 38 && hx === 13) continue;
+                        const handTone = (hx === 13 || hy === 42) ? '#d6ad88' : '#f2cfb0';
+                        setOwnerPixel(hx + bx, hy + by, handTone);
+                    }
+                }
+
+                // Backpack strap
+                for (let sy = 32; sy <= 48; sy++) {
+                    for (let sx = 48; sx <= 55; sx++) {
+                        const strapCurve = Math.abs(sx - (51 + Math.floor((sy - 32) * 0.15)));
+                        if (strapCurve <= 2) {
+                            setOwnerPixel(sx + bx, sy + by, strapCurve === 0 ? '#657a8f' : '#4d6073');
+                        }
+                    }
+                }
+
+                // White collar & blue ribbon
+                for (let cy = 29; cy <= 36; cy++) {
+                    for (let cx = 37; cx <= 46; cx++) {
+                        if (cx >= 43 && cy <= 34) {
+                            setOwnerPixel(cx + bx, cy + by, cy < 32 ? '#e8e4dc' : '#cfc9be');
+                        } else if (cx >= 39 && cx <= 43 && cy >= 33) {
+                            setOwnerPixel(cx + bx, cy + by, '#486278');
+                        }
+                    }
+                }
+
+                // Gold blazer button
+                setOwnerPixel(42 + bx, 44 + by, '#b08b54');
+                setOwnerPixel(42 + bx, 45 + by, '#8f6e3d');
+
+                // 3. Fluffy Brown Bob Hair
+                const hcX = 41 + bx;
+                const hcY = 18 + by;
+                const hairBounce = (frameStep === 1 || frameStep === 2) ? -1 : 0;
+
+                for (let y = 5; y <= 31; y++) {
+                    for (let x = 21; x <= 60; x++) {
+                        const dx = (x - hcX) / 16.5;
+                        const dy = (y - (hcY + hairBounce)) / 11.5;
+                        const dist = dx * dx + dy * dy;
+
+                        const leftWing = (
+                            x >= 22 && x <= 31 &&
+                            y >= 11 + hairBounce && y <= 25 + hairBounce &&
+                            (x - 22) + (y - 11) > 4
+                        );
+                        const rightWing = (
+                            x >= 50 && x <= 59 &&
+                            y >= 13 + hairBounce && y <= 26 + hairBounce &&
+                            (59 - x) + (y - 13) > 4
+                        );
+                        const topLeftPeak = (x >= 30 && x <= 39 && y >= 6 + hairBounce && y <= 10);
+                        const topRightPeak = (x >= 42 && x <= 51 && y >= 7 + hairBounce && y <= 11);
+
+                        if (dist < 0.96 || leftWing || rightWing || topLeftPeak || topRightPeak) {
+                            if (x < 25 && (y === 14 || y === 19 || y === 24)) continue;
+                            if (x > 56 && (y === 15 || y === 21)) continue;
+
+                            let hairColor = '#7d4b29';
+                            if (y < hcY - 3 && x > hcX - 8 && x < hcX + 8) {
+                                hairColor = '#8f5834';
+                            } else if (y > hcY + 4 || x < 27 || x > 54) {
+                                hairColor = '#663b1e';
+                            }
+                            setOwnerPixel(x, y, hairColor);
+                        }
+                    }
+                }
+
+                // 4. Anime Face, Bangs & Big Expressive Brown Eyes
+                for (let y = 15; y <= 30; y++) {
+                    for (let x = 32; x <= 49; x++) {
+                        const dx = (x - (hcX - 0.5)) / 8.5;
+                        const dy = (y - (hcY + 5)) / 7.5;
+                        if (dx * dx + dy * dy <= 1.0) {
+                            const skinShade = (x < 35 || y > 28) ? '#ebd0b3' : '#f7dfc6';
+                            setOwnerPixel(x, y, skinShade);
+                        }
+                    }
+                }
+
+                for (let x = 32; x <= 49; x++) {
+                    const relX = x - hcX;
+                    let bangBottom = 18 + hairBounce;
+                    if (relX >= -3 && relX <= -1) bangBottom = 21 + hairBounce;
+                    else if (relX >= 0 && relX <= 2) bangBottom = 16 + hairBounce;
+                    else if (relX >= 3 && relX <= 5) bangBottom = 20 + hairBounce;
+                    else if (relX < -5 || relX > 5) bangBottom = 21 + hairBounce;
+
+                    for (let y = 13 + hairBounce; y <= bangBottom; y++) {
+                        setOwnerPixel(x, y, y === bangBottom ? '#6b3e20' : '#7d4b29');
+                    }
+                }
+
+                setOwnerPixel(35 + bx, 18 + by, '#5c3318');
+                setOwnerPixel(36 + bx, 17 + by, '#5c3318');
+                setOwnerPixel(37 + bx, 18 + by, '#5c3318');
+
+                setOwnerPixel(44 + bx, 18 + by, '#5c3318');
+                setOwnerPixel(45 + bx, 17 + by, '#5c3318');
+                setOwnerPixel(46 + bx, 18 + by, '#5c3318');
+
+                function drawYuiEye(ex, ey) {
+                    for (let dy = 0; dy <= 4; dy++) {
+                        for (let dx = 0; dx <= 3; dx++) {
+                            setOwnerPixel(ex + dx, ey + dy, '#ffffff');
+                        }
+                    }
+                    for (let dx = 0; dx <= 3; dx++) {
+                        setOwnerPixel(ex + dx, ey, '#2b160a');
+                    }
+                    for (let dy = 1; dy <= 4; dy++) {
+                        for (let dx = 1; dx <= 2; dx++) {
+                            setOwnerPixel(ex + dx, ey + dy, dy === 4 ? '#754629' : '#422310');
+                        }
+                    }
+                    setOwnerPixel(ex + 1, ey + 1, '#ffffff');
+                }
+
+                drawYuiEye(34 + bx, 21 + by);
+                drawYuiEye(43 + bx, 21 + by);
+                setOwnerPixel(40 + bx, 25 + by, '#dfc0a2');
+
+                // 5. Square Jam Toast in Mouth
+                const toastBounce = (frameStep === 2) ? 1 : 0;
+                for (let ty = 27; ty <= 38; ty++) {
+                    const rowProgress = (ty - 27) / 11;
+                    const leftX = Math.round(34 - rowProgress * 2.2) + bx;
+                    const rightX = Math.round(43 - rowProgress * 1.2) + bx;
+
+                    for (let tx = leftX; tx <= rightX; tx++) {
+                        const drawY = ty + by + toastBounce;
+                        const isTopOrBottomCrust = (ty === 27 || ty === 38);
+                        const isSideCrust = (tx === leftX || tx === rightX);
+
+                        const inJam = (
+                            ty >= 29 && ty <= 35 &&
+                            tx >= leftX + 2 && tx <= rightX - 2
+                        );
+
+                        if (inJam) {
+                            const jamShade = (ty === 30 || tx === leftX + 2) ? '#c73e55' : '#a82c42';
+                            setOwnerPixel(tx, drawY, jamShade);
+                        } else if (isTopOrBottomCrust || isSideCrust) {
+                            const crustShade = (ty === 38) ? '#a6622c' : '#cf8544';
+                            setOwnerPixel(tx, drawY, crustShade);
+                        } else {
+                            setOwnerPixel(tx, drawY, '#ebd0a4');
+                        }
+                    }
+                }
+            }
+
+            // =====================================================
+            // 4. MAIN ANIMATION LOOP (STARTS IMMEDIATELY)
+            // =====================================================
+            function animate() {
+                tick++;
+
+                // Top Section: Calcifer (20418.gif)
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                if (gifReady) {
+                    renderLoadedGifPixels();
+                } else {
+                    renderPixelCalciferScene();
+                }
+                renderRisingEmbers();
+
+                // Bottom Section: Owner (20248.gif)
+                ownerCtx.fillStyle = '#000000';
+                ownerCtx.fillRect(0, 0, ownerCanvas.width, ownerCanvas.height);
+
+                if (ownerGifReady) {
+                    renderLoadedOwnerGifPixels();
+                } else {
+                    renderPixelToastRunnerScene();
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            // Start immediately so there is never a blank frame
+            animate();
+        })();
+    </script>
+</body>
+</html>
+```
